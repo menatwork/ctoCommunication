@@ -30,7 +30,6 @@
 /**
  * System configuration
  */
-
 // Palettes Insert
 $arrPalettes = explode(";", $GLOBALS['TL_DCA']['tl_settings']['palettes']['default']);
 $GLOBALS['TL_DCA']['tl_settings']['palettes']['default'] = implode(";", array_merge(array_slice($arrPalettes, 0, 1), array("{ctoCommunication_legend},ctoCom_APIKey"), array_slice($arrPalettes, 1)));
@@ -41,7 +40,7 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_APIKey'] = array(
     'inputType' => 'text',
     'eval' => array('tl_class' => 'w50', 'minlength' => 32, 'maxlength' => 64),
     'exclude' => true,
-    'save_callback' => array(array('CtoCommunicationSettings', 'saveCallAPIKey')),
+    'save_callback' => array(array('CtoCommunicationSettings', 'save_callback')),
 );
 
 class CtoCommunicationSettings extends Backend
@@ -59,7 +58,7 @@ class CtoCommunicationSettings extends Backend
      * @param DataContainer $dca
      * @return type 
      */
-    public function saveCallAPIKey($varValue, DataContainer $dca)
+    public function save_callback($varValue, DataContainer $dca)
     {
         if ($varValue == "")
         {
@@ -71,4 +70,5 @@ class CtoCommunicationSettings extends Backend
     }
 
 }
+
 ?>
