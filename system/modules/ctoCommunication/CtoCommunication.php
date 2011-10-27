@@ -281,7 +281,7 @@ class CtoCommunication extends Backend
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
-        
+
 
         // Which method ? GET or POST
         if ($isGET)
@@ -295,13 +295,14 @@ class CtoCommunication extends Backend
         else
         {
             // Build Multipart Post Data
-            $objMultipartFormdata = new MultipartFormdata();
+            $objMultipartFormdata = new CtoCommunicationMultipartFormdata();
             foreach ($arrData as $key => $value)
             {
                 if (isset($value["filename"]) == true && strlen($value["filename"]) != 0)
                 {
                     // Set field for file
-                    $objMultipartFormdata->setFileField($value["name"], $value["filename"], $value["mime"]);
+                    if (!$objMultipartFormdata->setFileField($value["name"], $value["filepath"], $value["mime"]))
+                        throw new Exception("Could not add file to postheader.");
                 }
                 else
                 {
@@ -323,14 +324,14 @@ class CtoCommunication extends Backend
         // Send new request
         $objRequest->send($this->strUrl);
 
-        /* Debug 
-        print_r($objRequest->request);
-        echo "<br>|--|<br>";
-        print_r($objRequest->response);
-        echo "<br>|--|<br>";
-        echo "<br>|--------------------------------|<br>";         
-        */
-        
+        /* Debug  */
+        //print_r(substr($objRequest->request, 0, 2500));
+        //print_r($objRequest->request);
+        //echo "<br>|--|<br>";
+        //print_r(substr($objRequest->response, 0, 2500));
+        //print_r($objRequest->response);
+        //echo "<br>|--|<br>";
+        //echo "<br>|--------------------------------|<br>";
         // Debug
         $this->objDebug->addDebug("Request", $objRequest->request);
         $this->objDebug->addDebug("Response", $objRequest->response);
@@ -354,7 +355,7 @@ class CtoCommunication extends Backend
             throw new Exception("We got a Fatal error on client site. " . $objRequest->response);
         }
 
-        if (preg_match("^\<\|\@\|.*\|\@\|\>^i", $objRequest->response) == 0)
+        if (strpos($objRequest->response, "<|@|") === FALSE || strpos($objRequest->response, "|@|>") === FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("Could not find start or endtag from response.");
@@ -367,20 +368,15 @@ class CtoCommunication extends Backend
 
         $mixContent = $this->objCodifyengine->Decrypt(substr($mixContent, $intStart, $intLength));
 
-        // Check response for ser. array
-        if (preg_match("^a:.*:{.*}^i", $mixContent) == 0)
-        {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-            throw new Exception("1Response is not a array. Maybe wrong key or codifyengine.");
-        }
-
         $mixContent = deserialize($mixContent);
-       
+
         if (is_array($mixContent) == false)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-            throw new Exception("2Response is not a array. Maybe wrong key or codifyengine.");
+            throw new Exception("Response is not a array. Maybe wrong key or codifyengine.");
         }
+
+        $mixContent = $this->cleanUp($mixContent);
 
         if ($mixContent["success"] == 1)
         {
@@ -391,8 +387,8 @@ class CtoCommunication extends Backend
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
 
-            $string = vsprintf("There was a error on client site with message: %s. | RPC Call: %s | Class: %s | Function: %s", array(
-                $mixContent["error"][0]["msg"],
+            $string = vsprintf("There was a error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
+                nl2br($mixContent["error"][0]["msg"]),
                 $mixContent["error"][0]["rpc"],
                 $mixContent["error"][0]["class"],
                 $mixContent["error"][0]["function"],
@@ -402,6 +398,23 @@ class CtoCommunication extends Backend
         }
 
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+    }
+
+    protected function cleanUp($arrArray)
+    {
+        foreach ($arrArray as $key => $value)
+        {
+            if (is_array($value))
+            {
+                $arrArray[$key] = $this->cleanUp($value);
+            }
+            else
+            {
+                $arrArray[$key] = html_entity_decode($value);
+            }
+        }
+
+        return $arrArray;
     }
 
     /**
@@ -512,6 +525,7 @@ class CtoCommunication extends Backend
                             foreach ($_POST as $key => $value)
                             {
                                 $mixPost = $this->Input->post($key);
+                                $mixPost = html_entity_decode($mixPost);
                                 $mixPost = $this->objCodifyengine->Decrypt($mixPost);
                                 $mixPost = deserialize($mixPost);
                                 $mixPost = $mixPost["data"];
@@ -593,7 +607,7 @@ class CtoCommunication extends Backend
                     "language" => "rpc_unknown_exception",
                     "id" => 3,
                     "object" => "",
-                    "msg" => $exc->getTraceAsString(),
+                    "msg" => $exc->getMessage() . "\n" . $exc->getTraceAsString(),
                     "rpc" => $mixRPCCall,
                     "class" => $this->arrRpcList[$mixRPCCall]["class"],
                     "function" => $this->arrRpcList[$mixRPCCall]["function"],
@@ -638,7 +652,7 @@ class CtoCommunication extends Backend
         $strOutput = $this->objCodifyengine->Encrypt($strOutput);
 
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-        
+
         return "<|@|" . $strOutput . "|@|>";
     }
 
