@@ -39,7 +39,6 @@ class CtoCommunication extends Backend
     protected static $instance = null;
     // Vars
     protected $strUrl;
-    protected $strUrlGet;
     protected $strApiKey;
     protected $arrCookies;
     protected $arrRpcList;
@@ -174,7 +173,7 @@ class CtoCommunication extends Backend
     public function setClient($strUrl, $strCodifyEngine = "Blowfish")
     {
         $this->strUrl = $strUrl;
-
+        
         $this->setCodifyengine($strCodifyEngine);
     }
 
@@ -251,8 +250,6 @@ class CtoCommunication extends Backend
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
         $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $rpc);
-        
-        $this->strUrlGet = "";
 
         // Check if everything is set
         if ($this->strApiKey == "" || $this->strApiKey == null)
@@ -267,11 +264,11 @@ class CtoCommunication extends Backend
 
         if (strpos($this->strUrl, "?") !== FALSE)
         {
-            $this->strUrlGet .= "&engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
+            $this->strUrl .= "&engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
         }
         else
         {
-            $this->strUrlGet .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
+            $this->strUrl .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
         }
 
         // Set Key for codifyengine
@@ -292,13 +289,13 @@ class CtoCommunication extends Backend
             $objRequest->method = "GET";
             foreach ($arrData as $key => $value)
             {
-                $this->strUrlGet .= "&" . $value["name"] . "=" . $value["value"];
+                $this->strUrl .= "&" . $value["name"] . "=" . $value["value"];
             }
         }
         else
         {
             // Build Multipart Post Data
-            $objMultipartFormdata = new CtoCommunicationMultipartFormdata();
+            $objMultipartFormdata = new MultipartFormdata();
             foreach ($arrData as $key => $value)
             {
                 if (isset($value["filename"]) == true && strlen($value["filename"]) != 0)
@@ -322,11 +319,11 @@ class CtoCommunication extends Backend
             // Set typ and mime typ
             $objRequest->method = "POST";
             $objRequest->datamime = $objMultipartFormdata->getContentTypeHeader();
-        }
-
+        }   
+        
         // Send new request
-        $objRequest->send($this->strUrl . $this->strUrlGet);
-
+        $objRequest->send($this->strUrl);
+        
         /* Debug  */
         //print_r(substr($objRequest->request, 0, 2500));
         //print_r($objRequest->request);
@@ -338,6 +335,7 @@ class CtoCommunication extends Backend
         // Debug
         //$this->objDebug->addDebug("Request", $objRequest->request);
         //$this->objDebug->addDebug("Response", $objRequest->response);
+        
         // Check if evething is okay for connection
         if ($objRequest->hasError())
         {
@@ -350,8 +348,8 @@ class CtoCommunication extends Backend
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("We got a blank response from server.");
         }
-
-        if (strpos($objRequest->response, "Fatal error:") !== FALSE)
+		
+        if (strpos($objRequest->response, "Fatal error") !== FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("We got a Fatal error on client site. " . $objRequest->response);
@@ -369,7 +367,7 @@ class CtoCommunication extends Backend
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
 
         $mixContent = $this->objCodifyengine->Decrypt(substr($mixContent, $intStart, $intLength));
-
+        
         $mixContent = deserialize($mixContent);
 
         if (is_array($mixContent) == false)
