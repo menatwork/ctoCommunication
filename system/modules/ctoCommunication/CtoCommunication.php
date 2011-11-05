@@ -62,7 +62,7 @@ class CtoCommunication extends Backend
 
         $this->objCodifyengine = CtoComCodifyengineFactory::getEngine();
         $this->objCodifyengineBlow = CtoComCodifyengineFactory::getEngine("Blowfish");
-        $this->objDebug = CtoComDebug::getInstance();
+        $this->objDebug = CtoComDebug::getInstance();        
 
         $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
         $this->arrError = array();
@@ -333,8 +333,8 @@ class CtoCommunication extends Backend
         //echo "<br>|--|<br>";
         //echo "<br>|--------------------------------|<br>";
         // Debug
-        //$this->objDebug->addDebug("Request", $objRequest->request);
-        //$this->objDebug->addDebug("Response", $objRequest->response);
+        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2500));
+        $this->objDebug->addDebug("Response", substr($objRequest->response, 0, 2500));        
         
         // Check if evething is okay for connection
         if ($objRequest->hasError())
@@ -367,6 +367,7 @@ class CtoCommunication extends Backend
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
 
         $mixContent = $this->objCodifyengine->Decrypt(substr($mixContent, $intStart, $intLength));
+        $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2500));
         
         $mixContent = deserialize($mixContent);
 

@@ -57,7 +57,7 @@ class CtoComDebug extends Backend
         $this->booDebug = false;
         $this->booMeasurement = false;
     }
-
+    
     public function __destruct()
     {
         if ($this->booDebug)
@@ -164,20 +164,19 @@ class CtoComDebug extends Backend
 
     public function addDebug($Debugname, $value)
     {
-        $this->arrDebug[$Debugname . microtime(true)] = $value;
+        $this->arrDebug[$Debugname . " - " . microtime(true)] = $value;
     }
 
     /* -------------------------------------------------------------------------
      * Write Functions
      */
-
+    
     protected function writeMeasurement()
     {
         try
         {
             $objFile = new File($this->strPathMeasurement);
-            $objFile->delete();
-
+            
             $intTime = time();
 
             if (count($this->arrMeasurement) == 0)
@@ -187,9 +186,9 @@ class CtoComDebug extends Backend
             }
 
             $strContent = "";
-            $strContent .= ">>|------------------------------------------------------";
-            $strContent .= ">>|-- Start Measurement Core at " . date("H:i:s d.m.Y", $intTime);
-            $strContent .= ">>\n";
+            $strContent .= "\n>>|------------------------------------------------------";
+            $strContent .= "\n>>|-- Start Measurement Core at " . date("H:i:s d.m.Y", $intTime);
+            $strContent .= "\n>>\n\n";
 
             foreach ($this->arrMeasurement as $key => $value)
             {
@@ -199,11 +198,11 @@ class CtoComDebug extends Backend
                         "\n|----\n";
             }
 
-            $strContent .= ">>";
-            $strContent .= ">>|-- Close Measurement Core at " . date("H:i:s d.m.Y", $intTime);
-            $strContent .= ">>|------------------------------------------------------\n";
+            $strContent .= "\n\n>>";
+            $strContent .= "\n>>|-- Close Measurement Core at " . date("H:i:s d.m.Y", $intTime);
+            $strContent .= "\n>>|------------------------------------------------------\n";
 
-            if (!$objFile->write($varData))
+            if (!$objFile->append($strContent))
                 $this->log("Could not write CtoCom Measurement file.", __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
 
             $objFile->close();
@@ -215,12 +214,11 @@ class CtoComDebug extends Backend
     }
 
     protected function writeDebug()
-    {
+    {  
         try
         {
             $objFile = new File($this->strPathDebug);
-            $objFile->delete();
-
+            
             $intTime = time();
 
             if (count($this->arrDebug) == 0)
@@ -257,11 +255,13 @@ class CtoComDebug extends Backend
             $strContent .="\n>>";
             $strContent .="\n>>|-- Close Log at " . date("H:i:s d.m.Y", $intTime);
             $strContent .="\n>>|------------------------------------------------------\n";
+            
+        
 
-            if (!$objFile->write($varData))
+            if (!$objFile->append($strContent))
                 $this->log("Could not write CtoCom Debug file.", __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
 
-            $objFile->close();
+            $objFile->close();          
         }
         catch (Exception $exc)
         {
