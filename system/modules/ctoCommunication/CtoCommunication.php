@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -39,6 +36,7 @@ class CtoCommunication extends Backend
     protected static $instance = null;
     // Vars
     protected $strUrl;
+    protected $strUrlGet;
     protected $strApiKey;
     protected $arrCookies;
     protected $arrRpcList;
@@ -250,6 +248,8 @@ class CtoCommunication extends Backend
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
         $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $rpc);
+        
+        $this->strUrlGet = "";
 
         // Check if everything is set
         if ($this->strApiKey == "" || $this->strApiKey == null)
@@ -264,11 +264,11 @@ class CtoCommunication extends Backend
 
         if (strpos($this->strUrl, "?") !== FALSE)
         {
-            $this->strUrl .= "&engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
+            $this->strUrlGet .= "&engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
         }
         else
         {
-            $this->strUrl .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
+            $this->strUrlGet .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
         }
 
         // Set Key for codifyengine
@@ -289,7 +289,7 @@ class CtoCommunication extends Backend
             $objRequest->method = "GET";
             foreach ($arrData as $key => $value)
             {
-                $this->strUrl .= "&" . $value["name"] . "=" . $value["value"];
+                $this->strUrlGet .= "&" . $value["name"] . "=" . $value["value"];
             }
         }
         else
@@ -322,19 +322,11 @@ class CtoCommunication extends Backend
         }   
         
         // Send new request
-        $objRequest->send($this->strUrl);
-        
-        /* Debug  */
-        //print_r(substr($objRequest->request, 0, 2500));
-        //print_r($objRequest->request);
-        //echo "<br>|--|<br>";
-        //print_r(substr($objRequest->response, 0, 2500));
-        //print_r($objRequest->response);
-        //echo "<br>|--|<br>";
-        //echo "<br>|--------------------------------|<br>";
+        $objRequest->send($this->strUrl . $this->strUrlGet);
+                
         // Debug
-        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2500));
-        $this->objDebug->addDebug("Response", substr($objRequest->response, 0, 2500));        
+        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 25000));
+        $this->objDebug->addDebug("Response", substr($objRequest->response, 0, 25000));        
         
         // Check if evething is okay for connection
         if ($objRequest->hasError())
