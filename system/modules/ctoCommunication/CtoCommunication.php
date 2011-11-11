@@ -60,7 +60,7 @@ class CtoCommunication extends Backend
 
         $this->objCodifyengine = CtoComCodifyengineFactory::getEngine();
         $this->objCodifyengineBlow = CtoComCodifyengineFactory::getEngine("Blowfish");
-        $this->objDebug = CtoComDebug::getInstance();        
+        $this->objDebug = CtoComDebug::getInstance();
 
         $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
         $this->arrError = array();
@@ -74,7 +74,9 @@ class CtoCommunication extends Backend
     public static function getInstance()
     {
         if (self::$instance == null)
+        {
             self::$instance = new CtoCommunication();
+        }
 
         return self::$instance;
     }
@@ -171,7 +173,7 @@ class CtoCommunication extends Backend
     public function setClient($strUrl, $strCodifyEngine = "Blowfish")
     {
         $this->strUrl = $strUrl;
-        
+
         $this->setCodifyengine($strCodifyEngine);
     }
 
@@ -194,9 +196,13 @@ class CtoCommunication extends Backend
     public function setCookies($name, $value)
     {
         if ($value == "")
+        {
             unset($this->arrCookies[$name]);
+        }
         else
+        {
             $this->arrCookies[$name] = $value;
+        }
     }
 
     //- Getter -------------------
@@ -248,15 +254,19 @@ class CtoCommunication extends Backend
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
         $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $rpc);
-        
+
         $this->strUrlGet = "";
 
         // Check if everything is set
         if ($this->strApiKey == "" || $this->strApiKey == null)
+        {
             throw new Exception("The API Key is not set. Please set first API Key.");
+        }
 
         if ($this->strUrl == "" || $this->strUrl == null)
+        {
             throw new Exception("There is no URL set for connection. Please set first the url.");
+        }
 
         // Add Get Parameter
         $strCryptApiKey = $this->objCodifyengineBlow->Encrypt($rpc . "@|@" . $this->strApiKey);
@@ -281,7 +291,9 @@ class CtoCommunication extends Backend
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
-
+        
+        // Set Header Accept-Language        
+        $objRequest->setHeader("Accept-Language", vsprintf("%s, en;q=0.8", array($GLOBALS['TL_LANGUAGE'])));
 
         // Which method ? GET or POST
         if ($isGET)
@@ -302,7 +314,9 @@ class CtoCommunication extends Backend
                 {
                     // Set field for file
                     if (!$objMultipartFormdata->setFileField($value["name"], $value["filepath"], $value["mime"]))
+                    {
                         throw new Exception("Could not add file to postheader.");
+                    }
                 }
                 else
                 {
@@ -319,15 +333,15 @@ class CtoCommunication extends Backend
             // Set typ and mime typ
             $objRequest->method = "POST";
             $objRequest->datamime = $objMultipartFormdata->getContentTypeHeader();
-        }   
-        
+        }
+
         // Send new request
         $objRequest->send($this->strUrl . $this->strUrlGet);
-                
+
         // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 25000));
-        $this->objDebug->addDebug("Response", substr($objRequest->response, 0, 25000));        
-        
+        $this->objDebug->addDebug("Response", substr($objRequest->response, 0, 25000));
+
         // Check if evething is okay for connection
         if ($objRequest->hasError())
         {
@@ -340,7 +354,7 @@ class CtoCommunication extends Backend
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("We got a blank response from server.");
         }
-		
+
         if (strpos($objRequest->response, "Fatal error") !== FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
@@ -360,7 +374,7 @@ class CtoCommunication extends Backend
 
         $mixContent = $this->objCodifyengine->Decrypt(substr($mixContent, $intStart, $intLength));
         $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2500));
-        
+
         $mixContent = deserialize($mixContent);
 
         if (is_array($mixContent) == false)
@@ -438,7 +452,7 @@ class CtoCommunication extends Backend
         {
             $this->log(vsprintf("Error Api Key from %s. Request action: %s | Key action: %s | Api: %s", array(
                         $this->Environment->ip,
-                        $this->Input->get("$strAction"),
+                        $this->Input->get("act"),
                         $strAction,
                         $strApiKey
                     )), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
@@ -600,11 +614,13 @@ class CtoCommunication extends Backend
                     "language" => "rpc_unknown_exception",
                     "id" => 3,
                     "object" => "",
-                    "msg" => $exc->getMessage() . "\n" . $exc->getTraceAsString(),
+                    "msg" => $exc->getMessage(),
                     "rpc" => $mixRPCCall,
                     "class" => $this->arrRpcList[$mixRPCCall]["class"],
                     "function" => $this->arrRpcList[$mixRPCCall]["function"],
                 );
+
+                $this->log(vsprintf("RPC Exception: %s | %s", array($exc->getMessage(), nl2br($exc->getTraceAsString()))), __CLASS__ . " | " . __FUNCTION__, TL_ERROR);
             }
         }
 
