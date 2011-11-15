@@ -30,7 +30,7 @@
 /**
  * Fields
  */
-$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'] = array('CtoCommunication API Key', 'Dieser Schlüssel wird benutzt um anderen den Zugang zu erluben.');
+$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'] = array('CtoCommunication API Key', 'Dieser Schlüssel wird benutzt um anderen den Zugang zu gewähren.');
 
 /**
  * Legends
