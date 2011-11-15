@@ -76,7 +76,7 @@ class CtoComRPCFunctions extends Backend
      * 
      * @return boolean 
      */
-    public function referer_disable()
+    public function referrer_disable()
     {
         $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", true);
         return true;
@@ -87,7 +87,7 @@ class CtoComRPCFunctions extends Backend
      * 
      * @return boolean 
      */
-    public function referer_enable()
+    public function referrer_enable()
     {
         $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", false);
         return false;

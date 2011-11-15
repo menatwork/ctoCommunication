@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You can not access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -31,10 +28,18 @@ if (!defined('TL_ROOT'))
  */
 
 /**
- * Version from Cto Communication
+ * ctoCommunication Version
  */
-$GLOBALS["CTOCOM_VERSION"] = "0.0.1";
+$GLOBALS["CTOCOM_VERSION"] = "0.1.0";
 
+/**
+ * Hooks
+ */
+$GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('CtoCommunication', 'checkExtensions');
+
+/**
+ * ctoCommunication engines
+ */
 $GLOBALS["CTOCOM_ENGINE"] = array(
     "Empty" => array(
         "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Empty"],
@@ -55,20 +60,19 @@ $GLOBALS["CTOCOM_ENGINE"] = array(
 
 /**
  * Register for RPC-Call functions
- * 
- * Base configuration and CtoCommunication RPC Calls
+ * Base configuration and ctoCommunication RPC Calls
  */
 $GLOBALS["CTOCOM_FUNCTIONS"] = array(
     //- Referer Functions --------
-    "CTOCOM_REFERER_DISABLE" => array(
+    "CTOCOM_REFERRER_DISABLE" => array(
         "class" => "CtoComRPCFunctions",
-        "function" => "referer_disable",
+        "function" => "referrer_disable",
         "typ" => "GET",
         "parameter" => false,
     ),
-    "CTOCOM_REFERER_ENABLE" => array(
+    "CTOCOM_REFERRER_ENABLE" => array(
         "class" => "CtoComRPCFunctions",
-        "function" => "referer_enable",
+        "function" => "referrer_enable",
         "typ" => "GET",
         "parameter" => false,
     ),

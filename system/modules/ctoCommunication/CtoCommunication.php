@@ -143,8 +143,6 @@ class CtoCommunication extends Backend
      * Getter / Setter
      */
 
-    //- Setter -------------------
-
     /**
      * Set the url for connection
      * 
@@ -360,6 +358,16 @@ class CtoCommunication extends Backend
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("We got a Fatal error on client site. " . $objRequest->response);
         }
+        
+        if (strpos($objRequest->response, "Warning") !== FALSE)
+        {
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            
+            $intStart = stripos($objRequest->response, "<strong>Warning</strong>:");
+            $intEnd = stripos($objRequest->response, "on line");
+            
+            throw new Exception("We got a Warning on client site.<br /><br />" . substr($objRequest->response, $intStart, $intEnd - $intStart));
+        }
 
         if (strpos($objRequest->response, "<|@|") === FALSE || strpos($objRequest->response, "|@|>") === FALSE)
         {
@@ -397,9 +405,10 @@ class CtoCommunication extends Backend
             $string = vsprintf("There was a error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
                 nl2br($mixContent["error"][0]["msg"]),
                 $mixContent["error"][0]["rpc"],
-                $mixContent["error"][0]["class"],
-                $mixContent["error"][0]["function"],
-                    ));
+                (strlen($mixContent["error"][0]["class"]) != 0) ? $mixContent["error"][0]["class"] : " - ",
+                (strlen($mixContent["error"][0]["function"]) != 0) ? $mixContent["error"][0]["function"] : " - ",
+                    )
+            );
 
             throw new Exception($string);
         }
@@ -633,7 +642,7 @@ class CtoCommunication extends Backend
      */
 
     /**
-     * Bau die Antwort als Array auf und serialize es.
+     * Build the answer and serialize it
      *
      * @return string
      */
@@ -663,6 +672,47 @@ class CtoCommunication extends Backend
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
 
         return "<|@|" . $strOutput . "|@|>";
+    }
+    
+    /**
+     * Check the required extensions and files for ctoCommunication
+     * 
+     * @param string $strContent
+     * @param string $strTemplate
+     * @return string
+     */
+    public function checkExtensions($strContent, $strTemplate)
+    {
+        if ($strTemplate == 'be_main')
+        {
+            if (!is_array($_SESSION["TL_INFO"]))
+            {
+                $_SESSION["TL_INFO"] = array();
+            }
+
+            // required extensions
+            $arrRequiredExtensions = array(
+                'httprequestextended' => 'httprequestextended',
+            );
+
+            // check for required extensions
+            foreach ($arrRequiredExtensions as  $key => $val)
+            {
+                if (!in_array($val, $this->Config->getActiveModules()))
+                {
+                    $_SESSION["TL_INFO"] = array_merge($_SESSION["TL_INFO"], array($val => 'Please install the required extension <strong>' . $key . '</strong>'));
+                }
+                else
+                {
+                    if (is_array($_SESSION["TL_INFO"]) && key_exists($val, $_SESSION["TL_INFO"]))
+                    {
+                        unset($_SESSION["TL_INFO"][$val]);
+                    }
+                }
+            }
+        }
+
+        return $strContent;
     }
 
 }
