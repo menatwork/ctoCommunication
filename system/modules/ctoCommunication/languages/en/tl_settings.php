@@ -30,10 +30,10 @@
 /**
  * Fields
  */
-$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'] = array('CtoCommunication API Key', 'Use this key to connect other projects to this one.');
+$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'] = array('ctoCommunication API Key', 'Use this key to connect other projects to this one.');
 
 /**
  * Legends
  */
-$GLOBALS['TL_LANG']['tl_settings']['ctoCommunication_legend'] = 'Cto Communication';
+$GLOBALS['TL_LANG']['tl_settings']['ctoCommunication_legend'] = 'ctoCommunication';
 ?>
