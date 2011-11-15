@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -29,6 +26,10 @@ if (!defined('TL_ROOT'))
  * @license    GNU/LGPL
  * @filesource
  */
+
+/**
+ * Interface for Codifyengine
+ */
 abstract class CtoComCodifyengineAbstract
 {
     protected $strKey;
@@ -40,11 +41,21 @@ abstract class CtoComCodifyengineAbstract
 
     abstract public function setKey($string);
 
+    /**
+     * Return key
+     * 
+     * @return stinrg 
+     */
     public function getKey()
     {
         return $this->strKey;
     }
 
+    /**
+     * Return name
+     * 
+     * @return string 
+     */
     public function getName()
     {
         return $this->strName;

@@ -81,64 +81,6 @@ class CtoCommunication extends Backend
         return self::$instance;
     }
 
-    /**
-     * Magical function for setter
-     * 
-     * @param string $name
-     * @param mix $value 
-     */
-    public function __set($name, $value)
-    {
-        switch ($name)
-        {
-            case "activateDebug":
-                $this->objDebug->activateDebug = $value;
-                break;
-
-            case "activateMeasurement":
-                $this->objDebug->activateMeasurement = $value;
-                break;
-
-            case "PathDebug":
-                $this->objDebug->pathDebug = $value;
-                break;
-
-            case "PathMeasurement":
-                $this->objDebug->pathMeasurement = $value;
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    /**
-     * Magical functions for getter
-     * 
-     * @param string $name
-     * @return mix 
-     */
-    public function __get($name)
-    {
-        switch ($name)
-        {
-            case "activateDebug":
-                return $this->objDebug->activateDebug;
-
-            case "activateMeasurement":
-                return $this->objDebug->activateMeasurement;
-
-            case "PathDebug":
-                return $this->objDebug->pathDebug;
-
-            case "PathMeasurement":
-                return $this->objDebug->pathMeasurement;
-
-            default:
-                return null;
-        }
-    }
-
     /* -------------------------------------------------------------------------
      * Getter / Setter
      */
@@ -246,9 +188,94 @@ class CtoCommunication extends Backend
     }
 
     /* -------------------------------------------------------------------------
-     * Server / Client Run Functions
+     * Getter and Setter for the debug class
      */
 
+    /**
+     *
+     * @return boolean 
+     */
+    public function getMeasurement()
+    {
+        return $this->objDebug->getMeasurement();
+    }
+
+    /**
+     *
+     * @param boolean $booMeasurement 
+     */
+    public function setMeasurement($booMeasurement)
+    {
+        $this->objDebug->setMeasurement($booMeasurement);
+    }
+
+    /**
+     *
+     * @return boolean 
+     */
+    public function getDebug()
+    {
+        return $this->objDebug->getDebug();
+    }
+
+    /**
+     *
+     * @param boolean $booDebug 
+     */
+    public function setDebug($booDebug)
+    {
+        $this->objDebug->setDebug($booDebug);
+    }
+
+    /**
+     *
+     * @return string 
+     */
+    public function getFileMeasurement()
+    {
+        return $this->objDebug->getFileMeasurement();
+    }
+
+    /**
+     *
+     * @param string $strFileMeasurement 
+     */
+    public function setFileMeasurement($strFileMeasurement)
+    {
+        $this->objDebug->setFileMeasurement($strFileMeasurement);
+    }
+
+    /**
+     *
+     * @return string 
+     */
+    public function getFileDebug()
+    {
+        return $this->objDebug->getFileDebug();
+    }
+
+    /**
+     *
+     * @param string $strFileDebug 
+     */
+    public function setFileDebug($strFileDebug)
+    {
+        $this->objDebug->setFileDebug($strFileDebug);
+    }
+
+    /* -------------------------------------------------------------------------
+     * Server / Client Run Functions
+     */
+    
+    /**
+     * Run as Server and send some data or files
+     * 
+     * @param string $rpc
+     * @param array $arrData
+     * @param boolean $isGET
+     * @return mixed
+     * @throws Exception 
+     */
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
         $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $rpc);
@@ -281,9 +308,6 @@ class CtoCommunication extends Backend
 
         // Set Key for codifyengine
         $this->objCodifyengine->setKey($this->strApiKey);
-
-        // Last exception
-        $objLastException = null;
 
         // New Request
         $objRequest = new RequestExtended();
@@ -416,6 +440,12 @@ class CtoCommunication extends Backend
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
     }
 
+    /**
+     * Run throw a array and decode html entities
+     * 
+     * @param array $arrArray
+     * @return array 
+     */
     protected function cleanUp($arrArray)
     {
         foreach ($arrArray as $key => $value)
@@ -436,7 +466,7 @@ class CtoCommunication extends Backend
     /**
      * Run the communication as client
      *
-     * @return null
+     * @return void
      */
     public function runClient()
     {

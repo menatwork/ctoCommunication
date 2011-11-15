@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -37,7 +34,8 @@ class CtoComCodifyengineImpl_Blowfish extends CtoComCodifyengineAbstract
 {
     /* -------------------------------------------------------------------------
      * Diese Arrays enthalte 32 Bit Zahlen.
-     * Diese Zahlen werden durch den Schluessel veraendert und spaeter zur Verschluesselung benutzt.
+     * Diese Zahlen werden durch den Schluessel veraendert 
+     * und spaeter zur Verschluesselung benutzt.
      */
 
     //P-Box: 18 * 32 Bit

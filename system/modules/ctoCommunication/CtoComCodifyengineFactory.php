@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -43,22 +40,26 @@ class CtoComCodifyengineFactory extends Backend
      */
     public static function getEngine($strEngine = null)
     {
+        // Use default codifyengine, if no one is set
         if ($strEngine == "" || $strEngine == null)
             $strEngine = "Blowfish";
 
+        // Check if engeni is known
         if (!key_exists($strEngine, $GLOBALS["CTOCOM_ENGINE"]))
         {
             throw new Exception(vsprintf($GLOBALS['TL_LANG']['ERR']['unknown_engine'], array($strEngine)));
         }
-
+        
         $arrEngine = $GLOBALS["CTOCOM_ENGINE"][$strEngine];
 
+        // Check if engine exists in filesystem
         if (!file_exists(TL_ROOT . "/" . $arrEngine["folder"] . "/" . $arrEngine["classname"] . ".php"))
             throw new Exception(vsprintf($GLOBALS['TL_LANG']['ERR']['missing_engine'], array($arrEngine["classname"] . ".php")));
 
         $strClass = $arrEngine["classname"];        
         $objEnginge = new $strClass();
 
+        // Get engine
         if ($objEnginge instanceof CtoComCodifyengineAbstract)
         {
             return $objEnginge;

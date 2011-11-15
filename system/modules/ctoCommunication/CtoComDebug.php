@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -29,6 +26,10 @@ if (!defined('TL_ROOT'))
  * @license    GNU/LGPL
  * @filesource
  */
+
+/**
+ * Debug class
+ */
 class CtoComDebug extends Backend
 {
 
@@ -40,8 +41,8 @@ class CtoComDebug extends Backend
     //- Config -------------------
     protected $booMeasurement;
     protected $booDebug;
-    protected $strPathMeasurement;
-    protected $strPathDebug;
+    protected $strFileMeasurement;
+    protected $strFileDebug;
 
     /* -------------------------------------------------------------------------
      * Core
@@ -51,8 +52,8 @@ class CtoComDebug extends Backend
     {
         parent::__construct();
 
-        $this->strPathDebug = "system/tmp/CtoComDebug.txt";
-        $this->strPathMeasurement = "system/tmp/CtoComMeasurement.txt";
+        $this->strFileDebug = "system/tmp/CtoComDebug.txt";
+        $this->strFileMeasurement = "system/tmp/CtoComMeasurement.txt";
 
         $this->booDebug = false;
         $this->booMeasurement = false;
@@ -91,10 +92,10 @@ class CtoComDebug extends Backend
                 return $this->booDebug;
 
             case "pathMeasurement":
-                return $this->strPathMeasurement;
+                return $this->strFileMeasurement;
 
             case "pathDebug":
-                return $this->strPathDebug;
+                return $this->strFileDebug;
 
             default:
                 return null;
@@ -114,22 +115,106 @@ class CtoComDebug extends Backend
                 break;
 
             case "pathMeasurement":
-                $this->strPathMeasurement = $value;
+                $this->strFileMeasurement = $value;
                 break;
 
             case "pathDebug":
-                $this->strPathDebug = $value;
+                $this->strFileDebug = $value;
                 break;
 
             default:
                 throw new Exception("Unknown set typ: " . $name);
         }
     }
+    
+    /* -------------------------------------------------------------------------
+     * Getter and Setter
+     */
+    
+    /**
+     *
+     * @return boolean 
+     */
+    public function getMeasurement()
+    {
+        return $this->booMeasurement;
+    }
 
+    /**
+     *
+     * @param boolean $booMeasurement 
+     */
+    public function setMeasurement($booMeasurement)
+    {
+        $this->booMeasurement = $booMeasurement;
+    }
+
+    /**
+     *
+     * @return boolean 
+     */
+    public function getDebug()
+    {
+        return $this->booDebug;
+    }
+
+    /**
+     *
+     * @param boolean $booDebug 
+     */
+    public function setDebug($booDebug)
+    {
+        $this->booDebug = $booDebug;
+    }
+
+    /**
+     *
+     * @return string 
+     */
+    public function getFileMeasurement()
+    {
+        return $this->strFileMeasurement;
+    }
+
+    /**
+     *
+     * @param string $strFileMeasurement 
+     */
+    public function setFileMeasurement($strFileMeasurement)
+    {
+        $this->strFileMeasurement = $strFileMeasurement;
+    }
+
+    /**
+     *
+     * @return string 
+     */
+    public function getFileDebug()
+    {
+        return $this->strFileDebug;
+    }
+
+    /**
+     *
+     * @param string $strFileDebug 
+     */
+    public function setFileDebug($strFileDebug)
+    {
+        $this->strFileDebug = $strFileDebug;
+    }
+    
     /* -------------------------------------------------------------------------
      * Mesurement and Debug Call Functions
      */
 
+    /**
+     * Start a Measurement
+     * 
+     * @param string $strClass
+     * @param string $strFunction
+     * @param string $strInformation
+     * @return void 
+     */
     public function startMeasurement($strClass, $strFunction, $strInformation = "")
     {
         if (!$this->booMeasurement)
@@ -146,6 +231,13 @@ class CtoComDebug extends Backend
         );
     }
 
+    /**
+     * Stop a Measurement
+     * 
+     * @param string $strClass
+     * @param string $strFunction
+     * @return void 
+     */
     public function stopMeasurement($strClass, $strFunction)
     {
         if (!$this->booMeasurement)
@@ -162,20 +254,30 @@ class CtoComDebug extends Backend
         );
     }
 
-    public function addDebug($Debugname, $value)
+    /**
+     *
+     * @param string $strDebugname
+     * @param string $strValue 
+     */
+    public function addDebug($strDebugname, $strValue)
     {
-        $this->arrDebug[$Debugname . " - " . microtime(true)] = $value;
+        $this->arrDebug[$strDebugname . " - " . microtime(true)] = $strValue;
     }
 
     /* -------------------------------------------------------------------------
      * Write Functions
      */
     
+    /**
+     * Write a txt file.
+     * 
+     * @return void 
+     */
     protected function writeMeasurement()
     {
         try
         {
-            $objFile = new File($this->strPathMeasurement);
+            $objFile = new File($this->strFileMeasurement);
             
             $intTime = time();
 
@@ -213,11 +315,16 @@ class CtoComDebug extends Backend
         }
     }
 
+    /**
+     * Write a txt file.
+     * 
+     * @return void 
+     */
     protected function writeDebug()
     {  
         try
         {
-            $objFile = new File($this->strPathDebug);
+            $objFile = new File($this->strFileDebug);
             
             $intTime = time();
 
