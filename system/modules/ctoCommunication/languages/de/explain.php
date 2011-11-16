@@ -1,4 +1,4 @@
-<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -21,19 +21,12 @@
  * Software Foundation website at <http://www.gnu.org/licenses/>.
  *
  * PHP version 5
- * @copyright  MEN AT WORK 2011 
- * @package    ctoCommunication
+ * @copyright  MEN AT WORK 2011
+ * @package    Language
  * @license    GNU/LGPL 
  * @filesource
  */
 
-/**
- * Fields
- */
-$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'] = array('ctoCommunication API Key', 'This key ensures the communication between the contao installations.');
-
-/**
- * Legends
- */
-$GLOBALS['TL_LANG']['tl_settings']['ctoCommunication_legend'] = 'ctoCommunication';
+$GLOBALS['TL_LANG']['XPL']['ctoComKey']['0'] = array('ctoCommunication API Key', 'Der API Key ist für die Verschlüsselung bei der Synchronisation von zwei Contao-Installationen zuständig.<br /><br />Lassen Sie das Feld leer um beim Speichern einen neuen Key zu generieren. Diesen Key kopieren Sie dann und fügen Ihn bei den Clienteinstellungen des Servers ein.');
+ 
 ?>

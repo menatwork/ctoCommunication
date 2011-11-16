@@ -38,7 +38,8 @@ $GLOBALS['TL_DCA']['tl_settings']['palettes']['default'] = implode(";", array_me
 $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_APIKey'] = array(
     'label' => &$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'],
     'inputType' => 'text',
-    'eval' => array('tl_class' => 'w50', 'minlength' => 32, 'maxlength' => 64),
+    'explanation' => 'ctoComKey',
+    'eval' => array('helpwizard' => true, 'tl_class' => 'long', 'minlength' => '32', 'maxlength' => '64'),
     'exclude' => true,
     'save_callback' => array(array('CtoCommunicationSettings', 'save_callback')),
 );

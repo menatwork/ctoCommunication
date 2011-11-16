@@ -41,6 +41,7 @@ class CtoCommunication extends Backend
     protected $arrCookies;
     protected $arrRpcList;
     protected $arrError;
+    protected $arrNullFields;
     protected $mixOutput;
     // Objects
     protected $objCodifyengine;
@@ -64,6 +65,7 @@ class CtoCommunication extends Backend
 
         $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
         $this->arrError = array();
+        $this->arrNullFields = array();
     }
 
     /**
@@ -308,7 +310,7 @@ class CtoCommunication extends Backend
 
         // Set Key for codifyengine
         $this->objCodifyengine->setKey($this->strApiKey);
-
+        
         // New Request
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
@@ -356,7 +358,7 @@ class CtoCommunication extends Backend
             $objRequest->method = "POST";
             $objRequest->datamime = $objMultipartFormdata->getContentTypeHeader();
         }
-
+        
         // Send new request
         $objRequest->send($this->strUrl . $this->strUrlGet);
 
@@ -473,6 +475,12 @@ class CtoCommunication extends Backend
         // Start measurement
         $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $this->Input->get("act"));
 
+        // If we have a ping, just do nothing
+        if($this->Input->get("act") == "ping")
+        {
+            exit();
+        }
+        
         // API Key - Check -----------------------------------------------------
 
         if (strlen($this->Input->get("apikey")) == 0)
@@ -503,6 +511,13 @@ class CtoCommunication extends Backend
             $this->log(vsprintf("Call from %s with a wrong API Key: %s", array($this->Environment->ip, $this->Input->get("apikey"))), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
             exit();
         }
+        
+        // Check language settings ---------------------------------------------
+        
+        if(empty ($GLOBALS['TL_LANGUAGE']))
+        {
+            $GLOBALS['TL_LANGUAGE'] = "de";
+        }      
 
         // Change the Codifyengine if set --------------------------------------
 
@@ -570,19 +585,28 @@ class CtoCommunication extends Backend
                             // Decode post 
                             foreach ($_POST as $key => $value)
                             {
-                                $mixPost = $this->Input->post($key);
-                                $mixPost = html_entity_decode($mixPost);
+                                $mixPost = $this->Input->post($key, true);
                                 $mixPost = $this->objCodifyengine->Decrypt($mixPost);
                                 $mixPost = deserialize($mixPost);
                                 $mixPost = $mixPost["data"];
-
-                                $this->Input->setPost($key, $mixPost);
+                                
+                                if (is_null($mixPost))
+                                {
+                                    $this->arrNullFields[] = $key;
+                                    $this->Input->setPost($key, $mixPost);
+                                }
+                                else
+                                {
+                                    $this->Input->setPost($key, $mixPost);
+                                }
                             }
 
                             // Check if all post are set
                             foreach ($this->arrRpcList[$mixRPCCall]["parameter"] as $value)
                             {
-                                if (!$this->Input->post($value))
+                                $arrPostKey = array_keys($_POST);   
+                                                                
+                                if (!in_array($value, $arrPostKey) && !in_array($value, $this->arrNullFields))
                                 {
                                     $this->arrError[] = array(
                                         "language" => "rpc_data_missing",
@@ -596,7 +620,14 @@ class CtoCommunication extends Backend
                                 }
                                 else
                                 {
-                                    $arrParameter[$value] = $this->Input->post($value);
+                                    if(in_array($value, $this->arrNullFields))
+                                    {
+                                        $arrParameter[$value] = NULL;  
+                                    }
+                                    else
+                                    {
+                                        $arrParameter[$value] = $this->Input->post($value, true);  
+                                    }                                                                     
                                 }
                             }
                             break;

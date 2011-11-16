@@ -30,7 +30,7 @@
 /**
  * Fields
  */
-$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'] = array('ctoCommunication API Key', 'Dieser Schlüssel wird benutzt um anderen den Zugang zu gewähren.');
+$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'] = array('ctoCommunication API Key', 'Dieser Schlüssel sichert die Kommunikation zwischen den Contao-Installationen ab.');
 
 /**
  * Legends

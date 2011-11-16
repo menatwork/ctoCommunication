@@ -58,7 +58,7 @@ class CtoComDebug extends Backend
         $this->booDebug = false;
         $this->booMeasurement = false;
     }
-    
+
     public function __destruct()
     {
         if ($this->booDebug)
@@ -126,11 +126,11 @@ class CtoComDebug extends Backend
                 throw new Exception("Unknown set typ: " . $name);
         }
     }
-    
+
     /* -------------------------------------------------------------------------
      * Getter and Setter
      */
-    
+
     /**
      *
      * @return boolean 
@@ -202,7 +202,7 @@ class CtoComDebug extends Backend
     {
         $this->strFileDebug = $strFileDebug;
     }
-    
+
     /* -------------------------------------------------------------------------
      * Mesurement and Debug Call Functions
      */
@@ -267,7 +267,7 @@ class CtoComDebug extends Backend
     /* -------------------------------------------------------------------------
      * Write Functions
      */
-    
+
     /**
      * Write a txt file.
      * 
@@ -278,7 +278,7 @@ class CtoComDebug extends Backend
         try
         {
             $objFile = new File($this->strFileMeasurement);
-            
+
             $intTime = time();
 
             if (count($this->arrMeasurement) == 0)
@@ -321,11 +321,11 @@ class CtoComDebug extends Backend
      * @return void 
      */
     protected function writeDebug()
-    {  
+    {
         try
         {
             $objFile = new File($this->strFileDebug);
-            
+
             $intTime = time();
 
             if (count($this->arrDebug) == 0)
@@ -362,13 +362,13 @@ class CtoComDebug extends Backend
             $strContent .="\n>>";
             $strContent .="\n>>|-- Close Log at " . date("H:i:s d.m.Y", $intTime);
             $strContent .="\n>>|------------------------------------------------------\n";
-            
-        
+
+
 
             if (!$objFile->append($strContent))
                 $this->log("Could not write CtoCom Debug file.", __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
 
-            $objFile->close();          
+            $objFile->close();
         }
         catch (Exception $exc)
         {
