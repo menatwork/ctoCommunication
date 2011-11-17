@@ -41,18 +41,18 @@ $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('CtoCommunication', 'chec
  * ctoCommunication engines
  */
 $GLOBALS["CTOCOM_ENGINE"] = array(
-    "Empty" => array(
-        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Empty"],
+    "empty" => array(
+        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"],
         "classname" => "CtoComCodifyengineImpl_Empty",
         "folder" => "system/modules/ctoCommunication",
     ),
-    "Mcrypt" => array(
-        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Mcrypt"],
+    "mcrypt" => array(
+        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"],
         "classname" => "CtoComCodifyengineImpl_Mcrypt",
         "folder" => "system/modules/ctoCommunication",
     ),
-    "Blowfish" => array(
-        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Blowfish"],
+    "blowfish" => array(
+        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["blowfish"],
         "classname" => "CtoComCodifyengineImpl_Blowfish",
         "folder" => "system/modules/ctoCommunication",
     ),

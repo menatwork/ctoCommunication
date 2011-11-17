@@ -33,15 +33,7 @@
 class CtoComCodifyengineImpl_Empty extends CtoComCodifyengineAbstract
 {
     protected static $instance = null;
-    protected $strName = "Empty";
-    
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        
-    }
+    protected $strName = "empty";
 
     /**
      * Singelton Pattern
@@ -51,8 +43,10 @@ class CtoComCodifyengineImpl_Empty extends CtoComCodifyengineAbstract
     public static function getInstance()
     {
         if (self::$instance == null)
+        {
             self::$instance = new CtoComCodifyengineImpl_Empty();
-
+        }
+            
         return self::$instance;
     }
 

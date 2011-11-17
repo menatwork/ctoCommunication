@@ -26,6 +26,7 @@
  * @license    GNU/LGPL
  * @filesource
  */
+
 class CtoCommunication extends Backend
 {
     /* -------------------------------------------------------------------------
@@ -60,7 +61,7 @@ class CtoCommunication extends Backend
         parent::__construct();
 
         $this->objCodifyengine = CtoComCodifyengineFactory::getEngine();
-        $this->objCodifyengineBlow = CtoComCodifyengineFactory::getEngine("Blowfish");
+        $this->objCodifyengineBlow = CtoComCodifyengineFactory::getEngine("blowfish");
         $this->objDebug = CtoComDebug::getInstance();
 
         $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
@@ -125,7 +126,7 @@ class CtoCommunication extends Backend
      * @param string $strName 
      */
     public function setCodifyengine($strName = Null)
-    {
+    {        
         $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($strName);
     }
 

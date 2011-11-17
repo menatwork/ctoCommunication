@@ -30,9 +30,9 @@
 /**
  * Engine
  */
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Empty"] = "No encryption";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Mcrypt"] = "Mcrypt";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Blowfish"] = "Blowfish";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"] = "-";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"] = "Mcrypt";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["blowfish"] = "Blowfish";
 
 /**
  * Error

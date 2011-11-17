@@ -278,7 +278,7 @@ class CtoComDebug extends Backend
         try
         {
             $objFile = new File($this->strFileMeasurement);
-
+            
             $intTime = time();
 
             if (count($this->arrMeasurement) == 0)
@@ -325,7 +325,7 @@ class CtoComDebug extends Backend
         try
         {
             $objFile = new File($this->strFileDebug);
-
+                
             $intTime = time();
 
             if (count($this->arrDebug) == 0)

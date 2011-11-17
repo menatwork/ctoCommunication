@@ -38,7 +38,7 @@ class CtoComCodifyengineImpl_Mcrypt implements CtoComCodifyengineAbstract
 
     protected static $instance = null;
     protected $strKey = "";
-    protected $strName = "Mcypt";
+    protected $strName = "mcypt";
 
     /**
      * Constructor

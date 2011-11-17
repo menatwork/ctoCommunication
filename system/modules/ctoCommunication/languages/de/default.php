@@ -30,14 +30,14 @@
 /**
  * Engine
  */
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Empty"] = "Keine Verschlüsselung";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Mcrypt"] = "Mcrypt";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["Blowfish"] = "Blowfish";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"] = "-";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"] = "Mcrypt";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["blowfish"] = "Blowfish";
 
 /**
  * Error
  */
-$GLOBALS['TL_LANG']['ERR']['unknown_engine'] = "Unbekannte Verschlüsselungs Engine: %s . ";
-$GLOBALS['TL_LANG']['ERR']['missing_engine'] = "Verschlüsselungs Engine konnte nicht gefunden werden: %s . ";
-$GLOBALS['TL_LANG']['ERR']['not_a_engine'] = "Die ausgewählte Verschlüsselungs Engine ist nicht von der Abstracten Standart Engine abgeleitet.";
+$GLOBALS['TL_LANG']['ERR']['unknown_engine'] = "Unbekannte Verschlüsselungs-Engine: %s . ";
+$GLOBALS['TL_LANG']['ERR']['missing_engine'] = "Verschlüsselungs-Engine konnte nicht gefunden werden: %s . ";
+$GLOBALS['TL_LANG']['ERR']['not_a_engine'] = "Die ausgewählte Verschüsselungs-Engine ist nicht von der Standard-Engine abgeleitet.";
 ?>

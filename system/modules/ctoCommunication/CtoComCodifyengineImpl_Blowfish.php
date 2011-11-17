@@ -234,7 +234,7 @@ class CtoComCodifyengineImpl_Blowfish extends CtoComCodifyengineAbstract
     /* -------------------------------------------------------------------------
      * Vars
      */
-    protected $strName = "Blowfish";
+    protected $strName = "blowfish";
     protected $cbc;
     protected $sbox3, $sbox2, $sbox1, $sbox0, $pbox;
     // Singelton
