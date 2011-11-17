@@ -298,7 +298,7 @@ class CtoCommunication extends Backend
 
         // Add Get Parameter
         $strCryptApiKey = $this->objCodifyengineBlow->Encrypt($rpc . "@|@" . $this->strApiKey);
-        $strCryptApiKey = urlencode($strCryptApiKey);
+        $strCryptApiKey = base64_encode($strCryptApiKey);
 
         if (strpos($this->strUrl, "?") !== FALSE)
         {
@@ -306,7 +306,7 @@ class CtoCommunication extends Backend
         }
         else
         {
-            $this->strUrlGet .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
+            $this->strUrlGet .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" .  $strCryptApiKey;
         }
 
         // Set Key for codifyengine
@@ -346,7 +346,7 @@ class CtoCommunication extends Backend
                 else
                 {
                     // Encrypt funktion
-                    $strValue = $this->objCodifyengine->Encrypt(serialize(array("data" => $value["value"])));
+                    $strValue = $this->objCodifyengine->Encrypt(base64_encode(serialize(array("data" => $value["value"]))));
                     // Set field
                     $objMultipartFormdata->setField($value["name"], $strValue);
                 }
@@ -362,10 +362,12 @@ class CtoCommunication extends Backend
         
         // Send new request
         $objRequest->send($this->strUrl . $this->strUrlGet);
+        
+        $response = mb_convert_encoding($objRequest->response, "UTF-8");
 
         // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 25000));
-        $this->objDebug->addDebug("Response", substr($objRequest->response, 0, 25000));
+        $this->objDebug->addDebug("Response", substr($response, 0, 25000));
 
         // Check if evething is okay for connection
         if ($objRequest->hasError())
@@ -374,40 +376,40 @@ class CtoCommunication extends Backend
             throw new Exception("Error by sending request with measages: " . $objRequest->code . " " . $objRequest->error);
         }
 
-        if (strlen($objRequest->response) == 0)
+        if (strlen($response) == 0)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("We got a blank response from server.");
         }
 
-        if (strpos($objRequest->response, "Fatal error") !== FALSE)
+        if (strpos($response, "Fatal error") !== FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-            throw new Exception("We got a Fatal error on client site. " . $objRequest->response);
+            throw new Exception("We got a Fatal error on client site. " . $response);
         }
         
-        if (strpos($objRequest->response, "Warning") !== FALSE)
+        if (strpos($response, "Warning") !== FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             
-            $intStart = stripos($objRequest->response, "<strong>Warning</strong>:");
-            $intEnd = stripos($objRequest->response, "on line");
+            $intStart = stripos($response, "<strong>Warning</strong>:");
+            $intEnd = stripos($response, "on line");
             
-            throw new Exception("We got a Warning on client site.<br /><br />" . substr($objRequest->response, $intStart, $intEnd - $intStart));
+            throw new Exception("We got a Warning on client site.<br /><br />" . substr($response, $intStart, $intEnd - $intStart));
         }
 
-        if (strpos($objRequest->response, "<|@|") === FALSE || strpos($objRequest->response, "|@|>") === FALSE)
-        {
+        if (strpos($response, "<|@|") === FALSE || strpos($response, "|@|>") === FALSE)
+        {            
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("Could not find start or endtag from response.");
         }
 
-        $mixContent = $objRequest->response;
+        $mixContent = $response;
 
         $intStart = intval(strpos($mixContent, "<|@|") + 4);
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
 
-        $mixContent = $this->objCodifyengine->Decrypt(substr($mixContent, $intStart, $intLength));
+        $mixContent = $this->objCodifyengine->Decrypt(base64_decode(substr($mixContent, $intStart, $intLength)));
         $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2500));
 
         $mixContent = deserialize($mixContent);
@@ -489,13 +491,12 @@ class CtoCommunication extends Backend
             $this->log(vsprintf("Call from %s without a API Key.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
             exit();
         }
-
-        $mixVar = html_entity_decode($this->Input->get("apikey"));
-        $mixVar = $this->objCodifyengineBlow->Decrypt($this->Input->get("apikey"));
+        
+        $mixVar = $this->objCodifyengineBlow->Decrypt(base64_decode($this->Input->get("apikey")));
         $mixVar = trimsplit("@\|@", $mixVar);
         $strApiKey = $mixVar[1];
         $strAction = $mixVar[0];
-
+        
         if ($strAction != $this->Input->get("act"))
         {
             $this->log(vsprintf("Error Api Key from %s. Request action: %s | Key action: %s | Api: %s", array(
@@ -540,7 +541,7 @@ class CtoCommunication extends Backend
         }
         else
         {
-            $this->setCodifyengine("Blowfish");
+            $this->setCodifyengine("blowfish");
             $this->objCodifyengine->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
         }
 
@@ -588,6 +589,7 @@ class CtoCommunication extends Backend
                             {
                                 $mixPost = $this->Input->post($key, true);
                                 $mixPost = $this->objCodifyengine->Decrypt($mixPost);
+                                $mixPost = base64_decode($mixPost);
                                 $mixPost = deserialize($mixPost);
                                 $mixPost = $mixPost["data"];
                                 
@@ -732,8 +734,12 @@ class CtoCommunication extends Backend
         $strOutput = $this->objCodifyengine->Encrypt($strOutput);
 
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+        
+        $strOutput = mb_convert_encoding(" <|@|" . base64_encode($strOutput) . "|@|>", "UTF-8") ;
+                
+        $this->objDebug->addDebug("Response", $strOutput);
 
-        return "<|@|" . $strOutput . "|@|>";
+        return $strOutput;
     }
     
     /**
