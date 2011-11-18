@@ -345,8 +345,21 @@ class CtoCommunication extends Backend
                 }
                 else
                 {
-                    // Encrypt funktion
-                    $strValue = $this->objCodifyengine->Encrypt(base64_encode(serialize(array("data" => $value["value"]))));
+                    // serliaze/encrypt/compress/base64 function                    
+                    $strValue = serialize(array("data" => $value["value"]));
+                    $intStrlenSer = strlen($strValue);
+                    
+                    $strValue = $this->objCodifyengine->Encrypt($strValue);
+                    $intStrlenCod = strlen($strValue);
+                    
+                    $strValue = gzcompress($strValue);
+                    $intStrlenCom = strlen($strValue);
+                                        
+                    $strValue = base64_encode($strValue);
+                    $intStrlenB64 = strlen($strValue);
+                    
+                    $this->objDebug->addDebug("Post Data - " . $value["name"], vsprintf("Ser: %s | Cod: %s | Com: %s | B64: %s", array($intStrlenSer, $intStrlenCod, $intStrlenCom, $intStrlenB64)));                    
+                    
                     // Set field
                     $objMultipartFormdata->setField($value["name"], $strValue);
                 }
@@ -363,7 +376,7 @@ class CtoCommunication extends Backend
         // Send new request
         $objRequest->send($this->strUrl . $this->strUrlGet);
         
-        $response = mb_convert_encoding($objRequest->response, "UTF-8");
+        $response = $objRequest->response;
 
         // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 25000));
@@ -376,18 +389,21 @@ class CtoCommunication extends Backend
             throw new Exception("Error by sending request with measages: " . $objRequest->code . " " . $objRequest->error);
         }
 
+        // Check if we have a response
         if (strlen($response) == 0)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("We got a blank response from server.");
         }
 
+        // Check for "Fatal error" on client side
         if (strpos($response, "Fatal error") !== FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("We got a Fatal error on client site. " . $response);
         }
         
+        // Check for "Warning" on client side
         if (strpos($response, "Warning") !== FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
@@ -398,30 +414,51 @@ class CtoCommunication extends Backend
             throw new Exception("We got a Warning on client site.<br /><br />" . substr($response, $intStart, $intEnd - $intStart));
         }
 
+        // Check for start and end tag
         if (strpos($response, "<|@|") === FALSE || strpos($response, "|@|>") === FALSE)
         {            
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("Could not find start or endtag from response.");
         }
 
+        // Rebuild original msg
         $mixContent = $response;
 
+        // Find position of start/end - tag
         $intStart = intval(strpos($mixContent, "<|@|") + 4);
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
-
-        $mixContent = $this->objCodifyengine->Decrypt(base64_decode(substr($mixContent, $intStart, $intLength)));
+        
+        $mixContent = substr($mixContent, $intStart, $intLength);
+        $mixContent = utf8_encode($mixContent);
+        $mixContent = base64_decode($mixContent);
+        $mixContent = @gzuncompress($mixContent);
+        
+        // Check if uncopress works
+        if($mixContent === FALSE)
+        {
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            throw new Exception("Error by uncompress the response. Maybe wrong key or ctoCom version.");
+        }
+        
+        // Decrypt response
+        $mixContent = $this->objCodifyengine->Decrypt($mixContent);
+        
         $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2500));
 
+        // Deserualize response
         $mixContent = deserialize($mixContent);
 
+        // Check if we have a array
         if (is_array($mixContent) == false)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("Response is not a array. Maybe wrong key or codifyengine.");
         }
 
+        // Clean array
         $mixContent = $this->cleanUp($mixContent);
 
+        // Check if client says "Everthing okay"
         if ($mixContent["success"] == 1)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
@@ -587,9 +624,10 @@ class CtoCommunication extends Backend
                             // Decode post 
                             foreach ($_POST as $key => $value)
                             {
-                                $mixPost = $this->Input->post($key, true);
-                                $mixPost = $this->objCodifyengine->Decrypt($mixPost);
+                                $mixPost = $this->Input->post($key, true);                               
                                 $mixPost = base64_decode($mixPost);
+                                $mixPost = gzuncompress($mixPost);
+                                $mixPost = $this->objCodifyengine->Decrypt($mixPost);
                                 $mixPost = deserialize($mixPost);
                                 $mixPost = $mixPost["data"];
                                 
@@ -734,9 +772,11 @@ class CtoCommunication extends Backend
         $strOutput = $this->objCodifyengine->Encrypt($strOutput);
 
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-        
-        $strOutput = mb_convert_encoding(" <|@|" . base64_encode($strOutput) . "|@|>", "UTF-8") ;
-                
+
+        $strOutput = gzcompress($strOutput);
+        $strOutput = base64_encode($strOutput);
+        $strOutput = utf8_encode(" <|@|" . $strOutput . "|@|>");
+
         $this->objDebug->addDebug("Response", $strOutput);
 
         return $strOutput;
