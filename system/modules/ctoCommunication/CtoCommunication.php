@@ -350,9 +350,9 @@ class CtoCommunication extends Backend
                     $intStrlenSer = strlen($strValue);
                     
                     $strValue = $this->objCodifyengine->Encrypt($strValue);
-                    $intStrlenCod = strlen($strValue);
+                    $intStrlenCod = strlen($strValue);                    
                     
-                    $strValue = gzcompress($strValue);
+                    $strValue = bzcompress ($strValue);
                     $intStrlenCom = strlen($strValue);
                                         
                     $strValue = base64_encode($strValue);
@@ -413,6 +413,7 @@ class CtoCommunication extends Backend
             
             throw new Exception("We got a Warning on client site.<br /><br />" . substr($response, $intStart, $intEnd - $intStart));
         }
+        
 
         // Check for start and end tag
         if (strpos($response, "<|@|") === FALSE || strpos($response, "|@|>") === FALSE)
@@ -429,9 +430,8 @@ class CtoCommunication extends Backend
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
         
         $mixContent = substr($mixContent, $intStart, $intLength);
-        $mixContent = utf8_encode($mixContent);
         $mixContent = base64_decode($mixContent);
-        $mixContent = @gzuncompress($mixContent);
+        $mixContent = bzdecompress($mixContent);
         
         // Check if uncopress works
         if($mixContent === FALSE)
@@ -615,6 +615,7 @@ class CtoCommunication extends Backend
             else
             {
                 $arrParameter = array();
+                
 
                 if ($this->arrRpcList[$mixRPCCall]["parameter"] != FALSE && is_array($this->arrRpcList[$mixRPCCall]["parameter"]))
                 {
@@ -626,10 +627,10 @@ class CtoCommunication extends Backend
                             {
                                 $mixPost = $this->Input->post($key, true);                               
                                 $mixPost = base64_decode($mixPost);
-                                $mixPost = gzuncompress($mixPost);
+                                $mixPost = bzdecompress($mixPost);
                                 $mixPost = $this->objCodifyengine->Decrypt($mixPost);
                                 $mixPost = deserialize($mixPost);
-                                $mixPost = $mixPost["data"];
+                                $mixPost = $mixPost["data"];                                
                                 
                                 if (is_null($mixPost))
                                 {
@@ -773,13 +774,13 @@ class CtoCommunication extends Backend
 
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
 
-        $strOutput = gzcompress($strOutput);
+        $strOutput = bzcompress($strOutput);
         $strOutput = base64_encode($strOutput);
-        $strOutput = utf8_encode(" <|@|" . $strOutput . "|@|>");
+        $strOutput = "<|@|" . $strOutput . "|@|>";
 
         $this->objDebug->addDebug("Response", $strOutput);
 
-        return $strOutput;
+        echo $strOutput;
     }
     
     /**

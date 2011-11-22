@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -33,7 +30,7 @@ if (!defined('TL_ROOT'))
 /**
  * SyncCtoCodifyengineImpl_Mcrypt
  */
-class CtoComCodifyengineImpl_Mcrypt implements CtoComCodifyengineAbstract
+class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
 {
 
     protected static $instance = null;
