@@ -352,7 +352,8 @@ class CtoCommunication extends Backend
                     $strValue = $this->objCodifyengine->Encrypt($strValue);
                     $intStrlenCod = strlen($strValue);                    
                     
-                    $strValue = bzcompress ($strValue);
+                    //$strValue = bzcompress ($strValue);
+                    $strValue = gzcompress ($strValue);
                     $intStrlenCom = strlen($strValue);
                                         
                     $strValue = base64_encode($strValue);
@@ -431,7 +432,8 @@ class CtoCommunication extends Backend
         
         $mixContent = substr($mixContent, $intStart, $intLength);
         $mixContent = base64_decode($mixContent);
-        $mixContent = bzdecompress($mixContent);
+        //$mixContent = bzdecompress($mixContent);
+        $mixContent = gzuncompress($mixContent);
         
         // Check if uncopress works
         if($mixContent === FALSE)
@@ -627,7 +629,8 @@ class CtoCommunication extends Backend
                             {
                                 $mixPost = $this->Input->post($key, true);                               
                                 $mixPost = base64_decode($mixPost);
-                                $mixPost = bzdecompress($mixPost);
+                                //$mixPost = bzdecompress($mixPost);
+                                $mixPost = gzuncompress($mixPost);
                                 $mixPost = $this->objCodifyengine->Decrypt($mixPost);
                                 $mixPost = deserialize($mixPost);
                                 $mixPost = $mixPost["data"];                                
@@ -774,7 +777,8 @@ class CtoCommunication extends Backend
 
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
 
-        $strOutput = bzcompress($strOutput);
+        //$strOutput = bzcompress($strOutput);
+        $strOutput = gzcompress($strOutput);
         $strOutput = base64_encode($strOutput);
         $strOutput = "<|@|" . $strOutput . "|@|>";
 

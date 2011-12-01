@@ -35,7 +35,7 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
 
     protected static $instance = null;
     protected $strKey = "";
-    protected $strName = "mcypt";
+    protected $strName = "mcrypt";
 
     /**
      * Constructor
@@ -63,7 +63,7 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
      */
 
     public function setKey($strKey)
-    {
+    {       
         $this->strKey = $strKey;
     }
 
@@ -79,9 +79,9 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
 
         /* Create the IV and determine the keysize length, use MCRYPT_RAND
          * on Windows instead */
-        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_DEV_RANDOM);
+        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td));
         $ks = mcrypt_enc_get_key_size($td);
-
+        
         /* Create key */
         $key = substr(md5($this->strKey), 0, $ks);
 
@@ -90,26 +90,34 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
 
         /* Encrypt data */
         $encrypted = mcrypt_generic($td, $text);
-
-        /* Terminate encryption handler */
+       
+        /* Terminate decryption handle and close module */
         mcrypt_generic_deinit($td);
         mcrypt_module_close($td);
 
-        /* Return string */
-        return trim($encrypted);
+        /* Show string */
+        return $iv . "<|@|>" . $encrypted;
     }
 
     // Decrypt
     public function Decrypt($text)
     {
+        $arrText = explode("<|@|>", $text);
+        
+        if(!is_array($arrText) || count($arrText) != 2)
+        {
+            throw new Exception("Error by decrypt. Missing IV");
+        }
+        
         /* Open the cipher */
         $td = mcrypt_module_open('rijndael-256', '', 'ofb', '');
 
         /* Create the IV and determine the keysize length, use MCRYPT_RAND
          * on Windows instead */
-        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_DEV_RANDOM);
+        
+        $iv = $arrText[0];
         $ks = mcrypt_enc_get_key_size($td);
-
+        
         /* Create key */
         $key = substr(md5($this->strKey), 0, $ks);
 
@@ -117,14 +125,14 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
         mcrypt_generic_init($td, $key, $iv);
 
         /* Decrypt encrypted string */
-        $decrypted = mdecrypt_generic($td, $text);
+        $decrypted = mdecrypt_generic($td, $arrText[1]);
 
         /* Terminate decryption handle and close module */
         mcrypt_generic_deinit($td);
         mcrypt_module_close($td);
 
-        /* Return string */
-        return trim($decrypted);
+        /* Show string */
+        return $decrypted;
     }
 
 }
