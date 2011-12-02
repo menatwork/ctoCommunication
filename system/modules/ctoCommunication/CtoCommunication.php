@@ -431,7 +431,7 @@ class CtoCommunication extends Backend
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
         
         $mixContent = substr($mixContent, $intStart, $intLength);
-        $mixContent = base64_decode($mixContent);
+        //$mixContent = base64_decode($mixContent);
         //$mixContent = bzdecompress($mixContent);
         $mixContent = gzuncompress($mixContent);
         
@@ -779,7 +779,7 @@ class CtoCommunication extends Backend
 
         //$strOutput = bzcompress($strOutput);
         $strOutput = gzcompress($strOutput);
-        $strOutput = base64_encode($strOutput);
+        //$strOutput = base64_encode($strOutput);
         $strOutput = "<|@|" . $strOutput . "|@|>";
 
         $this->objDebug->addDebug("Response", $strOutput);
