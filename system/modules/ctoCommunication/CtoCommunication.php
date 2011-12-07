@@ -380,7 +380,8 @@ class CtoCommunication extends Backend
 
         // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 25000));
-        $this->objDebug->addDebug("Response", $objRequest->headers . "\n\n" . substr($response, 0, 25000));
+        
+        $this->objDebug->addDebug("Response", implode("\n", $objRequest->headers) . "\n\n" . substr($response, 0, 2500000));
 
         // Check if evething is okay for connection
         if ($objRequest->hasError())
@@ -784,6 +785,7 @@ class CtoCommunication extends Backend
         // Clean output buffer
         while (@ob_end_clean());
         
+        echo strlen($mixOutput);
         // Echo response
         echo($mixOutput);
     }
