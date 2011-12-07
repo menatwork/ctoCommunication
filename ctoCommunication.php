@@ -34,9 +34,6 @@ define('TL_MODE', 'BE');
 require('system/initialize.php');
 require_once 'system/modules/ctoCommunication/CtoCommunication.php';
 
-ob_implicit_flush(true);
-ob_end_flush();
-
 $communication = CtoCommunication::getInstance();
 $communication->runClient();
 

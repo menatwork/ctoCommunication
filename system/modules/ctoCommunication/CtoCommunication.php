@@ -26,7 +26,6 @@
  * @license    GNU/LGPL
  * @filesource
  */
-
 class CtoCommunication extends Backend
 {
     /* -------------------------------------------------------------------------
@@ -126,7 +125,7 @@ class CtoCommunication extends Backend
      * @param string $strName 
      */
     public function setCodifyengine($strName = Null)
-    {        
+    {
         $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($strName);
     }
 
@@ -269,7 +268,7 @@ class CtoCommunication extends Backend
     /* -------------------------------------------------------------------------
      * Server / Client Run Functions
      */
-    
+
     /**
      * Run as Server and send some data or files
      * 
@@ -306,17 +305,17 @@ class CtoCommunication extends Backend
         }
         else
         {
-            $this->strUrlGet .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" .  $strCryptApiKey;
+            $this->strUrlGet .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . $strCryptApiKey;
         }
 
         // Set Key for codifyengine
         $this->objCodifyengine->setKey($this->strApiKey);
-        
+
         // New Request
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
-        
+
         // Set Header Accept-Language        
         $objRequest->setHeader("Accept-Language", vsprintf("%s, en;q=0.8", array($GLOBALS['TL_LANGUAGE'])));
 
@@ -348,19 +347,19 @@ class CtoCommunication extends Backend
                     // serliaze/encrypt/compress/base64 function                    
                     $strValue = serialize(array("data" => $value["value"]));
                     $intStrlenSer = strlen($strValue);
-                    
+
                     $strValue = $this->objCodifyengine->Encrypt($strValue);
-                    $intStrlenCod = strlen($strValue);                    
-                    
+                    $intStrlenCod = strlen($strValue);
+
                     //$strValue = bzcompress ($strValue);
-                    $strValue = gzcompress ($strValue);
+                    $strValue = gzcompress($strValue);
                     $intStrlenCom = strlen($strValue);
-                                        
+
                     $strValue = base64_encode($strValue);
                     $intStrlenB64 = strlen($strValue);
-                    
-                    $this->objDebug->addDebug("Post Data - " . $value["name"], vsprintf("Ser: %s | Cod: %s | Com: %s | B64: %s", array($intStrlenSer, $intStrlenCod, $intStrlenCom, $intStrlenB64)));                    
-                    
+
+                    $this->objDebug->addDebug("Post Data - " . $value["name"], vsprintf("Ser: %s | Cod: %s | Com: %s | B64: %s", array($intStrlenSer, $intStrlenCod, $intStrlenCom, $intStrlenB64)));
+
                     // Set field
                     $objMultipartFormdata->setField($value["name"], $strValue);
                 }
@@ -373,15 +372,15 @@ class CtoCommunication extends Backend
             $objRequest->method = "POST";
             $objRequest->datamime = $objMultipartFormdata->getContentTypeHeader();
         }
-        
+
         // Send new request
         $objRequest->send($this->strUrl . $this->strUrlGet);
-        
+
         $response = $objRequest->response;
 
         // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 25000));
-        $this->objDebug->addDebug("Response", substr($response, 0, 25000));
+        $this->objDebug->addDebug("Response", $objRequest->headers . "\n\n" . substr($response, 0, 25000));
 
         // Check if evething is okay for connection
         if ($objRequest->hasError())
@@ -403,22 +402,21 @@ class CtoCommunication extends Backend
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("We got a Fatal error on client site. " . $response);
         }
-        
+
         // Check for "Warning" on client side
         if (strpos($response, "Warning") !== FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-            
+
             $intStart = stripos($response, "<strong>Warning</strong>:");
             $intEnd = stripos($response, "on line");
-            
+
             throw new Exception("We got a Warning on client site.<br /><br />" . substr($response, $intStart, $intEnd - $intStart));
         }
-        
 
         // Check for start and end tag
         if (strpos($response, "<|@|") === FALSE || strpos($response, "|@|>") === FALSE)
-        {            
+        {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("Could not find start or endtag from response.");
         }
@@ -429,22 +427,22 @@ class CtoCommunication extends Backend
         // Find position of start/end - tag
         $intStart = intval(strpos($mixContent, "<|@|") + 4);
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
-        
+
         $mixContent = substr($mixContent, $intStart, $intLength);
-        //$mixContent = base64_decode($mixContent);
+        $mixContent = base64_decode($mixContent);
         //$mixContent = bzdecompress($mixContent);
         $mixContent = gzuncompress($mixContent);
-        
+
         // Check if uncopress works
-        if($mixContent === FALSE)
+        if ($mixContent === FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             throw new Exception("Error by uncompress the response. Maybe wrong key or ctoCom version.");
         }
-        
+
         // Decrypt response
         $mixContent = $this->objCodifyengine->Decrypt($mixContent);
-        
+
         $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2500));
 
         // Deserualize response
@@ -518,11 +516,11 @@ class CtoCommunication extends Backend
         $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $this->Input->get("act"));
 
         // If we have a ping, just do nothing
-        if($this->Input->get("act") == "ping")
+        if ($this->Input->get("act") == "ping")
         {
             exit();
         }
-        
+
         // API Key - Check -----------------------------------------------------
 
         if (strlen($this->Input->get("apikey")) == 0)
@@ -530,12 +528,12 @@ class CtoCommunication extends Backend
             $this->log(vsprintf("Call from %s without a API Key.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
             exit();
         }
-        
+
         $mixVar = $this->objCodifyengineBlow->Decrypt(base64_decode($this->Input->get("apikey")));
         $mixVar = trimsplit("@\|@", $mixVar);
         $strApiKey = $mixVar[1];
         $strAction = $mixVar[0];
-        
+
         if ($strAction != $this->Input->get("act"))
         {
             $this->log(vsprintf("Error Api Key from %s. Request action: %s | Key action: %s | Api: %s", array(
@@ -552,13 +550,13 @@ class CtoCommunication extends Backend
             $this->log(vsprintf("Call from %s with a wrong API Key: %s", array($this->Environment->ip, $this->Input->get("apikey"))), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
             exit();
         }
-        
+
         // Check language settings ---------------------------------------------
-        
-        if(empty ($GLOBALS['TL_LANGUAGE']))
+
+        if (empty($GLOBALS['TL_LANGUAGE']))
         {
             $GLOBALS['TL_LANGUAGE'] = "de";
-        }      
+        }
 
         // Change the Codifyengine if set --------------------------------------
 
@@ -617,7 +615,7 @@ class CtoCommunication extends Backend
             else
             {
                 $arrParameter = array();
-                
+
 
                 if ($this->arrRpcList[$mixRPCCall]["parameter"] != FALSE && is_array($this->arrRpcList[$mixRPCCall]["parameter"]))
                 {
@@ -627,14 +625,14 @@ class CtoCommunication extends Backend
                             // Decode post 
                             foreach ($_POST as $key => $value)
                             {
-                                $mixPost = $this->Input->post($key, true);                               
+                                $mixPost = $this->Input->post($key, true);
                                 $mixPost = base64_decode($mixPost);
                                 //$mixPost = bzdecompress($mixPost);
                                 $mixPost = gzuncompress($mixPost);
                                 $mixPost = $this->objCodifyengine->Decrypt($mixPost);
                                 $mixPost = deserialize($mixPost);
-                                $mixPost = $mixPost["data"];                                
-                                
+                                $mixPost = $mixPost["data"];
+
                                 if (is_null($mixPost))
                                 {
                                     $this->arrNullFields[] = $key;
@@ -649,8 +647,8 @@ class CtoCommunication extends Backend
                             // Check if all post are set
                             foreach ($this->arrRpcList[$mixRPCCall]["parameter"] as $value)
                             {
-                                $arrPostKey = array_keys($_POST);   
-                                                                
+                                $arrPostKey = array_keys($_POST);
+
                                 if (!in_array($value, $arrPostKey) && !in_array($value, $this->arrNullFields))
                                 {
                                     $this->arrError[] = array(
@@ -665,14 +663,14 @@ class CtoCommunication extends Backend
                                 }
                                 else
                                 {
-                                    if(in_array($value, $this->arrNullFields))
+                                    if (in_array($value, $this->arrNullFields))
                                     {
-                                        $arrParameter[$value] = NULL;  
+                                        $arrParameter[$value] = NULL;
                                     }
                                     else
                                     {
-                                        $arrParameter[$value] = $this->Input->post($value, true);  
-                                    }                                                                     
+                                        $arrParameter[$value] = $this->Input->post($value, true);
+                                    }
                                 }
                             }
                             break;
@@ -688,7 +686,6 @@ class CtoCommunication extends Backend
                 $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
                 return $this->generateOutput();
             }
-
 
             try
             {
@@ -758,7 +755,7 @@ class CtoCommunication extends Backend
 
         if (count($this->arrError) == 0)
         {
-            $strOutput = serialize(array(
+            $mixOutput = serialize(array(
                 "success" => 1,
                 "error" => "",
                 "response" => $this->mixOutput,
@@ -766,27 +763,31 @@ class CtoCommunication extends Backend
         }
         else
         {
-            $strOutput = serialize(array(
+            $mixOutput = serialize(array(
                 "success" => 0,
                 "error" => $this->arrError,
                 "response" => "",
                     ));
         }
 
-        $strOutput = $this->objCodifyengine->Encrypt($strOutput);
+        $mixOutput = $this->objCodifyengine->Encrypt($mixOutput);
 
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
 
         //$strOutput = bzcompress($strOutput);
-        $strOutput = gzcompress($strOutput);
-        //$strOutput = base64_encode($strOutput);
-        $strOutput = "<|@|" . $strOutput . "|@|>";
+        $mixOutput = gzcompress($mixOutput);
+        $mixOutput = base64_encode($mixOutput);
+        $mixOutput = "<|@|" . $mixOutput . "|@|>";
 
-        $this->objDebug->addDebug("Response", $strOutput);
+        $this->objDebug->addDebug("Response", $mixOutput);
 
-        echo $strOutput;
+        // Clean output buffer
+        while (@ob_end_clean());
+        
+        // Echo response
+        echo($mixOutput);
     }
-    
+
     /**
      * Check the required extensions and files for ctoCommunication
      * 
@@ -809,7 +810,7 @@ class CtoCommunication extends Backend
             );
 
             // check for required extensions
-            foreach ($arrRequiredExtensions as  $key => $val)
+            foreach ($arrRequiredExtensions as $key => $val)
             {
                 if (!in_array($val, $this->Config->getActiveModules()))
                 {
