@@ -89,6 +89,12 @@ $GLOBALS["CTOCOM_FUNCTIONS"] = array(
         "typ" => "GET",
         "parameter" => false,
     ),
+    "CTOCOM_GET_RESPONSE_PART" => array(
+        "class" => "CtoComRPCFunctions",
+        "function" => "getResponsePart",
+        "typ" => "POST",
+        "parameter" => array("splitname", "splitcount"),
+    ),   
     
 );
 ?>

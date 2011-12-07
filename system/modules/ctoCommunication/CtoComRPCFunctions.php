@@ -69,6 +69,24 @@ class CtoComRPCFunctions extends Backend
     /* -------------------------------------------------------------------------
      * RPC Functions
      */
+    
+    //- File Functions --------
+    
+    public function getResponsePart($strFilename, $intFilecount)
+    {
+        $strFilepath = "/system/tmp/" . $intFilecount . "_" . $strFilename;
+
+        if (!file_exists(TL_ROOT . $strFilepath))
+        {
+            throw new Exception("Missing partfile $strFilepath");
+        }
+
+        $objFile = new File($strFilepath);
+        $strReturn = $objFile->getContent();
+        $objFile->close();
+
+        return $strReturn;
+    }
 
     //- Referer Functions --------
 

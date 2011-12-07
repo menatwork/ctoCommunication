@@ -1,4 +1,7 @@
-<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
+<?php
+
+if (!defined('TL_ROOT'))
+    die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -43,6 +46,7 @@ class CtoCommunication extends Backend
     protected $arrError;
     protected $arrNullFields;
     protected $mixOutput;
+    protected $intMaxResponseLength = 100000;
     // Objects
     protected $objCodifyengine;
     protected $objCodifyengineBlow;
@@ -380,8 +384,14 @@ class CtoCommunication extends Backend
 
         // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 25000));
-        
-        $this->objDebug->addDebug("Response", implode("\n", $objRequest->headers) . "\n\n" . substr($response, 0, 2500000));
+
+        // Build response Header informations
+        $strResponseHeader = "";
+        foreach ($objRequest->headers as $keyHeader => $valueHeader)
+        {
+            $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
+        }
+        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2500000));
 
         // Check if evething is okay for connection
         if ($objRequest->hasError())
@@ -462,6 +472,11 @@ class CtoCommunication extends Backend
         // Check if client says "Everthing okay"
         if ($mixContent["success"] == 1)
         {
+            if($mixContent["splitcontent"] == true)
+            {
+                $mixContent["response"] = $this->rebuildSplitcontent($mixContent["splitname"], $mixContent["splitcount"]);
+            }
+            
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
             return $mixContent["response"];
         }
@@ -504,6 +519,29 @@ class CtoCommunication extends Backend
         }
 
         return $arrArray;
+    }
+    
+    protected function rebuildSplitcontent($strSplitname, $intSplitCount)
+    {
+        $strReturn = "";
+
+        for ($i = 0; $i < $intSplitCount; $i++)
+        {
+            $arrData = array(
+                array(
+                    "name" => "splitname",
+                    "value" => $strSplitname,
+                ),
+                array(
+                    "name" => "splitcount",
+                    "value" => $i,
+                )
+            );
+            
+            $strReturn .= $this->runServer("CTOCOM_GET_RESPONSE_PART", $arrData);
+        }
+        
+        return $strReturn;
     }
 
     /**
@@ -616,7 +654,6 @@ class CtoCommunication extends Backend
             else
             {
                 $arrParameter = array();
-
 
                 if ($this->arrRpcList[$mixRPCCall]["parameter"] != FALSE && is_array($this->arrRpcList[$mixRPCCall]["parameter"]))
                 {
@@ -760,6 +797,9 @@ class CtoCommunication extends Backend
                 "success" => 1,
                 "error" => "",
                 "response" => $this->mixOutput,
+                "splitcontent" => false,
+                "splitcount" => 0,
+                "splitname" => ""
                     ));
         }
         else
@@ -768,6 +808,9 @@ class CtoCommunication extends Backend
                 "success" => 0,
                 "error" => $this->arrError,
                 "response" => "",
+                "splitcontent" => false,
+                "splitcount" => 0,
+                "splitname" => ""
                     ));
         }
 
@@ -782,10 +825,40 @@ class CtoCommunication extends Backend
 
         $this->objDebug->addDebug("Response", $mixOutput);
 
+        // Check if we have a big output and split it 
+        if (strlen($mixOutput) > $this->intMaxResponseLength)
+        {
+            $mixOutput = str_split($mixOutput, (int)($this->intMaxResponseLength * 0.5));
+
+            $strFileName = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
+            $intCountPart = count($mixOutput);
+
+            foreach ($mixOutput as $keyOutput => $valueOutput)
+            {
+                $objFile = new File("system/tmp/" . $keyOutput . "_" . $strFileName);
+                $objFile->write($valueOutput);
+                $objFile->close();
+            }
+
+            $mixOutput = serialize(array(
+                "success" => 1,
+                "error" => "",
+                "response" => "",
+                "splitcontent" => true,
+                "splitcount" => $intCountPart,
+                "splitname" => $strFileName
+                    ));
+
+            $mixOutput = $this->objCodifyengine->Encrypt($mixOutput);
+            
+            //$strOutput = bzcompress($strOutput);
+            $mixOutput = gzcompress($mixOutput);
+            $mixOutput = base64_encode($mixOutput);
+            $mixOutput = "<|@|" . $mixOutput . "|@|>";
+        }
+
         // Clean output buffer
         while (@ob_end_clean());
-        
-        echo strlen($mixOutput);
         // Echo response
         echo($mixOutput);
     }
