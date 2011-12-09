@@ -26,6 +26,7 @@
  * @license    GNU/LGPL
  * @filesource
  */
+ 
 class CtoCommunication extends Backend
 {
     /* -------------------------------------------------------------------------
