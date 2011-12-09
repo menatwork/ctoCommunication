@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -39,8 +36,10 @@ class CtoCommunication extends Backend
     protected static $instance = null;
     // Vars
     protected $strUrl;
-    protected $strUrlGet;
+    protected $strUrlGet;    
     protected $strApiKey;
+    protected $strHTTPUser;
+    protected $strHTTPPassword;
     protected $arrCookies;
     protected $arrRpcList;
     protected $arrError;
@@ -51,6 +50,50 @@ class CtoCommunication extends Backend
     protected $objCodifyengine;
     protected $objCodifyengineBlow;
     protected $objDebug;
+    // Config
+    protected $arrResponses = array(
+        100 => 'Continue',
+        101 => 'Switching Protocols',
+        200 => 'OK',
+        201 => 'Created',
+        202 => 'Accepted',
+        203 => 'Non-Authoritative Information',
+        204 => 'No Content',
+        205 => 'Reset Content',
+        206 => 'Partial Content',
+        207 => 'Multi-Status',
+        300 => 'Multiple Choices',
+        301 => 'Moved Permanently',
+        302 => 'Found',
+        303 => 'See Other',
+        304 => 'Not Modified',
+        305 => 'Use Proxy',
+        307 => 'Temporary Redirect',
+        400 => 'Bad Request',
+        401 => 'Unauthorized',
+        402 => 'Payment Required',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        405 => 'Method Not Allowed',
+        406 => 'Not Acceptable',
+        407 => 'Proxy Authentication Required',
+        408 => 'Request Timeout',
+        409 => 'Conflict',
+        410 => 'Gone',
+        411 => 'Length Required',
+        412 => 'Precondition Failed',
+        413 => 'Request Entity Too Large',
+        414 => 'Request-URI Too Large',
+        415 => 'Unsupported Media Type',
+        416 => 'Requested Range Not Satisfiable',
+        417 => 'Expectation Failed',
+        500 => 'Internal Server Error',
+        501 => 'Not Implemented',
+        502 => 'Bad Gateway',
+        503 => 'Service Unavailable',
+        504 => 'Gateway Timeout',
+        505 => 'HTTP Version Not Supported'
+    );
 
     /* -------------------------------------------------------------------------
      * Core
@@ -150,7 +193,28 @@ class CtoCommunication extends Backend
             $this->arrCookies[$name] = $value;
         }
     }
+    
+    /**
+     * Set a username for http auth
+     * 
+     * @param string $strHTTPUser 
+     */
+    public function setHTTPUser($strHTTPUser)
+    {
+        $this->strHTTPUser = $strHTTPUser;
+    }
+    
+    /**
+     * Set a password for http auth
+     * 
+     * @param string $strHTTPPassword 
+     */
+    public function setHTTPPassword($strHTTPPassword)
+    {
+        $this->strHTTPPassword = $strHTTPPassword;
+    }
 
+    
     //- Getter -------------------
 
     /**
@@ -192,7 +256,27 @@ class CtoCommunication extends Backend
     {
         return $this->objCodifyengine->getName();
     }
+    
+    /**
+     * Get username for http auth.
+     * 
+     * @return string 
+     */
+    public function getHTTPUser()
+    {
+        return $this->strHTTPUser;
+    }
 
+    /**
+     * Get password for http auth.
+     * 
+     * @return string 
+     */
+    public function getHTTPPassword()
+    {
+        return $this->strHTTPPassword;
+    }
+    
     /* -------------------------------------------------------------------------
      * Getter and Setter for the debug class
      */
@@ -298,7 +382,7 @@ class CtoCommunication extends Backend
         {
             throw new Exception("There is no URL set for connection. Please set first the url.");
         }
-
+        
         // Add Get Parameter
         $strCryptApiKey = $this->objCodifyengineBlow->Encrypt($rpc . "@|@" . $this->strApiKey);
         $strCryptApiKey = base64_encode($strCryptApiKey);
@@ -319,6 +403,12 @@ class CtoCommunication extends Backend
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
+        
+        if(strlen($this->strHTTPUser) != 0 || strlen($this->strHTTPPassword) != 0)
+        {
+            $objRequest->username = $this->strHTTPUser;
+            $objRequest->password = $this->strHTTPPassword;
+        }
 
         // Set Header Accept-Language        
         $objRequest->setHeader("Accept-Language", vsprintf("%s, en;q=0.8", array($GLOBALS['TL_LANGUAGE'])));
@@ -393,11 +483,18 @@ class CtoCommunication extends Backend
         }
         $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2500000));
 
-        // Check if evething is okay for connection
+        // Check if everything is okay for connection
         if ($objRequest->hasError())
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-            throw new Exception("Error by sending request with measages: " . $objRequest->code . " " . $objRequest->error);
+            throw new Exception("Error on transmission, with message: " . $objRequest->code . " " . $objRequest->error);
+        }
+        
+        // Check if everything is okay for connection
+        if ($objRequest->code != 200)
+        {
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            throw new Exception("Error on transmission, with message: " . $objRequest->code . " - " . $this->arrResponses[$objRequest->code]);
         }
 
         // Check if we have a response
@@ -448,7 +545,7 @@ class CtoCommunication extends Backend
         if ($mixContent === FALSE)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-            throw new Exception("Error by uncompress the response. Maybe wrong key or ctoCom version.");
+            throw new Exception("Error on uncompressing the response. Maybe wrong API-Key or ctoCom version.");
         }
 
         // Decrypt response
@@ -463,7 +560,7 @@ class CtoCommunication extends Backend
         if (is_array($mixContent) == false)
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
-            throw new Exception("Response is not a array. Maybe wrong key or codifyengine.");
+            throw new Exception("Response is not an array. Maybe wrong API-Key or cryptionengine.");
         }
 
         // Clean array
@@ -484,7 +581,7 @@ class CtoCommunication extends Backend
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
 
-            $string = vsprintf("There was a error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
+            $string = vsprintf("There was an error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
                 nl2br($mixContent["error"][0]["msg"]),
                 $mixContent["error"][0]["rpc"],
                 (strlen($mixContent["error"][0]["class"]) != 0) ? $mixContent["error"][0]["class"] : " - ",
