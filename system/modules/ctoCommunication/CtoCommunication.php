@@ -540,7 +540,7 @@ class CtoCommunication extends Backend
         $mixContent = substr($mixContent, $intStart, $intLength);
         $mixContent = base64_decode($mixContent);
         //$mixContent = bzdecompress($mixContent);
-        $mixContent = gzuncompress($mixContent);
+        $mixContent = @gzuncompress($mixContent);
 
         // Check if uncopress works
         if ($mixContent === FALSE)
@@ -572,7 +572,15 @@ class CtoCommunication extends Backend
         {
             if($mixContent["splitcontent"] == true)
             {
-                $mixContent["response"] = $this->rebuildSplitcontent($mixContent["splitname"], $mixContent["splitcount"]);
+                try
+                {
+                    $mixContent["response"] = $this->rebuildSplitcontent($mixContent["splitname"], $mixContent["splitcount"]);
+                }
+                catch (Exception $exc)
+                {
+                    $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+                    throw $exc;
+                }
             }
             
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
@@ -621,7 +629,7 @@ class CtoCommunication extends Backend
     
     protected function rebuildSplitcontent($strSplitname, $intSplitCount)
     {
-        $strReturn = "";
+        $mixContent = "";
 
         for ($i = 0; $i < $intSplitCount; $i++)
         {
@@ -636,10 +644,64 @@ class CtoCommunication extends Backend
                 )
             );
             
-            $strReturn .= $this->runServer("CTOCOM_GET_RESPONSE_PART", $arrData);
+            $mixContent .= $this->runServer("CTOCOM_GET_RESPONSE_PART", $arrData);
         }
         
-        return $strReturn;
+        // Check for start and end tag
+        if (strpos($mixContent, "<|@|") === FALSE || strpos($mixContent, "|@|>") === FALSE)
+        {
+            throw new Exception("Could not find start or endtag from response.");
+        }
+
+        // Find position of start/end - tag
+        $intStart = intval(strpos($mixContent, "<|@|") + 4);
+        $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
+
+        $mixContent = substr($mixContent, $intStart, $intLength);
+        $mixContent = base64_decode($mixContent);
+        //$mixContent = bzdecompress($mixContent);
+        $mixContent = @gzuncompress($mixContent);
+
+        // Check if uncopress works
+        if ($mixContent === FALSE)
+        {
+            throw new Exception("Error on uncompressing the response. Maybe wrong API-Key or ctoCom version.");
+        }
+
+        // Decrypt response
+        $mixContent = $this->objCodifyengine->Decrypt($mixContent);
+
+        $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2500));
+
+        // Deserialize response
+        $mixContent = deserialize($mixContent);
+
+        // Check if we have a array
+        if (is_array($mixContent) == false)
+        {
+            throw new Exception("Response is not an array. Maybe wrong API-Key or cryptionengine.");
+        }
+
+        // Clean array
+        $mixContent = $this->cleanUp($mixContent);
+
+        // Check if client says "Everthing okay"
+        if ($mixContent["success"] == 1)
+        { 
+            return $mixContent["response"];
+        }
+        else
+        {
+            $string = vsprintf("There was an error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
+                nl2br($mixContent["error"][0]["msg"]),
+                $mixContent["error"][0]["rpc"],
+                (strlen($mixContent["error"][0]["class"]) != 0) ? $mixContent["error"][0]["class"] : " - ",
+                (strlen($mixContent["error"][0]["function"]) != 0) ? $mixContent["error"][0]["function"] : " - ",
+                    )
+            );
+
+            throw new Exception($string);
+        }
     }
 
     /**
