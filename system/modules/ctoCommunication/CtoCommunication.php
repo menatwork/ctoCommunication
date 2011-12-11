@@ -46,7 +46,7 @@ class CtoCommunication extends Backend
     protected $arrError;
     protected $arrNullFields;
     protected $mixOutput;
-    protected $intMaxResponseLength = 100000;
+    protected $intMaxResponseLength = 40000;
     // Objects
     protected $objCodifyengine;
     protected $objCodifyengineBlow;
@@ -650,7 +650,7 @@ class CtoCommunication extends Backend
         // Check for start and end tag
         if (strpos($mixContent, "<|@|") === FALSE || strpos($mixContent, "|@|>") === FALSE)
         {
-            throw new Exception("Could not find start or endtag from response.");
+            throw new Exception("Could not find start or endtag from response. Error in split content.");
         }
 
         // Find position of start/end - tag
