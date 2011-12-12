@@ -32,7 +32,7 @@
  */
 // Palettes Insert
 $arrPalettes = explode(";", $GLOBALS['TL_DCA']['tl_settings']['palettes']['default']);
-$GLOBALS['TL_DCA']['tl_settings']['palettes']['default'] = implode(";", array_merge(array_slice($arrPalettes, 0, 1), array("{ctoCommunication_legend},ctoCom_APIKey"), array_slice($arrPalettes, 1)));
+$GLOBALS['TL_DCA']['tl_settings']['palettes']['default'] = implode(";", array_merge(array_slice($arrPalettes, 0, 1), array('{ctoCommunication_legend},ctoCom_APIKey,ctoCom_responseLength'), array_slice($arrPalettes, 1)));
 
 // Fields
 $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_APIKey'] = array(
@@ -43,6 +43,14 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_APIKey'] = array(
     'exclude' => true,
     'save_callback' => array(array('CtoCommunicationSettings', 'save_callback')),
 );
+// Fields
+$GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_responseLength'] = array(
+    'label' => &$GLOBALS['TL_LANG']['tl_settings']['ctoCom_responseLength'],
+    'inputType' => 'text',
+    'eval' => array('rgxp' => 'digit', 'tl_class' => 'long', 'maxlength' => '64', 'minlength' => '5'),
+    'exclude' => true,
+);
+
 
 class CtoCommunicationSettings extends Backend
 {

@@ -28,12 +28,14 @@
  */
 
 /**
- * Fields
- */
-$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'] = array('ctoCommunication API Key', 'This key ensures the communication between the contao installations.');
-
-/**
  * Legends
  */
-$GLOBALS['TL_LANG']['tl_settings']['ctoCommunication_legend'] = 'ctoCommunication';
+$GLOBALS['TL_LANG']['tl_settings']['ctoCommunication_legend']       = 'ctoCommunication';
+
+/**
+ * Fields
+ */
+$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey']                 = array('ctoCommunication API Key', 'This key ensures the communication between the contao installations.');
+$GLOBALS['TL_LANG']['tl_settings']['ctoCom_responseLength']         = array('Maximum request length', 'Here you can change the maximum length of HTTP requests. By default 40,000 characters.');
+
 ?>

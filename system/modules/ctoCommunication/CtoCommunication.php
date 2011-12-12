@@ -46,12 +46,12 @@ class CtoCommunication extends Backend
     protected $arrError;
     protected $arrNullFields;
     protected $mixOutput;
-    protected $intMaxResponseLength = 40000;
     // Objects
     protected $objCodifyengine;
     protected $objCodifyengineBlow;
     protected $objDebug;
     // Config
+    protected $intMaxResponseLength;
     protected $arrResponses = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
@@ -114,6 +114,15 @@ class CtoCommunication extends Backend
         $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
         $this->arrError = array();
         $this->arrNullFields = array();
+
+        if (empty($GLOBALS['TL_CONFIG']['ctoCom_responseLength']) || $GLOBALS['TL_CONFIG']['ctoCom_responseLength'] < 10000)
+        {
+            $this->intMaxResponseLength = 40000;
+        }
+        else
+        {
+            $this->intMaxResponseLength = $GLOBALS['TL_CONFIG']['ctoCom_responseLength'];
+        }
     }
 
     /**
