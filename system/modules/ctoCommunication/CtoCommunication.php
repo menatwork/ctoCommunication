@@ -848,7 +848,7 @@ class CtoCommunication extends Backend
                             // Decode post 
                             foreach ($_POST as $key => $value)
                             {
-                                $mixPost = $this->Input->post($key, true);
+                                $mixPost = $this->Input->postRaw($key);
                                 $mixPost = base64_decode($mixPost);
                                 //$mixPost = bzdecompress($mixPost);
                                 $mixPost = gzuncompress($mixPost);
@@ -892,7 +892,7 @@ class CtoCommunication extends Backend
                                     }
                                     else
                                     {
-                                        $arrParameter[$value] = $this->Input->post($value, true);
+                                        $arrParameter[$value] = $this->Input->postRaw($value);
                                     }
                                 }
                             }
