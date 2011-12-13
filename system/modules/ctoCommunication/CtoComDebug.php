@@ -215,12 +215,17 @@ class CtoComDebug extends Backend
      * @param string $strInformation
      * @return void 
      */
-    public function startMeasurement($strClass, $strFunction, $strInformation = "")
+    public function startMeasurement($strClass, $strFunction, $strInformation = "", $mixID = null)
     {
         if (!$this->booMeasurement)
             return;
+        
+        if($mixID == null)
+        {
+            $mixID = count($this->arrMeasurement);     
+        }
 
-        $this->arrMeasurement[$strClass . "|" . $strFunction] = array(
+        $this->arrMeasurement[$mixID] = array(
             "class" => $strClass,
             "function" => $strFunction,
             "information" => $strInformation,
@@ -229,6 +234,8 @@ class CtoComDebug extends Backend
             "mem_start" => memory_get_usage(true),
             "mem_end" => 0,
         );
+        
+        return $mixID;
     }
 
     /**
@@ -238,15 +245,15 @@ class CtoComDebug extends Backend
      * @param string $strFunction
      * @return void 
      */
-    public function stopMeasurement($strClass, $strFunction)
+    public function stopMeasurement($strClass, $strFunction, $mixID)
     {
         if (!$this->booMeasurement)
             return;
 
         $floStop = microtime(true);
-        $floTime = $floStop - $this->arrMeasurement[$strClass . "|" . $strFunction]["start"];
+        $floTime = $floStop - $this->arrMeasurement[$mixID]["start"];
 
-        $this->arrMeasurement[$strClass . "|" . $strFunction] = array_merge($this->arrMeasurement[$strClass . "|" . $strFunction], array(
+        $this->arrMeasurement[$mixID] = array_merge($this->arrMeasurement[$mixID], array(
             "stop" => $floStop,
             "time" => $floTime,
             "mem_end" => memory_get_usage(true),
@@ -294,7 +301,7 @@ class CtoComDebug extends Backend
 
             foreach ($this->arrMeasurement as $key => $value)
             {
-                $strContent .= "Class: " . $value["class"] . "\tFunction: " . $value["function"] . "\tInformation: " . $value["information"] .
+                $strContent .= "$key - Class: " . $value["class"] . "\tFunction: " . $value["function"] . "\tInformation: " . $value["information"] .
                         "\n\t\tStart: " . $value["start"] . "\tEnd: " . $value["stop"] . "\tExecutiontime: " . number_format($value["time"], 5, ",", ".") . " Sekunden" .
                         "\n\t\tStartMem: " . round($value["mem_start"] / 1048576, 4) . "MB\tEndMem: " . round($value["mem_end"] / 1048576, 4) . "MB\t\tPeakMem: " . round($value["mem_peak"] / 1048576, 4) . " MB" .
                         "\n|----\n";

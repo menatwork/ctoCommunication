@@ -378,9 +378,11 @@ class CtoCommunication extends Backend
      */
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
-        $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $rpc);
+        $strMeasureID1 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $rpc);
 
         $this->strUrlGet = "";
+        
+        $strMeasureID2 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. System");
 
         // Check if everything is set
         if ($this->strApiKey == "" || $this->strApiKey == null)
@@ -408,7 +410,11 @@ class CtoCommunication extends Backend
 
         // Set Key for codifyengine
         $this->objCodifyengine->setKey($this->strApiKey);
+        
+        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID2);
 
+        $strMeasureID3 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. Request");
+        
         // New Request
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
@@ -438,6 +444,8 @@ class CtoCommunication extends Backend
             $objMultipartFormdata = new MultipartFormdata();
             foreach ($arrData as $key => $value)
             {
+                $strMeasureID4 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. MultipartFormdata - " . $value["name"]);
+                
                 if (isset($value["filename"]) == true && strlen($value["filename"]) != 0)
                 {
                     // Set field for file
@@ -467,6 +475,8 @@ class CtoCommunication extends Backend
                     // Set field
                     $objMultipartFormdata->setField($value["name"], $strValue);
                 }
+                
+                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID4);
             }
 
             // Create HTTP Data code
@@ -477,8 +487,14 @@ class CtoCommunication extends Backend
             $objRequest->datamime = $objMultipartFormdata->getContentTypeHeader();
         }
 
+        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID3);
+
+        $strMeasureID5 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Start sending.");
+
         // Send new request
         $objRequest->send($this->strUrl . $this->strUrlGet);
+
+        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID5);
 
         $response = $objRequest->response;
 
@@ -496,35 +512,35 @@ class CtoCommunication extends Backend
         // Check if everything is okay for connection
         if ($objRequest->hasError())
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Error on transmission, with message: " . $objRequest->code . " " . $objRequest->error);
         }
         
         // Check if everything is okay for connection
         if ($objRequest->code != 200)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Error on transmission, with message: " . $objRequest->code . " - " . $this->arrResponses[$objRequest->code]);
         }
 
         // Check if we have a response
         if (strlen($response) == 0)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("We got a blank response from server.");
         }
 
         // Check for "Fatal error" on client side
         if (strpos($response, "Fatal error") !== FALSE)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("We got a Fatal error on client site. " . $response);
         }
 
         // Check for "Warning" on client side
         if (strpos($response, "Warning") !== FALSE)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
 
             $intStart = stripos($response, "<strong>Warning</strong>:");
             $intEnd = stripos($response, "on line");
@@ -535,7 +551,7 @@ class CtoCommunication extends Backend
         // Check for start and end tag
         if (strpos($response, "<|@|") === FALSE || strpos($response, "|@|>") === FALSE)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Could not find start or endtag from response.");
         }
 
@@ -554,7 +570,7 @@ class CtoCommunication extends Backend
         // Check if uncopress works
         if ($mixContent === FALSE)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Error on uncompressing the response. Maybe wrong API-Key or ctoCom version.");
         }
 
@@ -569,7 +585,7 @@ class CtoCommunication extends Backend
         // Check if we have a array
         if (is_array($mixContent) == false)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Response is not an array. Maybe wrong API-Key or cryptionengine.");
         }
 
@@ -587,17 +603,17 @@ class CtoCommunication extends Backend
                 }
                 catch (Exception $exc)
                 {
-                    $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+                    $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
                     throw $exc;
                 }
             }
             
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             return $mixContent["response"];
         }
         else
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
 
             $string = vsprintf("There was an error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
                 nl2br($mixContent["error"][0]["msg"]),
@@ -610,7 +626,7 @@ class CtoCommunication extends Backend
             throw new Exception($string);
         }
 
-        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
     }
 
     /**
