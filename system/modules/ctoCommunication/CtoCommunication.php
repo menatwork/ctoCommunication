@@ -593,7 +593,7 @@ class CtoCommunication extends Backend
         $response = $objRequest->response;
 
         // Debug
-        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 25000));
+        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2500));
 
         // Build response Header informations
         $strResponseHeader = "";
@@ -838,7 +838,7 @@ class CtoCommunication extends Backend
     public function runClient()
     {
         // Start measurement
-        //$this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $this->Input->get("act"));
+        $intMeasurement1 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $this->Input->get("act"));
 
         // If we have a ping, just do nothing
         if ($this->Input->get("act") == "ping")
@@ -1049,13 +1049,13 @@ class CtoCommunication extends Backend
 
             if (count($this->arrError) != 0)
             {
-                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $intMeasurement1);
                 return $this->generateOutput();
             }
 
             try
             {
-                //$this->objDebug->startMeasurement($this->arrRpcList[$mixRPCCall]["class"], $this->arrRpcList[$mixRPCCall]["function"]);
+                $intMeasurement2 = $this->objDebug->startMeasurement($this->arrRpcList[$mixRPCCall]["class"], $this->arrRpcList[$mixRPCCall]["function"]);
 
                 $strClassname = $this->arrRpcList[$mixRPCCall]["class"];
 
@@ -1084,7 +1084,7 @@ class CtoCommunication extends Backend
                     $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]), $arrParameter);
                 }
 
-                //$this->objDebug->stopMeasurement($this->arrRpcList[$mixRPCCall]["class"], $this->arrRpcList[$mixRPCCall]["function"]);
+                $this->objDebug->stopMeasurement($this->arrRpcList[$mixRPCCall]["class"], $this->arrRpcList[$mixRPCCall]["function"], $intMeasurement2);
             }
             catch (Exception $exc)
             {
@@ -1102,7 +1102,7 @@ class CtoCommunication extends Backend
             }
         }
 
-        //$this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $intMeasurement1);
         return $this->generateOutput();
     }
 
@@ -1117,7 +1117,7 @@ class CtoCommunication extends Backend
      */
     protected function generateOutput()
     {
-        //$this->objDebug->startMeasurement(__CLASS__, __FUNCTION__);
+        $intMeasurement1 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__);
 
         if (count($this->arrError) == 0)
         {
@@ -1144,14 +1144,14 @@ class CtoCommunication extends Backend
 
         $mixOutput = $this->objCodifyengine->Encrypt($mixOutput);
 
-        //$this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__);
+        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $intMeasurement1);
 
         //$strOutput = bzcompress($strOutput);
         $mixOutput = gzcompress($mixOutput);
         $mixOutput = base64_encode($mixOutput);
         $mixOutput = "<|@|" . $mixOutput . "|@|>";
 
-        $this->objDebug->addDebug("Response", $mixOutput);
+        //$this->objDebug->addDebug("Response", $mixOutput);
 
         // Check if we have a big output and split it 
         if (strlen($mixOutput) > $this->intMaxResponseLength)
@@ -1187,6 +1187,7 @@ class CtoCommunication extends Backend
 
         // Clean output buffer
         while (@ob_end_clean());
+        
         // Echo response
         echo($mixOutput);
     }
