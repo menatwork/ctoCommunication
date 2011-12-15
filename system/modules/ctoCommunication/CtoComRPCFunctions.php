@@ -138,9 +138,7 @@ class CtoComRPCFunctions extends Backend
     }
     
     public function deleteUUID()
-    {        
-        $arrUUID = $this->Database->prepare()->execute()->fetchAllAssoc();
-
+    { 
         $this->Database->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")                
                 ->execute($this->Input->get("con"));
 
