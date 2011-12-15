@@ -1,4 +1,4 @@
-<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -21,25 +21,12 @@
  * Software Foundation website at <http://www.gnu.org/licenses/>.
  *
  * PHP version 5
- * @copyright  MEN AT WORK 2011 
- * @package    ctoCommunication
+ * @copyright  MEN AT WORK 2011
+ * @package    Language
  * @license    GNU/LGPL 
  * @filesource
  */
 
-/**
- * Engine
- */
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"] = "-";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"] = "Mcrypt";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["blowfish"] = "Blowfish";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"] = "phpseclib - AES";
-
-/**
- * Error
- */
-$GLOBALS['TL_LANG']['ERR']['unknown_engine'] = "Unknown codifyengine: %s . ";
-$GLOBALS['TL_LANG']['ERR']['missing_engine'] = "Could not find codifyengine: %s . ";
-$GLOBALS['TL_LANG']['ERR']['not_a_engine'] = "The choosen codifyengine have to be from type 'CtoComCodifyengineAbstract'.";
-
+$GLOBALS['TL_LANG']['XPL']['ctoComKey']['0'] = array('ctoCommunication API Key', 'Der API Key ist für die Verschlüsselung bei der Synchronisation von zwei Contao-Installationen zuständig.<br /><br />Lassen Sie das Feld leer um beim Speichern einen neuen Key zu generieren. Diesen Key kopieren Sie dann und fügen Ihn bei den Clienteinstellungen des Servers ein.');
+ 
 ?>

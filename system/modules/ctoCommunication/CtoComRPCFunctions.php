@@ -123,6 +123,113 @@ class CtoComRPCFunctions extends Backend
     {
         return VERSION;
     }
+    
+    //- Handshake ---------------
+    
+    public function generateUUID()
+    {        
+        $arrUUID = $this->Database->prepare("SELECT uuid() as uid")->execute()->fetchAllAssoc();
+
+        $this->Database->prepare("INSERT INTO tl_ctocom_cache %s")
+                ->set(array("uid" => $arrUUID[0]["uid"], "tstamp" => time()))
+                ->execute();
+
+        return $arrUUID[0]["uid"];
+    }
+    
+    public function deleteUUID()
+    {        
+        $arrUUID = $this->Database->prepare()->execute()->fetchAllAssoc();
+
+        $this->Database->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")                
+                ->execute($this->Input->get("con"));
+
+        return true;
+    }
+
+    public function startHandshake()
+    {
+        // Imoprt
+        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
+        
+        // Init
+        $intPrimeLength = 308;        
+        $strGenerator = "2";
+        
+        // Generate prime
+        $strPrime = rand(1, 9);
+        for($i = 0 ; $i < $intPrimeLength ; $i++)
+        {
+            $strPrime .= rand(0, 9);
+        }        
+        
+        // Build array
+        $arrDiffieHellman = array(
+            "generator" => $strGenerator,
+            "prime" => $strPrime,
+        );
+        
+        // Create random private key.
+        $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
+        $strPrivate = rand(1, 9);
+        
+        for ($i = 0; $i < $intPrivateLength; $i++)
+        {
+            $strPrivate .= rand(0, 9);
+        }
+
+        // Start key gen
+        $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
+        $objDiffieHellman->generateKeys();
+
+        $strPublicKey = $objDiffieHellman->getPublicKey();
+
+        $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
+                ->set(array(
+                    "tstamp" => time(),
+                    "prime" => $arrDiffieHellman["prime"],
+                    "generator" => $arrDiffieHellman["generator"],
+                    "public_key" => $strPublicKey,
+                    "private_key" => $strPrivate,
+                ))
+                ->execute($this->Input->get("con"));
+
+        $arrDiffieHellman["public_key"] = $strPublicKey;
+        
+        return $arrDiffieHellman;
+    }
+
+    public function checkHandshake()
+    {
+        // Imoprt
+        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
+
+        if(strlen($this->Input->get("key")) == 0)
+        {
+            throw new Exception("Could not find public key for handshake.");
+        }
+        
+        // Load information
+        $arrConnections = $this->Database->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
+                ->execute($this->Input->get("con"))
+                ->fetchAllAssoc();
+        
+        // Start key gen
+        $objDiffieHellman = new Crypt_DiffieHellman($arrConnections[0]["prime"], $arrConnections[0]["generator"], $arrConnections[0]["private_key"]);
+        $objDiffieHellman->generateKeys();
+
+        $strSecretKey = $objDiffieHellman->computeSecretKey($this->Input->get("key"))
+                ->getSharedSecretKey();
+
+        $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
+                ->set(array(
+                    "tstamp" => time(),
+                    "shared_secret_key" => $strSecretKey,
+                ))
+                ->execute($this->Input->get("con"));
+
+        return $objDiffieHellman->getPublicKey();
+    }
 
 }
 

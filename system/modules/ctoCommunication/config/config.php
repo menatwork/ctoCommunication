@@ -50,10 +50,10 @@ $GLOBALS["CTOCOM_ENGINE"] = array(
         "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"],
         "classname" => "CtoComCodifyengineImpl_Mcrypt",
         "folder" => "system/modules/ctoCommunication",
-    ),
-    "blowfish" => array(
-        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["blowfish"],
-        "classname" => "CtoComCodifyengineImpl_Blowfish",
+    ),    
+    "aes" => array(
+        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"],
+        "classname" => "CtoComCodifyengineImpl_AES",
         "folder" => "system/modules/ctoCommunication",
     ),
 );
@@ -94,7 +94,30 @@ $GLOBALS["CTOCOM_FUNCTIONS"] = array(
         "function" => "getResponsePart",
         "typ" => "POST",
         "parameter" => array("splitname", "splitcount"),
-    ),   
-    
+    ),
+    "CTOCOM_HELLO" => array(
+        "class" => "CtoComRPCFunctions",
+        "function" => "generateUUID",
+        "typ" => "GET",
+        "parameter" => FALSE,
+    ),
+    "CTOCOM_START_HANDSHAKE" => array(
+        "class" => "CtoComRPCFunctions",
+        "function" => "startHandshake",
+        "typ" => "GET",
+        "parameter" => FALSE,
+    ),
+    "CTOCOM_CHECK_HANDSHAKE" => array(
+        "class" => "CtoComRPCFunctions",
+        "function" => "checkHandshake",
+        "typ" => "GET",
+        "parameter" => FALSE,
+    ),
+    "CTOCOM_BYE" => array(
+        "class" => "CtoComRPCFunctions",
+        "function" => "deleteUUID",
+        "typ" => "GET",
+        "parameter" => FALSE,
+    ),
 );
 ?>

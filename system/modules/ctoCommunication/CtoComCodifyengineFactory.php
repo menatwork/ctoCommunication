@@ -42,7 +42,7 @@ class CtoComCodifyengineFactory extends Backend
     {
         // Use default codifyengine, if no one is set
         if ($strEngine == "" || $strEngine == null)
-            $strEngine = "blowfish";
+            $strEngine = "aes";
 
         // Check if engeni is known
         if (!key_exists($strEngine, $GLOBALS["CTOCOM_ENGINE"]))

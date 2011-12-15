@@ -33,6 +33,7 @@
 $GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"] = "-";
 $GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"] = "Mcrypt";
 $GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["blowfish"] = "Blowfish";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"] = "phpseclib - AES";
 
 /**
  * Error
