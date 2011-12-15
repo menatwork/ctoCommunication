@@ -513,7 +513,7 @@ class CtoCommunication extends Backend
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
-        
+                
         if(strlen($this->strHTTPUser) != 0 || strlen($this->strHTTPPassword) != 0)
         {
             $objRequest->username = $this->strHTTPUser;
@@ -876,6 +876,10 @@ class CtoCommunication extends Backend
                     $this->log(vsprintf("Call from %s without a expired connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
                     exit();
                 }
+                
+                $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
+                        ->set(array("tstamp" => time()))
+                        ->execute($this->Input->get("con"));
                     
                 $this->objCodifyengineBasic->setKey($arrConnections[0]["shared_secret_key"]);
                 $this->objCodifyengine->setKey($arrConnections[0]["shared_secret_key"]);
