@@ -593,7 +593,7 @@ class CtoCommunication extends Backend
         $response = $objRequest->response;
 
         // Debug
-        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2500));
+        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2000));
 
         // Build response Header informations
         $strResponseHeader = "";
@@ -601,7 +601,7 @@ class CtoCommunication extends Backend
         {
             $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
         }
-        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2500000));
+        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2000));
 
         // Check if we have time out
         if ($objRequest->timedOut)
@@ -620,8 +620,17 @@ class CtoCommunication extends Backend
         // Check if everything is okay for connection
         if ($objRequest->code != 200)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
-            throw new Exception("Error on transmission, with message: " . $objRequest->code . " - " . $this->arrResponses[$objRequest->code]);
+            // Check if we have time out
+            if (empty($objRequest->code))
+            {
+                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
+                throw new Exception("Sorry we have a time out. Please try again.");
+            }
+            else
+            {
+                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
+                throw new Exception("Error on transmission, with message: " . $objRequest->code . " - " . $this->arrResponses[$objRequest->code]);
+            }
         }
 
         // Check if we have a response
@@ -678,7 +687,7 @@ class CtoCommunication extends Backend
         // Decrypt response
         $mixContent = $this->objCodifyengine->Decrypt($mixContent);
 
-        $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2500));
+        $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2000));
 
         // Deserialize response
         $mixContent = deserialize($mixContent);
@@ -797,7 +806,7 @@ class CtoCommunication extends Backend
         // Decrypt response
         $mixContent = $this->objCodifyengine->Decrypt($mixContent);
 
-        $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2500));
+        $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2000));
 
         // Deserialize response
         $mixContent = deserialize($mixContent);
