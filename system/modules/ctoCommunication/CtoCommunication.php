@@ -768,6 +768,8 @@ class CtoCommunication extends Backend
 
         for ($i = 0; $i < $intSplitCount; $i++)
         {
+            @set_time_limit(60);
+            
             $arrData = array(
                 array(
                     "name" => "splitname",
