@@ -56,7 +56,7 @@ class runonceJob extends Backend
             if (strlen($GLOBALS['TL_CONFIG']['ctoCom_APIKey']) == 0)
             {
                 $objKey = $this->Database->prepare("SELECT UUID() as uid")->execute();
-                $this->Config->add("\$GLOBALS['TL_CONFIG']['ctoCom_responseLength']", $objKey->uid);
+                $this->Config->add("\$GLOBALS['TL_CONFIG']['ctoCom_APIKey']", $objKey->uid);
                 $this->log("Create an API Key for ctoCommunictaion.", "ctoCommunictaion Runonce", TL_GENERAL);
             }
         }
