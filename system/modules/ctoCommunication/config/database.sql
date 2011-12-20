@@ -19,7 +19,7 @@ CREATE TABLE `tl_ctocom_cache` (
   `generator` text NULL,
   `public_key` text NULL,
   `private_key` text NULL,
-  `shared_secret_key` text NULL  
-  PRIMARY KEY  (`id`), 
-  KEY `tstamp` (`uid`) 
+  `shared_secret_key` text NULL,
+  PRIMARY KEY  (`id`),
+  KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
