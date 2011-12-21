@@ -151,7 +151,7 @@ class CtoComRPCFunctions extends Backend
         require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
         
         // Init
-        $intPrimeLength = 308;        
+        $intPrimeLength = 128;        
         $strGenerator = "2";
         
         // Generate prime
