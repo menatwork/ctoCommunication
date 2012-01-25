@@ -69,9 +69,9 @@ class CtoComRPCFunctions extends Backend
     /* -------------------------------------------------------------------------
      * RPC Functions
      */
-    
+
     //- File Functions --------
-    
+
     public function getResponsePart($strFilename, $intFilecount)
     {
         $strFilepath = "/system/tmp/" . $intFilecount . "_" . $strFilename;
@@ -118,16 +118,16 @@ class CtoComRPCFunctions extends Backend
     {
         return $GLOBALS["CTOCOM_VERSION"];
     }
-    
+
     public function getContaoVersion()
     {
         return VERSION;
     }
-    
+
     //- Handshake ---------------
-    
+
     public function generateUUID()
-    {        
+    {
         $arrUUID = $this->Database->prepare("SELECT uuid() as uid")->execute()->fetchAllAssoc();
 
         $this->Database->prepare("INSERT INTO tl_ctocom_cache %s")
@@ -136,10 +136,10 @@ class CtoComRPCFunctions extends Backend
 
         return $arrUUID[0]["uid"];
     }
-    
+
     public function deleteUUID()
-    { 
-        $this->Database->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")                
+    {
+        $this->Database->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")
                 ->execute($this->Input->get("con"));
 
         return true;
@@ -149,38 +149,78 @@ class CtoComRPCFunctions extends Backend
     {
         // Imoprt
         require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
-        
+
         // Init
-        $intPrimeLength = 128;        
-        $strGenerator = "2";
-        
-        // Generate prime
-        $strPrime = rand(1, 9);
-        for($i = 0 ; $i < $intPrimeLength ; $i++)
+        $intPrimeLength = 63;
+        $strGenerator = 2;
+
+        $objLastException = null;
+
+        for ($i = 0; $i < 10; $i++)
         {
-            $strPrime .= rand(0, 9);
-        }        
-        
-        // Build array
-        $arrDiffieHellman = array(
-            "generator" => $strGenerator,
-            "prime" => $strPrime,
-        );
-        
-        // Create random private key.
-        $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
-        $strPrivate = rand(1, 9);
-        
-        for ($i = 0; $i < $intPrivateLength; $i++)
-        {
-            $strPrivate .= rand(0, 9);
+            // Generate prime
+            $strPrime = rand(1, 9);
+            for ($ii = 0; $ii < $intPrimeLength; $ii++)
+            {
+                $strPrime .= rand(0, 9);
+            }
+
+            // Build array
+            $arrDiffieHellman = array(
+                "generator" => $strGenerator,
+                "prime" => $strPrime,
+            );
+
+            // Create random private key.
+            $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
+            $strPrivate = rand(1, 9);
+
+            for ($ii = 0; $ii < $intPrivateLength; $ii++)
+            {
+                $strPrivate .= rand(0, 9);
+            }
+
+            if (!preg_match("/^\d+$/", $strPrivate))
+            {
+                $objLastException = new Exception("Private key is not a natural number");
+                continue;
+            }
+
+            if (!preg_match("/^\d+$/", $strPrime))
+            {
+                $objLastException = new Exception("Prime key is not a natural number");
+                continue;
+            }
+
+            try
+            {
+                // Start key gen
+                $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate, Crypt_DiffieHellman::NUMBER);
+                $objDiffieHellman->generateKeys();
+
+                $strPublicKey = $objDiffieHellman->getPublicKey();
+            }
+            catch (Exception $exc)
+            {
+                $objLastException = $exc;
+                continue;
+            }
+
+            // Check puplic key
+            if (!preg_match("/^\d+$/", $strPublicKey))
+            {
+                $objLastException = new Exception("Public key is not a natural number");
+                continue;
+            }
+
+            $objLastException = null;
+            break;
         }
 
-        // Start key gen
-        $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
-        $objDiffieHellman->generateKeys();
-
-        $strPublicKey = $objDiffieHellman->getPublicKey();
+        if ($objLastException)
+        {
+            throw $objLastException;
+        }
 
         $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
                 ->set(array(
@@ -193,7 +233,8 @@ class CtoComRPCFunctions extends Backend
                 ->execute($this->Input->get("con"));
 
         $arrDiffieHellman["public_key"] = $strPublicKey;
-        
+        $arrDiffieHellman["private_key"] = $strPrivate;
+
         return $arrDiffieHellman;
     }
 
@@ -202,11 +243,11 @@ class CtoComRPCFunctions extends Backend
         // Imoprt
         require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
 
-        if(strlen($this->Input->get("key")) == 0)
+        if (strlen($this->Input->get("key")) == 0)
         {
             throw new Exception("Could not find public key for handshake.");
         }
-        
+
         // Load information
         $arrConnections = $this->Database->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
                 ->execute($this->Input->get("con"))

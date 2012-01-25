@@ -26,7 +26,6 @@
  * @license    GNU/LGPL
  * @filesource
  */
- 
 class CtoCommunication extends Backend
 {
     /* -------------------------------------------------------------------------
@@ -39,7 +38,7 @@ class CtoCommunication extends Backend
     protected $strConnectionID;
     protected $strConnectionKey;
     protected $strUrl;
-    protected $strUrlGet;    
+    protected $strUrlGet;
     protected $strApiKey;
     protected $strHTTPUser;
     protected $strHTTPPassword;
@@ -57,7 +56,7 @@ class CtoCommunication extends Backend
      * Time in seconds for handshake timeout.
      * @var int 
      */
-    protected $intHandshakeTimeout = 1200; 
+    protected $intHandshakeTimeout = 1200;
     protected $intMaxResponseLength;
     protected $arrResponses = array(
         100 => 'Continue',
@@ -159,10 +158,10 @@ class CtoCommunication extends Backend
     public function setUrl($strUrl)
     {
         $this->strUrl = $strUrl;
-        
+
         // Load Session information
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
-        if(is_array($arrPool) && key_exists(md5($strUrl), $arrPool))
+        if (is_array($arrPool) && key_exists(md5($strUrl), $arrPool))
         {
             $this->strConnectionID = $arrPool[md5($strUrl)]["id"];
             $this->strConnectionKey = $arrPool[md5($strUrl)]["key"];
@@ -191,10 +190,10 @@ class CtoCommunication extends Backend
 
         // Set codify
         $this->setCodifyengine($strCodifyEngine);
-        
+
         // Load Session information
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
-        if(is_array($arrPool) && key_exists(md5($strUrl), $arrPool))
+        if (is_array($arrPool) && key_exists(md5($strUrl), $arrPool))
         {
             $this->strConnectionID = $arrPool[md5($strUrl)]["id"];
             $this->strConnectionKey = $arrPool[md5($strUrl)]["key"];
@@ -228,7 +227,7 @@ class CtoCommunication extends Backend
             $this->arrCookies[$name] = $value;
         }
     }
-    
+
     /**
      * Set a username for http auth
      * 
@@ -238,7 +237,7 @@ class CtoCommunication extends Backend
     {
         $this->strHTTPUser = $strHTTPUser;
     }
-    
+
     /**
      * Set a password for http auth
      * 
@@ -248,7 +247,7 @@ class CtoCommunication extends Backend
     {
         $this->strHTTPPassword = $strHTTPPassword;
     }
-    
+
     /**
      * Set the Connection ID
      * 
@@ -257,17 +256,17 @@ class CtoCommunication extends Backend
     public function setConnectionID($strConnectionID)
     {
         $this->strConnectionID = $strConnectionID;
-        
+
         // Save information in Session
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
-        if(!is_array($arrPool))
+        if (!is_array($arrPool))
         {
             $arrPool = array();
         }
         $arrPool[md5($this->strUrl)]["id"] = $strConnectionID;
-        $this->Session->set("CTOCOM_ConnectionPool", $arrPool);        
+        $this->Session->set("CTOCOM_ConnectionPool", $arrPool);
     }
-    
+
     /**
      * Save the connection key
      * 
@@ -276,17 +275,17 @@ class CtoCommunication extends Backend
     public function setConnectionKey($strConnectionKey)
     {
         $this->strConnectionKey = $strConnectionKey;
-        
+
         // Save information in Session
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
-        if(!is_array($arrPool))
+        if (!is_array($arrPool))
         {
             $arrPool = array();
         }
         $arrPool[md5($this->strUrl)]["key"] = $strConnectionKey;
-        $this->Session->set("CTOCOM_ConnectionPool", $arrPool); 
+        $this->Session->set("CTOCOM_ConnectionPool", $arrPool);
     }
-                
+
     //- Getter -------------------
 
     /**
@@ -328,7 +327,7 @@ class CtoCommunication extends Backend
     {
         return $this->objCodifyengine->getName();
     }
-    
+
     /**
      * Get username for http auth.
      * 
@@ -348,7 +347,7 @@ class CtoCommunication extends Backend
     {
         return $this->strHTTPPassword;
     }
-    
+
     /**
      * Get the Connection ID
      * 
@@ -357,8 +356,8 @@ class CtoCommunication extends Backend
     public function getConnectionID()
     {
         return $this->strConnectionID;
-    }    
-    
+    }
+
     /**
      * Return the connection key
      * 
@@ -368,7 +367,7 @@ class CtoCommunication extends Backend
     {
         return $this->strConnectionKey;
     }
-        
+
     /* -------------------------------------------------------------------------
      * Getter and Setter for the debug class
      */
@@ -476,10 +475,10 @@ class CtoCommunication extends Backend
         {
             throw new Exception("There is no URL set for connection. Please set first the url.");
         }
-        
+
         // Get Session information for condify key
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
-        if(!empty($this->strConnectionKey) && !in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")) )
+        if (!empty($this->strConnectionKey) && !in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")))
         {
             // Set Key for codifyengine
             $this->objCodifyengineBasic->setKey($this->strConnectionKey);
@@ -491,7 +490,7 @@ class CtoCommunication extends Backend
             $this->objCodifyengineBasic->setKey($this->strApiKey);
             $this->objCodifyengine->setKey($this->strApiKey);
         }
-                
+
         // Add Get Parameter
         $strCryptApiKey = $this->objCodifyengineBasic->Encrypt($rpc . "@|@" . $this->strApiKey);
         $strCryptApiKey = base64_encode($strCryptApiKey);
@@ -508,13 +507,13 @@ class CtoCommunication extends Backend
         $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID2);
 
         $strMeasureID3 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. Request");
-        
+
         // New Request
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
-                
-        if(strlen($this->strHTTPUser) != 0 || strlen($this->strHTTPPassword) != 0)
+
+        if (strlen($this->strHTTPUser) != 0 || strlen($this->strHTTPPassword) != 0)
         {
             $objRequest->username = $this->strHTTPUser;
             $objRequest->password = $this->strHTTPPassword;
@@ -539,7 +538,7 @@ class CtoCommunication extends Backend
             foreach ($arrData as $key => $value)
             {
                 $strMeasureID4 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. MultipartFormdata - " . $value["name"]);
-                
+
                 if (isset($value["filename"]) == true && strlen($value["filename"]) != 0)
                 {
                     // Set field for file
@@ -569,7 +568,7 @@ class CtoCommunication extends Backend
                     // Set field
                     $objMultipartFormdata->setField($value["name"], $strValue);
                 }
-                
+
                 $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID4);
             }
 
@@ -609,14 +608,14 @@ class CtoCommunication extends Backend
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Sorry we have a time out. Please try again.");
         }
-        
+
         // Check if everything is okay for connection
         if ($objRequest->hasError())
         {
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Error on transmission, with message: " . $objRequest->code . " " . $objRequest->error);
         }
-        
+
         // Check if everything is okay for connection
         if ($objRequest->code != 200)
         {
@@ -705,7 +704,7 @@ class CtoCommunication extends Backend
         // Check if client says "Everthing okay"
         if ($mixContent["success"] == 1)
         {
-            if($mixContent["splitcontent"] == true)
+            if ($mixContent["splitcontent"] == true)
             {
                 try
                 {
@@ -717,7 +716,7 @@ class CtoCommunication extends Backend
                     throw $exc;
                 }
             }
-            
+
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             return $mixContent["response"];
         }
@@ -761,7 +760,7 @@ class CtoCommunication extends Backend
 
         return $arrArray;
     }
-    
+
     protected function rebuildSplitcontent($strSplitname, $intSplitCount)
     {
         $mixContent = "";
@@ -769,7 +768,7 @@ class CtoCommunication extends Backend
         for ($i = 0; $i < $intSplitCount; $i++)
         {
             @set_time_limit(60);
-            
+
             $arrData = array(
                 array(
                     "name" => "splitname",
@@ -780,10 +779,10 @@ class CtoCommunication extends Backend
                     "value" => $i,
                 )
             );
-            
+
             $mixContent .= $this->runServer("CTOCOM_GET_RESPONSE_PART", $arrData);
         }
-        
+
         // Check for start and end tag
         if (strpos($mixContent, "<|@|") === FALSE || strpos($mixContent, "|@|>") === FALSE)
         {
@@ -824,7 +823,7 @@ class CtoCommunication extends Backend
 
         // Check if client says "Everthing okay"
         if ($mixContent["success"] == 1)
-        { 
+        {
             return $mixContent["response"];
         }
         else
@@ -856,7 +855,7 @@ class CtoCommunication extends Backend
         {
             exit();
         }
-        
+
         // Set codify key ------------------------------------------------------
         
         // Check if we have a incomming connection for handshake
@@ -874,24 +873,24 @@ class CtoCommunication extends Backend
                 $arrConnections = $this->Database->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
                         ->execute($this->Input->get("con"))
                         ->fetchAllAssoc();
-                
+
                 // Check if we have some data
                 if (count($arrConnections) == 0)
-                {                    
+                {
                     $this->log(vsprintf("Call from %s with a unknown connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
                     exit();
                 }
-                
-                if($arrConnections[0]["tstamp"] + $this->intHandshakeTimeout < time() )
+
+                if ($arrConnections[0]["tstamp"] + $this->intHandshakeTimeout < time())
                 {
                     $this->log(vsprintf("Call from %s without a expired connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
                     exit();
                 }
-                
+
                 $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
                         ->set(array("tstamp" => time()))
                         ->execute($this->Input->get("con"));
-                    
+
                 $this->objCodifyengineBasic->setKey($arrConnections[0]["shared_secret_key"]);
                 $this->objCodifyengine->setKey($arrConnections[0]["shared_secret_key"]);
                 $strCodifyKey = $arrConnections[0]["shared_secret_key"];
@@ -915,7 +914,7 @@ class CtoCommunication extends Backend
         $mixVar = trimsplit("@\|@", $mixVar);
         $strApiKey = $mixVar[1];
         $strAction = $mixVar[0];
-        
+
         if ($strAction != $this->Input->get("act"))
         {
             $this->log(vsprintf("Error Api Key from %s. Request action: %s | Key action: %s | Api: %s", array(
@@ -1171,7 +1170,7 @@ class CtoCommunication extends Backend
         // Check if we have a big output and split it 
         if (strlen($mixOutput) > $this->intMaxResponseLength)
         {
-            $mixOutput = str_split($mixOutput, (int)($this->intMaxResponseLength * 0.5));
+            $mixOutput = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.5));
 
             $strFileName = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
             $intCountPart = count($mixOutput);
@@ -1193,7 +1192,7 @@ class CtoCommunication extends Backend
                     ));
 
             $mixOutput = $this->objCodifyengine->Encrypt($mixOutput);
-            
+
             //$strOutput = bzcompress($strOutput);
             $mixOutput = gzcompress($mixOutput);
             $mixOutput = base64_encode($mixOutput);
@@ -1202,7 +1201,7 @@ class CtoCommunication extends Backend
 
         // Clean output buffer
         while (@ob_end_clean());
-        
+
         // Echo response
         echo($mixOutput);
     }
@@ -1247,11 +1246,11 @@ class CtoCommunication extends Backend
 
         return $strContent;
     }
-    
+
     /* --------------------------------------------------------------------------
      * Start Connection - Handshake
      */
-    
+
     public function startConnection()
     {
         // Imoprt
@@ -1263,31 +1262,58 @@ class CtoCommunication extends Backend
 
         // Start key handshake
         $arrDiffieHellman = $this->runServer("CTOCOM_START_HANDSHAKE");
-                
-        // Create random private key.
-        $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
-        $strPrivate = rand(1, 9);
 
-        for ($i = 0; $i < $intPrivateLength; $i++)
+        $objLastException = null;
+
+        for ($i = 0; $i < 10; $i++)
         {
-            $strPrivate .= rand(0, 9);
-        }
-        
-        // Start key gen
-        $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
-        $objDiffieHellman->generateKeys();
+            // Create random private key.
+            $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
+            $strPrivate = rand(1, 9);
 
-        // Send public key for check 
-        $arrData = array(
-            array(
-                "name" => "key",
-                "value" => $objDiffieHellman->getPublicKey(),
-            )
-        );
+            for ($ii = 0; $ii < $intPrivateLength; $ii++)
+            {
+                $strPrivate .= rand(0, 9);
+            }
+
+            if (!preg_match("/^\d+$/", $strPrivate))
+            {
+                $objLastException = new Exception("Private key is not a natural number");
+                continue;
+            }
+
+            try
+            {
+                // Start key gen
+                $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
+                $objDiffieHellman->generateKeys();
+
+                // Send public key for check 
+                $arrData = array(
+                    array(
+                        "name" => "key",
+                        "value" => $objDiffieHellman->getPublicKey(),
+                    )
+                );
+            }
+            catch (Exception $exc)
+            {
+                $objLastException = $exc;
+                continue;
+            }
+
+            $objLastException = null;
+            break;
+        }
+
+        if ($objLastException != null)
+        {
+            throw $objLastException;
+        }
 
         $strPublicKey = $this->runServer("CTOCOM_CHECK_HANDSHAKE", $arrData, true);
-        
-        if($arrDiffieHellman["public_key"] != $strPublicKey)
+
+        if ($arrDiffieHellman["public_key"] != $strPublicKey)
         {
             throw new Exception("Error for handshake. Public-Key from client isn't valide.");
         }
@@ -1298,15 +1324,15 @@ class CtoCommunication extends Backend
         // Save and end 
         $this->setConnectionKey($strSecretKey);
     }
-    
+
     public function stopConnection()
     {
         // Close connection
         $this->runServer("CTOCOM_BYE");
-        
+
         // Reset Session information
-        $arrPool = $this->Session->get("CTOCOM_ConnectionPool");        
-        if(is_array($arrPool) && key_exists(md5($this->strUrl), $arrPool))
+        $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
+        if (is_array($arrPool) && key_exists(md5($this->strUrl), $arrPool))
         {
             unset($arrPool[md5($this->strUrl)]);
         }
