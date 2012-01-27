@@ -156,7 +156,9 @@ class CtoComRPCFunctions extends Backend
 
         $objLastException = null;
 
-        for ($i = 0; $i < 10; $i++)
+        $i = 0;
+        
+        for ($i = 0; $i < 100; $i++)
         {
             // Generate prime
             $strPrime = rand(1, 9);
@@ -205,7 +207,7 @@ class CtoComRPCFunctions extends Backend
                 $objLastException = $exc;
                 continue;
             }
-
+           
             // Check puplic key
             if (!preg_match("/^\d+$/", $strPublicKey))
             {
@@ -219,7 +221,7 @@ class CtoComRPCFunctions extends Backend
 
         if ($objLastException)
         {
-            throw $objLastException;
+            throw new Exception($objLastException->getMessage() . " foo $i");
         }
 
         $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")

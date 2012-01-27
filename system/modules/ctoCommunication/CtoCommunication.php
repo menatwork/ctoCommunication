@@ -1265,7 +1265,7 @@ class CtoCommunication extends Backend
 
         $objLastException = null;
 
-        for ($i = 0; $i < 10; $i++)
+        for ($i = 0; $i < 50; $i++)
         {
             // Create random private key.
             $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
