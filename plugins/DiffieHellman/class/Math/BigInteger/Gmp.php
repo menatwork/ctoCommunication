@@ -43,7 +43,7 @@
  */
 
 /** Crypt_DiffieHellman_Math_BigInteger_Interface */
-require_once 'Interface.php';
+require_once TL_ROOT . '/plugins/DiffieHellman/class/Math/BigInteger/Interface.php';
 
 /**
  * Support for arbitrary precision mathematics in PHP.

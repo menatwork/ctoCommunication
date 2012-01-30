@@ -44,7 +44,7 @@
 /**
  * Crypt_DiffieHellman_Exception
  */
-require_once '../Exception.php';
+require_once TL_ROOT . '/plugins/DiffieHellman/class/Exception.php';
 
 /**
  * Crypt_DiffieHellman_Exception

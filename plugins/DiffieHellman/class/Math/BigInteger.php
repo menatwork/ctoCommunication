@@ -43,7 +43,7 @@
  */
 
 /** Crypt_DiffieHellman_Math_BigInteger_Interface */
-require_once 'BigInteger/Interface.php';
+require_once TL_ROOT . '/plugins/DiffieHellman/class/Math/BigInteger/Interface.php';
 
 /**
  * Crypt_DiffieHellman_Math_BigInteger class
@@ -123,7 +123,7 @@ class Crypt_DiffieHellman_Math_BigInteger
     public function __call($methodName, $args)
     {
         if (!method_exists($this->_math, $methodName)) {
-            require_once 'BigInteger/Exception.php';
+            require_once TL_ROOT . '/plugins/DiffieHellman/class/Math/BigInteger/Exception.php';
             throw new Crypt_DiffieHellman_Math_BigInteger_Exception('invalid method call: ' . get_class($this->_math) . '::' . $methodName . '() does not exist');
         }
         return call_user_func_array(array($this->_math, $methodName), $args);

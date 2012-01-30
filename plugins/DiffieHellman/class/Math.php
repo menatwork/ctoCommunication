@@ -43,7 +43,7 @@
  */
 
 /** Crypt_DiffieHellman_Math_BigInteger */
-require_once 'Math/BigInteger.php';
+require_once TL_ROOT . '/plugins/DiffieHellman/class/Math/BigInteger.php';
 
 /**
  * Crypt_DiffieHellman_Math class
