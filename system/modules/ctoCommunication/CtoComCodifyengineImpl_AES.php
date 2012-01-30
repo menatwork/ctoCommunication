@@ -26,8 +26,11 @@
  * @license    GNU/LGPL
  * @filesource
  */
-
-include(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php');
+ 
+if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+{
+    include(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php');
+}
 
 /**
  * SyncCtoCodifyengineImpl_Mcrypt
@@ -45,7 +48,14 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
      */
     public function __construct()
     {
-        $this->objAES = new Crypt_AES();
+        if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+        {
+            $this->objAES = new Crypt_AES();
+        }
+        else
+        {
+            $this->objAES = null;
+        }
     }
 
     /**
@@ -66,7 +76,12 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
      */
 
     public function setKey($strKey)
-    {       
+    {
+        if ($this->objAES == null)
+        {
+            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+        }
+
         $this->strKey = $strKey;
         $this->objAES->setKey($this->strKey);
     }
@@ -78,12 +93,22 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
     // Verschluesseln
     public function Encrypt($text)
     {
+        if ($this->objAES == null)
+        {
+            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+        }
+
         return $this->objAES->encrypt($text);
     }
 
     // Decrypt
     public function Decrypt($text)
     {
+        if ($this->objAES == null)
+        {
+            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+        }
+
         return $this->objAES->decrypt($text);
     }
 
