@@ -1253,76 +1253,107 @@ class CtoCommunication extends Backend
 
     public function startConnection()
     {
-        // Imoprt
-        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
-
-        // Say "Hello" for connection id
-        $strMyNumber = $this->runServer("CTOCOM_HELLO");
-        $this->setConnectionID($strMyNumber);
-
-        // Start key handshake
-        $arrDiffieHellman = $this->runServer("CTOCOM_START_HANDSHAKE");
-
-        $objLastException = null;
-
-        for ($i = 0; $i < 50; $i++)
+        if ($GLOBALS['TL_CONFIG']['ctoCom_handshake'] == true)
         {
-            // Create random private key.
-            $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
-            $strPrivate = rand(1, 9);
+            // Imoprt
+            require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
 
-            for ($ii = 0; $ii < $intPrivateLength; $ii++)
-            {
-                $strPrivate .= rand(0, 9);
-            }
+            // Say "Hello" for connection id
+            $strMyNumber = $this->runServer("CTOCOM_HELLO");
+            $this->setConnectionID($strMyNumber);
 
-            if (!preg_match("/^\d+$/", $strPrivate))
-            {
-                $objLastException = new Exception("Private key is not a natural number");
-                continue;
-            }
-
-            try
-            {
-                // Start key gen
-                $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
-                $objDiffieHellman->generateKeys();
-
-                // Send public key for check 
-                $arrData = array(
-                    array(
-                        "name" => "key",
-                        "value" => $objDiffieHellman->getPublicKey(),
-                    )
-                );
-            }
-            catch (Exception $exc)
-            {
-                $objLastException = $exc;
-                continue;
-            }
+            // Start key handshake
+            $arrDiffieHellman = $this->runServer("CTOCOM_START_HANDSHAKE");
 
             $objLastException = null;
-            break;
-        }
 
-        if ($objLastException != null)
+            for ($i = 0; $i < 100; $i++)
+            {
+                // Create random private key.
+                $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
+                $strPrivate = rand(1, 9);
+
+                for ($ii = 0; $ii < $intPrivateLength; $ii++)
+                {
+                    $strPrivate .= rand(0, 9);
+                }
+
+                if (!preg_match("/^\d+$/", $strPrivate))
+                {
+                    $objLastException = new Exception("Private key is not a natural number");
+                    continue;
+                }
+
+                try
+                {
+                    // Start key gen
+                    $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
+                    $objDiffieHellman->generateKeys();
+
+                    // Send public key for check 
+                    $arrData = array(
+                        array(
+                            "name" => "key",
+                            "value" => $objDiffieHellman->getPublicKey(),
+                        )
+                    );
+                }
+                catch (Exception $exc)
+                {
+                    $objLastException = $exc;
+                    continue;
+                }
+
+                $objLastException = null;
+                break;
+            }
+
+            if ($objLastException != null)
+            {
+                throw $objLastException;
+            }
+
+            $strPublicKey = $this->runServer("CTOCOM_CHECK_HANDSHAKE", $arrData, true);
+
+            if ($arrDiffieHellman["public_key"] != $strPublicKey)
+            {
+                throw new Exception("Error for handshake. Public-Key from client isn't valide.");
+            }
+
+            $strSecretKey = $objDiffieHellman->computeSecretKey($arrDiffieHellman["public_key"])
+                    ->getSharedSecretKey();
+
+            // Save and end 
+            $this->setConnectionKey($strSecretKey);
+        }
+        else
         {
-            throw $objLastException;
+            // Set flag for API key use
+            $arrData = array(
+                array(
+                    "name" => "useAPIK",
+                    "value" => true,
+                )
+            );
+
+            // Say "Hello" for connection id
+            $strMyNumber = $this->runServer("CTOCOM_HELLO");
+            $this->setConnectionID($strMyNumber);
+
+            // Start key handshake
+            if (!$this->runServer("CTOCOM_START_HANDSHAKE", $arrData, true))
+            {
+                throw new Exception("Could not set API Key for handshake.");
+            }
+
+            if (!$this->runServer("CTOCOM_CHECK_HANDSHAKE", $arrData, true))
+            {
+                throw new Exception("Could not set API Key for handshake.");
+            }
+
+            // Save and end 
+            $this->setConnectionKey($this->strApiKey);
         }
-
-        $strPublicKey = $this->runServer("CTOCOM_CHECK_HANDSHAKE", $arrData, true);
-
-        if ($arrDiffieHellman["public_key"] != $strPublicKey)
-        {
-            throw new Exception("Error for handshake. Public-Key from client isn't valide.");
-        }
-
-        $strSecretKey = $objDiffieHellman->computeSecretKey($arrDiffieHellman["public_key"])
-                ->getSharedSecretKey();
-
-        // Save and end 
-        $this->setConnectionKey($strSecretKey);
     }
 
     public function stopConnection()
