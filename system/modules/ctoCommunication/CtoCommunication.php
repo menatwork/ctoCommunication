@@ -58,7 +58,7 @@ class CtoCommunication extends Backend
      */
     protected $intHandshakeTimeout = 1200;
     protected $intMaxResponseLength;
-    protected $arrResponses = array(
+    protected $arrResponses        = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
         200 => 'OK',
@@ -550,17 +550,17 @@ class CtoCommunication extends Backend
                 else
                 {
                     // serliaze/encrypt/compress/base64 function                    
-                    $strValue = serialize(array("data" => $value["value"]));
+                    $strValue = serialize(array("data"        => $value["value"]));
                     $intStrlenSer = strlen($strValue);
 
-                    $strValue = $this->objCodifyengine->Encrypt($strValue);
+                    $strValue     = $this->objCodifyengine->Encrypt($strValue);
                     $intStrlenCod = strlen($strValue);
 
                     //$strValue = bzcompress ($strValue);
-                    $strValue = gzcompress($strValue);
+                    $strValue     = gzcompress($strValue);
                     $intStrlenCom = strlen($strValue);
 
-                    $strValue = base64_encode($strValue);
+                    $strValue     = base64_encode($strValue);
                     $intStrlenB64 = strlen($strValue);
 
                     $this->objDebug->addDebug("Post Data - " . $value["name"], vsprintf("Ser: %s | Cod: %s | Com: %s | B64: %s", array($intStrlenSer, $intStrlenCod, $intStrlenCom, $intStrlenB64)));
@@ -652,7 +652,7 @@ class CtoCommunication extends Backend
             $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
 
             $intStart = stripos($response, "<strong>Warning</strong>:");
-            $intEnd = stripos($response, "on line");
+            $intEnd   = stripos($response, "on line");
 
             throw new Exception("We got a Warning on client site.<br /><br />" . substr($response, $intStart, $intEnd - $intStart));
         }
@@ -668,7 +668,7 @@ class CtoCommunication extends Backend
         $mixContent = $response;
 
         // Find position of start/end - tag
-        $intStart = intval(strpos($mixContent, "<|@|") + 4);
+        $intStart  = intval(strpos($mixContent, "<|@|") + 4);
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
 
         $mixContent = substr($mixContent, $intStart, $intLength);
@@ -771,11 +771,11 @@ class CtoCommunication extends Backend
 
             $arrData = array(
                 array(
-                    "name" => "splitname",
+                    "name"  => "splitname",
                     "value" => $strSplitname,
                 ),
                 array(
-                    "name" => "splitcount",
+                    "name"  => "splitcount",
                     "value" => $i,
                 )
             );
@@ -790,7 +790,7 @@ class CtoCommunication extends Backend
         }
 
         // Find position of start/end - tag
-        $intStart = intval(strpos($mixContent, "<|@|") + 4);
+        $intStart  = intval(strpos($mixContent, "<|@|") + 4);
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
 
         $mixContent = substr($mixContent, $intStart, $intLength);
@@ -857,7 +857,6 @@ class CtoCommunication extends Backend
         }
 
         // Set codify key ------------------------------------------------------
-        
         // Check if we have a incomming connection for handshake
         if (in_array($this->Input->get("act"), array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")))
         {
@@ -910,8 +909,8 @@ class CtoCommunication extends Backend
             exit();
         }
 
-        $mixVar = $this->objCodifyengineBasic->Decrypt(base64_decode($this->Input->get("apikey", true)));
-        $mixVar = trimsplit("@\|@", $mixVar);
+        $mixVar    = $this->objCodifyengineBasic->Decrypt(base64_decode($this->Input->get("apikey", true)));
+        $mixVar    = trimsplit("@\|@", $mixVar);
         $strApiKey = $mixVar[1];
         $strAction = $mixVar[0];
 
@@ -971,11 +970,11 @@ class CtoCommunication extends Backend
         {
             $this->arrError[] = array(
                 "language" => "rpc_missing",
-                "id" => 1,
-                "object" => "",
-                "msg" => "Missing RPC Call",
-                "rpc" => $mixRPCCall,
-                "class" => "",
+                "id"       => 1,
+                "object"   => "",
+                "msg"      => "Missing RPC Call",
+                "rpc"      => $mixRPCCall,
+                "class"    => "",
                 "function" => "",
             );
         }
@@ -985,11 +984,11 @@ class CtoCommunication extends Backend
             {
                 $this->arrError[] = array(
                     "language" => "rpc_unknown",
-                    "id" => 1,
-                    "object" => "",
-                    "msg" => "Unknown RPC Call",
-                    "rpc" => $mixRPCCall,
-                    "class" => "",
+                    "id"       => 1,
+                    "object"   => "",
+                    "msg"      => "Unknown RPC Call",
+                    "rpc"      => $mixRPCCall,
+                    "class"    => "",
                     "function" => "",
                 );
             }
@@ -1033,11 +1032,11 @@ class CtoCommunication extends Backend
                                 {
                                     $this->arrError[] = array(
                                         "language" => "rpc_data_missing",
-                                        "id" => 2,
-                                        "object" => $value,
-                                        "msg" => "Missing data for " . $value,
-                                        "rpc" => $mixRPCCall,
-                                        "class" => $this->arrRpcList[$mixRPCCall]["class"],
+                                        "id"       => 2,
+                                        "object"   => $value,
+                                        "msg"      => "Missing data for " . $value,
+                                        "rpc"      => $mixRPCCall,
+                                        "class"    => $this->arrRpcList[$mixRPCCall]["class"],
                                         "function" => $this->arrRpcList[$mixRPCCall]["function"],
                                     );
                                 }
@@ -1077,11 +1076,11 @@ class CtoCommunication extends Backend
                 {
                     $this->arrError[] = array(
                         "language" => "rpc_class_not_exists",
-                        "id" => 4,
-                        "object" => "",
-                        "msg" => "The choosen class didn`t exists.",
-                        "rpc" => $mixRPCCall,
-                        "class" => $this->arrRpcList[$mixRPCCall]["class"],
+                        "id"       => 4,
+                        "object"   => "",
+                        "msg"      => "The choosen class didn`t exists.",
+                        "rpc"      => $mixRPCCall,
+                        "class"    => $this->arrRpcList[$mixRPCCall]["class"],
                         "function" => $this->arrRpcList[$mixRPCCall]["function"],
                     );
                 }
@@ -1104,11 +1103,11 @@ class CtoCommunication extends Backend
             {
                 $this->arrError[] = array(
                     "language" => "rpc_unknown_exception",
-                    "id" => 3,
-                    "object" => "",
-                    "msg" => $exc->getMessage(),
-                    "rpc" => $mixRPCCall,
-                    "class" => $this->arrRpcList[$mixRPCCall]["class"],
+                    "id"       => 3,
+                    "object"   => "",
+                    "msg"      => $exc->getMessage(),
+                    "rpc"      => $mixRPCCall,
+                    "class"    => $this->arrRpcList[$mixRPCCall]["class"],
                     "function" => $this->arrRpcList[$mixRPCCall]["function"],
                 );
 
@@ -1136,23 +1135,23 @@ class CtoCommunication extends Backend
         if (count($this->arrError) == 0)
         {
             $mixOutput = serialize(array(
-                "success" => 1,
-                "error" => "",
-                "response" => $this->mixOutput,
+                "success"      => 1,
+                "error"        => "",
+                "response"     => $this->mixOutput,
                 "splitcontent" => false,
-                "splitcount" => 0,
-                "splitname" => ""
+                "splitcount"   => 0,
+                "splitname"    => ""
                     ));
         }
         else
         {
             $mixOutput = serialize(array(
-                "success" => 0,
-                "error" => $this->arrError,
-                "response" => "",
+                "success"      => 0,
+                "error"        => $this->arrError,
+                "response"     => "",
                 "splitcontent" => false,
-                "splitcount" => 0,
-                "splitname" => ""
+                "splitcount"   => 0,
+                "splitname"    => ""
                     ));
         }
 
@@ -1166,13 +1165,12 @@ class CtoCommunication extends Backend
         $mixOutput = "<|@|" . $mixOutput . "|@|>";
 
         //$this->objDebug->addDebug("Response", $mixOutput);
-
         // Check if we have a big output and split it 
         if (strlen($mixOutput) > $this->intMaxResponseLength)
         {
             $mixOutput = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.5));
 
-            $strFileName = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
+            $strFileName  = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
             $intCountPart = count($mixOutput);
 
             foreach ($mixOutput as $keyOutput => $valueOutput)
@@ -1183,12 +1181,12 @@ class CtoCommunication extends Backend
             }
 
             $mixOutput = serialize(array(
-                "success" => 1,
-                "error" => "",
-                "response" => "",
+                "success"      => 1,
+                "error"        => "",
+                "response"     => "",
                 "splitcontent" => true,
-                "splitcount" => $intCountPart,
-                "splitname" => $strFileName
+                "splitcount"   => $intCountPart,
+                "splitname"    => $strFileName
                     ));
 
             $mixOutput = $this->objCodifyengine->Encrypt($mixOutput);
@@ -1226,8 +1224,8 @@ class CtoCommunication extends Backend
             $arrRequiredExtensions = array(
                 'httprequestextended' => 'httprequestextended',
             );
-            
-             // required files
+
+            // required files
             $arrRequiredFiles = array(
                 'phpseclib' => 'plugins/phpseclib/Crypt/AES.php'
             );
@@ -1247,8 +1245,8 @@ class CtoCommunication extends Backend
                     }
                 }
             }
-            
-             // check for required files
+
+            // check for required files
             foreach ($arrRequiredFiles as $key => $val)
             {
                 if (!file_exists(TL_ROOT . '/' . $val))
@@ -1276,6 +1274,34 @@ class CtoCommunication extends Backend
     {
         if ($GLOBALS['TL_CONFIG']['ctoCom_handshake'] == true)
         {
+            // Set flag for API key use
+            $arrData = array(
+                array(
+                    "name"  => "useAPIK",
+                    "value" => true,
+                )
+            );
+
+            // Say "Hello" for connection id
+            $strMyNumber = $this->runServer("CTOCOM_HELLO");
+            $this->setConnectionID($strMyNumber);
+
+            // Start key handshake
+            if (!$this->runServer("CTOCOM_START_HANDSHAKE", $arrData, true))
+            {
+                throw new Exception("Could not set API Key for handshake.");
+            }
+
+            if (!$this->runServer("CTOCOM_CHECK_HANDSHAKE", $arrData, true))
+            {
+                throw new Exception("Could not set API Key for handshake.");
+            }
+
+            // Save and end 
+            $this->setConnectionKey($this->strApiKey);
+        }
+        else
+        {
             // Imoprt
             require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
 
@@ -1292,7 +1318,7 @@ class CtoCommunication extends Backend
             {
                 // Create random private key.
                 $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
-                $strPrivate = rand(1, 9);
+                $strPrivate       = rand(1, 9);
 
                 for ($ii = 0; $ii < $intPrivateLength; $ii++)
                 {
@@ -1314,7 +1340,7 @@ class CtoCommunication extends Backend
                     // Send public key for check 
                     $arrData = array(
                         array(
-                            "name" => "key",
+                            "name"  => "key",
                             "value" => $objDiffieHellman->getPublicKey(),
                         )
                     );
@@ -1346,34 +1372,6 @@ class CtoCommunication extends Backend
 
             // Save and end 
             $this->setConnectionKey($strSecretKey);
-        }
-        else
-        {
-            // Set flag for API key use
-            $arrData = array(
-                array(
-                    "name" => "useAPIK",
-                    "value" => true,
-                )
-            );
-
-            // Say "Hello" for connection id
-            $strMyNumber = $this->runServer("CTOCOM_HELLO");
-            $this->setConnectionID($strMyNumber);
-
-            // Start key handshake
-            if (!$this->runServer("CTOCOM_START_HANDSHAKE", $arrData, true))
-            {
-                throw new Exception("Could not set API Key for handshake.");
-            }
-
-            if (!$this->runServer("CTOCOM_CHECK_HANDSHAKE", $arrData, true))
-            {
-                throw new Exception("Could not set API Key for handshake.");
-            }
-
-            // Save and end 
-            $this->setConnectionKey($this->strApiKey);
         }
     }
 
