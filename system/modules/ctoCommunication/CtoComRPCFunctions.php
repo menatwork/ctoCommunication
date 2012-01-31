@@ -81,7 +81,7 @@ class CtoComRPCFunctions extends Backend
             throw new Exception("Missing partfile $strFilepath");
         }
 
-        $objFile = new File($strFilepath);
+        $objFile   = new File($strFilepath);
         $strReturn = $objFile->getContent();
         $objFile->close();
 
@@ -90,14 +90,38 @@ class CtoComRPCFunctions extends Backend
 
     //- Referer Functions --------
 
-    /**
+     /**
      * Disable referer check from contao
      * 
      * @return boolean 
      */
     public function referrer_disable()
     {
-        $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", true);
+        if ($GLOBALS['TL_CONFIG']['disableRefererCheck'] == false)
+        {            
+            if (key_exists("ctoCom_disableRefererCheck", $GLOBALS['TL_CONFIG']))
+            {
+                $this->Config->update("\$GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck']", false);
+            }
+            else
+            {
+                $this->Config->add("\$GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck']", false);
+            }
+            
+            $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", true);
+        }
+        else
+        {
+            if (key_exists("ctoCom_disableRefererCheck", $GLOBALS['TL_CONFIG']))
+            {
+                $this->Config->update("\$GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck']", true);
+            }
+            else
+            {
+                $this->Config->add("\$GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck']", true);
+            }
+        }
+
         return true;
     }
 
@@ -108,7 +132,15 @@ class CtoComRPCFunctions extends Backend
      */
     public function referrer_enable()
     {
-        $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", false);
+        if ($GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck'] == true)
+        {
+            $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", true);
+        }
+        else
+        {
+            $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", false);
+        }
+
         return false;
     }
 
@@ -131,7 +163,7 @@ class CtoComRPCFunctions extends Backend
         $arrUUID = $this->Database->prepare("SELECT uuid() as uid")->execute()->fetchAllAssoc();
 
         $this->Database->prepare("INSERT INTO tl_ctocom_cache %s")
-                ->set(array("uid" => $arrUUID[0]["uid"], "tstamp" => time()))
+                ->set(array("uid"    => $arrUUID[0]["uid"], "tstamp" => time()))
                 ->execute();
 
         return $arrUUID[0]["uid"];
@@ -158,7 +190,7 @@ class CtoComRPCFunctions extends Backend
 
             // Init
             $intPrimeLength = 63;
-            $strGenerator = 2;
+            $strGenerator   = 2;
 
             $objLastException = null;
 
@@ -166,7 +198,7 @@ class CtoComRPCFunctions extends Backend
             {
                 // Generate prime
                 $strPrime = rand(1, 9);
-                for ($ii = 0; $ii < $intPrimeLength; $ii++)
+                for ($ii       = 0; $ii < $intPrimeLength; $ii++)
                 {
                     $strPrime .= rand(0, 9);
                 }
@@ -174,12 +206,12 @@ class CtoComRPCFunctions extends Backend
                 // Build array
                 $arrDiffieHellman = array(
                     "generator" => $strGenerator,
-                    "prime" => $strPrime,
+                    "prime"     => $strPrime,
                 );
 
                 // Create random private key.
                 $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
-                $strPrivate = rand(1, 9);
+                $strPrivate       = rand(1, 9);
 
                 for ($ii = 0; $ii < $intPrivateLength; $ii++)
                 {
@@ -230,15 +262,15 @@ class CtoComRPCFunctions extends Backend
 
             $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
                     ->set(array(
-                        "tstamp" => time(),
-                        "prime" => $arrDiffieHellman["prime"],
-                        "generator" => $arrDiffieHellman["generator"],
-                        "public_key" => $strPublicKey,
+                        "tstamp"      => time(),
+                        "prime"       => $arrDiffieHellman["prime"],
+                        "generator"   => $arrDiffieHellman["generator"],
+                        "public_key"  => $strPublicKey,
                         "private_key" => $strPrivate,
                     ))
                     ->execute($this->Input->get("con"));
 
-            $arrDiffieHellman["public_key"] = $strPublicKey;
+            $arrDiffieHellman["public_key"]  = $strPublicKey;
             $arrDiffieHellman["private_key"] = $strPrivate;
 
             return $arrDiffieHellman;
@@ -251,11 +283,11 @@ class CtoComRPCFunctions extends Backend
         {
             $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
                     ->set(array(
-                        "tstamp" => time(),
+                        "tstamp"            => time(),
                         "shared_secret_key" => $GLOBALS['TL_CONFIG']['ctoCom_APIKey'],
                     ))
                     ->execute($this->Input->get("con"));
-            
+
             return true;
         }
         else
@@ -282,7 +314,7 @@ class CtoComRPCFunctions extends Backend
 
             $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
                     ->set(array(
-                        "tstamp" => time(),
+                        "tstamp"            => time(),
                         "shared_secret_key" => $strSecretKey,
                     ))
                     ->execute($this->Input->get("con"));
