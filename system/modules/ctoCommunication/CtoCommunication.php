@@ -594,14 +594,6 @@ class CtoCommunication extends Backend
         // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2000));
 
-        // Build response Header informations
-        $strResponseHeader = "";
-        foreach ($objRequest->headers as $keyHeader => $valueHeader)
-        {
-            $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
-        }
-        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2000));
-
         // Check if we have time out
         if ($objRequest->timedOut)
         {
@@ -631,6 +623,14 @@ class CtoCommunication extends Backend
                 throw new Exception("Error on transmission, with message: " . $objRequest->code . " - " . $this->arrResponses[$objRequest->code]);
             }
         }
+        
+        // Build response Header informations
+        $strResponseHeader = "";
+        foreach ($objRequest->headers as $keyHeader => $valueHeader)
+        {
+            $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
+        }
+        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2000));
 
         // Check if we have a response
         if (strlen($response) == 0)
