@@ -189,7 +189,7 @@ class CtoComRPCFunctions extends Backend
             require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
 
             // Init
-            $intPrimeLength = 63;
+            $intPrimeLength = 32;
             $strGenerator   = 2;
 
             $objLastException = null;

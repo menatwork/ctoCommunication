@@ -33,7 +33,7 @@ class CtoCommunication extends Backend
      */
 
     // Singelten pattern
-    protected static $instance = null;
+    protected static $instance            = null;
     // Vars
     protected $strConnectionID;
     protected $strConnectionKey;
@@ -150,6 +150,8 @@ class CtoCommunication extends Backend
      * Getter / Setter
      */
 
+    //- Setter -------------------
+
     /**
      * Set the url for connection
      * 
@@ -259,10 +261,12 @@ class CtoCommunication extends Backend
 
         // Save information in Session
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
+
         if (!is_array($arrPool))
         {
             $arrPool = array();
         }
+
         $arrPool[md5($this->strUrl)]["id"] = $strConnectionID;
         $this->Session->set("CTOCOM_ConnectionPool", $arrPool);
     }
@@ -278,11 +282,35 @@ class CtoCommunication extends Backend
 
         // Save information in Session
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
+
         if (!is_array($arrPool))
         {
             $arrPool = array();
         }
+
         $arrPool[md5($this->strUrl)]["key"] = $strConnectionKey;
+        $this->Session->set("CTOCOM_ConnectionPool", $arrPool);
+    }
+
+    /**
+     * Save the connection key
+     * 
+     * @param string $strConnectionKey 
+     */
+    public function setConnectionBasicCodify($strCodify)
+    {
+        // Set the new engine
+        $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine($strCodify);
+
+        // Save information in Session
+        $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
+
+        if (!is_array($arrPool))
+        {
+            $arrPool = array();
+        }
+
+        $arrPool[md5($this->strUrl)]["codifyengine"] = $strCodify;
         $this->Session->set("CTOCOM_ConnectionPool", $arrPool);
     }
 
@@ -460,10 +488,9 @@ class CtoCommunication extends Backend
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
         $strMeasureID1 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $rpc);
+        $strMeasureID2 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. System");
 
         $this->strUrlGet = "";
-
-        $strMeasureID2 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. System");
 
         // Check if everything is set
         if ($this->strApiKey == "" || $this->strApiKey == null)
@@ -476,8 +503,21 @@ class CtoCommunication extends Backend
             throw new Exception("There is no URL set for connection. Please set first the url.");
         }
 
-        // Get Session information for condify key
-        $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
+        // Get Session information for condify key & engine        
+        $arrPoolInformation = $this->Session->get("CTOCOM_ConnectionPool");
+
+        // Check if we need another core codify engine
+        if (is_array($arrPoolInformation) && key_exists(md5($this->strUrl), $arrPoolInformation) && key_exists("codifyengine", $arrPoolInformation[md5($this->strUrl)]))
+        {
+            $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
+            
+            if($this->objCodifyengine->getName() == "aes")
+            {
+                $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
+            }
+        }
+
+        // Set key for codifyengines
         if (!empty($this->strConnectionKey) && !in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")))
         {
             // Set Key for codifyengine
@@ -512,6 +552,7 @@ class CtoCommunication extends Backend
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
+        $objRequest->useragent .= "Mozilla/5.0 (compatible; CyberSpectrum RequestExtended on Contao " . VERSION . "." . BUILD . "; rv:1.0; CtoCommunication RPC System (ctoComV" . $GLOBALS["CTOCOM_VERSION"] . ")";
 
         if (strlen($this->strHTTPUser) != 0 || strlen($this->strHTTPPassword) != 0)
         {
@@ -550,7 +591,7 @@ class CtoCommunication extends Backend
                 else
                 {
                     // serliaze/encrypt/compress/base64 function                    
-                    $strValue = serialize(array("data"        => $value["value"]));
+                    $strValue = serialize(array("data" => $value["value"]));
                     $intStrlenSer = strlen($strValue);
 
                     $strValue     = $this->objCodifyengine->Encrypt($strValue);
@@ -594,6 +635,14 @@ class CtoCommunication extends Backend
         // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2000));
 
+        // Build response Header informations
+        $strResponseHeader = "";
+        foreach ($objRequest->headers as $keyHeader => $valueHeader)
+        {
+            $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
+        }
+        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2000));
+
         // Check if we have time out
         if ($objRequest->timedOut)
         {
@@ -623,14 +672,6 @@ class CtoCommunication extends Backend
                 throw new Exception("Error on transmission, with message: " . $objRequest->code . " - " . $this->arrResponses[$objRequest->code]);
             }
         }
-        
-        // Build response Header informations
-        $strResponseHeader = "";
-        foreach ($objRequest->headers as $keyHeader => $valueHeader)
-        {
-            $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
-        }
-        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2000));
 
         // Check if we have a response
         if (strlen($response) == 0)
@@ -771,11 +812,11 @@ class CtoCommunication extends Backend
 
             $arrData = array(
                 array(
-                    "name"  => "splitname",
+                    "name" => "splitname",
                     "value" => $strSplitname,
                 ),
                 array(
-                    "name"  => "splitcount",
+                    "name" => "splitcount",
                     "value" => $i,
                 )
             );
@@ -856,9 +897,15 @@ class CtoCommunication extends Backend
             exit();
         }
 
+        // Change basic codify engine.
+        if (preg_match("/.*\|@\|.*/", base64_decode($this->Input->get("apikey", true))))
+        {
+            $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aesn");
+        }
+
         // Set codify key ------------------------------------------------------
         // Check if we have a incomming connection for handshake
-        if (in_array($this->Input->get("act"), array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")))
+        if (in_array($this->Input->get("act"), array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE", "CTOCOM_VERSION")))
         {
             $this->objCodifyengine->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
             $this->objCodifyengineBasic->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
@@ -882,7 +929,7 @@ class CtoCommunication extends Backend
 
                 if ($arrConnections[0]["tstamp"] + $this->intHandshakeTimeout < time())
                 {
-                    $this->log(vsprintf("Call from %s without a expired connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+                    $this->log(vsprintf("Call from %s with a expired connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
                     exit();
                 }
 
@@ -970,11 +1017,11 @@ class CtoCommunication extends Backend
         {
             $this->arrError[] = array(
                 "language" => "rpc_missing",
-                "id"       => 1,
-                "object"   => "",
-                "msg"      => "Missing RPC Call",
-                "rpc"      => $mixRPCCall,
-                "class"    => "",
+                "id" => 1,
+                "object" => "",
+                "msg" => "Missing RPC Call",
+                "rpc" => $mixRPCCall,
+                "class" => "",
                 "function" => "",
             );
         }
@@ -984,11 +1031,11 @@ class CtoCommunication extends Backend
             {
                 $this->arrError[] = array(
                     "language" => "rpc_unknown",
-                    "id"       => 1,
-                    "object"   => "",
-                    "msg"      => "Unknown RPC Call",
-                    "rpc"      => $mixRPCCall,
-                    "class"    => "",
+                    "id" => 1,
+                    "object" => "",
+                    "msg" => "Unknown RPC Call",
+                    "rpc" => $mixRPCCall,
+                    "class" => "",
                     "function" => "",
                 );
             }
@@ -1032,11 +1079,11 @@ class CtoCommunication extends Backend
                                 {
                                     $this->arrError[] = array(
                                         "language" => "rpc_data_missing",
-                                        "id"       => 2,
-                                        "object"   => $value,
-                                        "msg"      => "Missing data for " . $value,
-                                        "rpc"      => $mixRPCCall,
-                                        "class"    => $this->arrRpcList[$mixRPCCall]["class"],
+                                        "id" => 2,
+                                        "object" => $value,
+                                        "msg" => "Missing data for " . $value,
+                                        "rpc" => $mixRPCCall,
+                                        "class" => $this->arrRpcList[$mixRPCCall]["class"],
                                         "function" => $this->arrRpcList[$mixRPCCall]["function"],
                                     );
                                 }
@@ -1076,11 +1123,11 @@ class CtoCommunication extends Backend
                 {
                     $this->arrError[] = array(
                         "language" => "rpc_class_not_exists",
-                        "id"       => 4,
-                        "object"   => "",
-                        "msg"      => "The choosen class didn`t exists.",
-                        "rpc"      => $mixRPCCall,
-                        "class"    => $this->arrRpcList[$mixRPCCall]["class"],
+                        "id" => 4,
+                        "object" => "",
+                        "msg" => "The choosen class didn`t exists.",
+                        "rpc" => $mixRPCCall,
+                        "class" => $this->arrRpcList[$mixRPCCall]["class"],
                         "function" => $this->arrRpcList[$mixRPCCall]["function"],
                     );
                 }
@@ -1103,11 +1150,11 @@ class CtoCommunication extends Backend
             {
                 $this->arrError[] = array(
                     "language" => "rpc_unknown_exception",
-                    "id"       => 3,
-                    "object"   => "",
-                    "msg"      => $exc->getMessage(),
-                    "rpc"      => $mixRPCCall,
-                    "class"    => $this->arrRpcList[$mixRPCCall]["class"],
+                    "id" => 3,
+                    "object" => "",
+                    "msg" => $exc->getMessage(),
+                    "rpc" => $mixRPCCall,
+                    "class" => $this->arrRpcList[$mixRPCCall]["class"],
                     "function" => $this->arrRpcList[$mixRPCCall]["function"],
                 );
 
@@ -1135,23 +1182,23 @@ class CtoCommunication extends Backend
         if (count($this->arrError) == 0)
         {
             $mixOutput = serialize(array(
-                "success"      => 1,
-                "error"        => "",
-                "response"     => $this->mixOutput,
+                "success" => 1,
+                "error" => "",
+                "response" => $this->mixOutput,
                 "splitcontent" => false,
-                "splitcount"   => 0,
-                "splitname"    => ""
+                "splitcount" => 0,
+                "splitname" => ""
                     ));
         }
         else
         {
             $mixOutput = serialize(array(
-                "success"      => 0,
-                "error"        => $this->arrError,
-                "response"     => "",
+                "success" => 0,
+                "error" => $this->arrError,
+                "response" => "",
                 "splitcontent" => false,
-                "splitcount"   => 0,
-                "splitname"    => ""
+                "splitcount" => 0,
+                "splitname" => ""
                     ));
         }
 
@@ -1181,12 +1228,12 @@ class CtoCommunication extends Backend
             }
 
             $mixOutput = serialize(array(
-                "success"      => 1,
-                "error"        => "",
-                "response"     => "",
+                "success" => 1,
+                "error" => "",
+                "response" => "",
                 "splitcontent" => true,
-                "splitcount"   => $intCountPart,
-                "splitname"    => $strFileName
+                "splitcount" => $intCountPart,
+                "splitname" => $strFileName
                     ));
 
             $mixOutput = $this->objCodifyengine->Encrypt($mixOutput);
@@ -1272,12 +1319,28 @@ class CtoCommunication extends Backend
 
     public function startConnection()
     {
+        // Try to check the Version        
+        try
+        {
+            $strVersion = $this->runServer("CTOCOM_VERSION");
+
+            if (version_compare($strVersion, $GLOBALS["CTOCOM_VERSION"], '<'))
+            {
+                $this->setConnectionBasicCodify("aeso");
+            }
+        }
+        catch (Exception $exc)
+        {
+            $this->log("The client with the adress: " . $this->strUrl . " seems to be an older Version.", __CLASS__ . " | " . __FUNCTION__, TL_INFO);
+            $this->setConnectionBasicCodify("aeso");
+        }
+
         if ($GLOBALS['TL_CONFIG']['ctoCom_handshake'] == true)
         {
             // Set flag for API key use
             $arrData = array(
                 array(
-                    "name"  => "useAPIK",
+                    "name" => "useAPIK",
                     "value" => true,
                 )
             );
@@ -1340,7 +1403,7 @@ class CtoCommunication extends Backend
                     // Send public key for check 
                     $arrData = array(
                         array(
-                            "name"  => "key",
+                            "name" => "key",
                             "value" => $objDiffieHellman->getPublicKey(),
                         )
                     );
@@ -1377,8 +1440,15 @@ class CtoCommunication extends Backend
 
     public function stopConnection()
     {
-        // Close connection
-        $this->runServer("CTOCOM_BYE");
+        try
+        {
+            // Close connection
+            $this->runServer("CTOCOM_BYE");
+        }
+        catch (Exception $exc)
+        {
+            // Do nothing
+        }
 
         // Reset Session information
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
@@ -1386,6 +1456,7 @@ class CtoCommunication extends Backend
         {
             unset($arrPool[md5($this->strUrl)]);
         }
+
         $this->Session->set("CTOCOM_ConnectionPool", $arrPool);
     }
 

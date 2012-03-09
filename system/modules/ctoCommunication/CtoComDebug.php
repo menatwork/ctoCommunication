@@ -284,15 +284,14 @@ class CtoComDebug extends Backend
     {
         try
         {
+            if (count($this->arrMeasurement) == 0)
+            {
+                return;
+            }
+            
             $objFile = new File($this->strFileMeasurement);
             
             $intTime = time();
-
-            if (count($this->arrMeasurement) == 0)
-            {
-                $objFile->close();
-                return;
-            }
 
             $strContent = "";
             $strContent .= "\n>>|------------------------------------------------------";
@@ -331,15 +330,14 @@ class CtoComDebug extends Backend
     {
         try
         {
+            if (count($this->arrDebug) == 0)
+            {                
+                return;
+            }            
+            
             $objFile = new File($this->strFileDebug);
                 
             $intTime = time();
-
-            if (count($this->arrDebug) == 0)
-            {
-                $objFile->close();
-                return;
-            }
 
             $strContent = "";
 
