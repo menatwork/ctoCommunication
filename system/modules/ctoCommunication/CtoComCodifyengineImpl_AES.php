@@ -26,28 +26,26 @@
  * @license    GNU/LGPL
  * @filesource
  */
- 
 if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
 {
-    include(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php');
+    include_once(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php');
 }
 
 /**
- * SyncCtoCodifyengineImpl_Mcrypt
+ * CtoComCodifyengineImpl_AES
  */
 class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
 {
-
-    protected static $instance = null;
-    protected $strKey = "";
-    protected $strName = "aes";
+    
+    protected $strKey   = "";
+    protected $strName  = "aes";
     protected $objAES;
 
     /**
      * Constructor
      */
     public function __construct()
-    {
+    {   
         if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
         {
             $this->objAES = new Crypt_AES();
@@ -56,19 +54,6 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
         {
             $this->objAES = null;
         }
-    }
-
-    /**
-     * Singelton Pattern
-     * 
-     * @return CtoComCodifyengineImpl_phpseclib_aes 
-     */
-    public static function getInstance()
-    {
-        if (self::$instance == null)
-            self::$instance = new CtoComCodifyengineImpl_phpseclib_aes();
-
-        return self::$instance;
     }
 
     /* -------------------------------------------------------------------------
@@ -82,7 +67,10 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
             throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
         }
 
+        $strKey = str_replace("-", "", $strKey);
+        $strKey = substr($strKey, 0, 16);
         $this->strKey = $strKey;
+
         $this->objAES->setKey($this->strKey);
     }
 
@@ -90,7 +78,7 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
      * Functions
      */
 
-    // Verschluesseln
+    // Encrypt
     public function Encrypt($text)
     {
         if ($this->objAES == null)
@@ -98,7 +86,9 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
             throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
         }
 
-        return $this->objAES->encrypt($text);
+        $iv = mcrypt_create_iv(16, MCRYPT_DEV_RANDOM);
+        $this->objAES->setIV($iv);
+        return $iv . "|@|" . $this->objAES->encrypt($text);
     }
 
     // Decrypt
@@ -109,7 +99,15 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
             throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
         }
 
-        return $this->objAES->decrypt($text);
+        $arrText = explode("|@|", $text);
+
+        if (!is_array($arrText) || count($arrText) != 2)
+        {
+            throw new Exception("Error by decrypt. Missing IV");
+        }
+
+        $this->objAES->setIV($arrText[0]);
+        return $this->objAES->decrypt($arrText[1]);
     }
 
 }

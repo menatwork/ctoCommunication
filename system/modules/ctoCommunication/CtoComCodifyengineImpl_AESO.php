@@ -26,14 +26,35 @@
  * @license    GNU/LGPL
  * @filesource
  */
+if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+{
+    include_once(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php');
+}
 
 /**
- * CtoComCodifyengineImpl_Empty
+ * CtoComCodifyengineImpl_AESO
  */
-class CtoComCodifyengineImpl_Empty extends CtoComCodifyengineAbstract
+class CtoComCodifyengineImpl_AESO extends CtoComCodifyengineAbstract
 {
     
-    protected $strName = "empty";
+    protected $strKey   = "";
+    protected $strName  = "aes";
+    protected $objAES;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+        {
+            $this->objAES = new Crypt_AES();
+        }
+        else
+        {
+            $this->objAES = null;
+        }
+    }
 
     /* -------------------------------------------------------------------------
      * getter / setter / clear
@@ -41,26 +62,41 @@ class CtoComCodifyengineImpl_Empty extends CtoComCodifyengineAbstract
 
     public function setKey($strKey)
     {
+        if ($this->objAES == null)
+        {
+            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+        }
+        
         $this->strKey = $strKey;
+        $this->objAES->setKey($this->strKey);
     }
 
     /* -------------------------------------------------------------------------
      * Functions
      */
 
-    // Verschluesseln
+    // Encrypt
     public function Encrypt($text)
-    {        
-        return $text;
+    {
+        if ($this->objAES == null)
+        {
+            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+        }
+
+        return $this->objAES->encrypt($text);
     }
 
     // Decrypt
     public function Decrypt($text)
     {
-        return trim($text);
+        if ($this->objAES == null)
+        {
+            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+        }
+
+        return $this->objAES->decrypt($text);
     }
 
-
-
 }
+
 ?>

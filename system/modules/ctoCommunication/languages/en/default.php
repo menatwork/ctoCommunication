@@ -30,16 +30,15 @@
 /**
  * Engine
  */
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"] = "-";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"] = "Mcrypt";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["blowfish"] = "Blowfish";
-$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"] = "phpseclib - AES";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"]             = "-";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"]            = "Mcrypt";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"]     = "phpseclib - AES";
+$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes_old"] = "(Deprecated) phpseclib - AES";
 
 /**
  * Error
  */
 $GLOBALS['TL_LANG']['ERR']['unknown_engine'] = "Unknown codifyengine: %s . ";
 $GLOBALS['TL_LANG']['ERR']['missing_engine'] = "Could not find codifyengine: %s . ";
-$GLOBALS['TL_LANG']['ERR']['not_a_engine'] = "The choosen codifyengine have to be from type 'CtoComCodifyengineAbstract'.";
-
+$GLOBALS['TL_LANG']['ERR']['not_a_engine']   = "The choosen codifyengine have to be from type 'CtoComCodifyengineAbstract'.";
 ?>

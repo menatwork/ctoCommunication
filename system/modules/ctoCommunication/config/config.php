@@ -1,4 +1,7 @@
-<?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
+<?php
+
+if (!defined('TL_ROOT'))
+    die('You can not access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -26,11 +29,15 @@
  * @license    GNU/LGPL 
  * @filesource
  */
-
 /**
  * ctoCommunication Version
  */
-$GLOBALS["CTOCOM_VERSION"] = "0.2.0";
+$GLOBALS["CTOCOM_VERSION"] = "0.5.0";
+
+/**
+ * Maintenance 
+ */
+$GLOBALS['TL_CACHE']['ctoCom']='tl_ctocom_cache';
 
 /**
  * Hooks
@@ -41,20 +48,29 @@ $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('CtoCommunication', 'chec
  * ctoCommunication engines
  */
 $GLOBALS["CTOCOM_ENGINE"] = array(
-    "empty" => array(
-        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"],
+    "empty"     => array(
+        "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"],
         "classname" => "CtoComCodifyengineImpl_Empty",
-        "folder" => "system/modules/ctoCommunication",
+        "folder"    => "system/modules/ctoCommunication",
+        "invisible" => FALSE
     ),
-    "mcrypt" => array(
-        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"],
+    "mcrypt"    => array(
+        "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"],
         "classname" => "CtoComCodifyengineImpl_Mcrypt",
-        "folder" => "system/modules/ctoCommunication",
-    ),    
-    "aes" => array(
-        "name" => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"],
+        "folder"    => "system/modules/ctoCommunication",
+        "invisible" => FALSE
+    ),
+    "aeso"      => array(
+        "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes_old"],
+        "classname" => "CtoComCodifyengineImpl_AESO",
+        "folder"    => "system/modules/ctoCommunication",
+        "invisible" => TRUE
+    ),
+    "aes"       => array(
+        "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"],
         "classname" => "CtoComCodifyengineImpl_AES",
-        "folder" => "system/modules/ctoCommunication",
+        "folder"    => "system/modules/ctoCommunication",
+        "invisible" => FALSE
     ),
 );
 
@@ -86,6 +102,12 @@ $GLOBALS["CTOCOM_FUNCTIONS"] = array(
     "CONTAO_VERSION" => array(
         "class" => "CtoComRPCFunctions",
         "function" => "getContaoVersion",
+        "typ" => "GET",
+        "parameter" => false,
+    ),
+    "CONTAO_FULL_VERSION" => array(
+        "class" => "CtoComRPCFunctions",
+        "function" => "getContaoFullVersion",
         "typ" => "GET",
         "parameter" => false,
     ),

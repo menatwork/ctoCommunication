@@ -51,14 +51,14 @@ class CtoComCodifyengineFactory extends Backend
         }
         
         $arrEngine = $GLOBALS["CTOCOM_ENGINE"][$strEngine];
-
+                
         // Check if engine exists in filesystem
         if (!file_exists(TL_ROOT . "/" . $arrEngine["folder"] . "/" . $arrEngine["classname"] . ".php"))
             throw new Exception(vsprintf($GLOBALS['TL_LANG']['ERR']['missing_engine'], array($arrEngine["classname"] . ".php")));
 
-        $strClass = $arrEngine["classname"];        
+        $strClass = $arrEngine["classname"];  
         $objEnginge = new $strClass();
-
+        
         // Get engine
         if ($objEnginge instanceof CtoComCodifyengineAbstract)
         {

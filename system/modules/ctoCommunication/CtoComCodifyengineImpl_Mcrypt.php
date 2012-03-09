@@ -28,12 +28,11 @@
  */
 
 /**
- * SyncCtoCodifyengineImpl_Mcrypt
+ * CtoComCodifyengineImpl_Mcrypt
  */
 class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
 {
-
-    protected static $instance = null;
+    
     protected $strKey = "";
     protected $strName = "mcrypt";
 
@@ -43,20 +42,7 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
     public function __construct()
     {
         
-    }
-
-    /**
-     * Singelton Pattern
-     * 
-     * @return CtoComCodifyengineImpl_Mcrypt 
-     */
-    public static function getInstance()
-    {
-        if (self::$instance == null)
-            self::$instance = new CtoComCodifyengineImpl_Mcrypt();
-
-        return self::$instance;
-    }
+    }    
 
     /* -------------------------------------------------------------------------
      * getter / setter / clear
@@ -96,13 +82,13 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
         mcrypt_module_close($td);
 
         /* Show string */
-        return $iv . "<|@|>" . $encrypted;
+        return $iv . "|@|" . $encrypted;
     }
 
     // Decrypt
     public function Decrypt($text)
     {
-        $arrText = explode("<|@|>", $text);
+        $arrText = explode("|@|", $text);
         
         if(!is_array($arrText) || count($arrText) != 2)
         {
