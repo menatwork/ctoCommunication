@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You can not access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -72,6 +69,15 @@ $GLOBALS["CTOCOM_ENGINE"] = array(
         "folder"    => "system/modules/ctoCommunication",
         "invisible" => FALSE
     ),
+);
+
+$GLOBALS["CTOCOM_IO"] = array(
+    "default"   => array(
+        "accept"        => array("text/html", "text/plain", "*/*"),
+        "contentType"   => "text/html",
+        "classname"     => "CtoComIOImpl_Default",
+        "folder"        => "system/modules/ctoCommunication",
+    )
 );
 
 /**

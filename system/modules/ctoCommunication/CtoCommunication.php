@@ -1,4 +1,7 @@
-<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
+<?php
+
+if (!defined('TL_ROOT'))
+    die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -33,7 +36,7 @@ class CtoCommunication extends Backend
      */
 
     // Singelten pattern
-    protected static $instance            = null;
+    protected static $instance = null;
     // Vars
     protected $strConnectionID;
     protected $strConnectionKey;
@@ -50,6 +53,7 @@ class CtoCommunication extends Backend
     // Objects
     protected $objCodifyengine;
     protected $objCodifyengineBasic;
+    protected $objIOEngine;
     protected $objDebug;
     // Config
     /**
@@ -58,7 +62,7 @@ class CtoCommunication extends Backend
      */
     protected $intHandshakeTimeout = 1200;
     protected $intMaxResponseLength;
-    protected $arrResponses        = array(
+    protected $arrResponses = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
         200 => 'OK',
@@ -113,17 +117,18 @@ class CtoCommunication extends Backend
     {
         parent::__construct();
 
-        $this->objCodifyengine = CtoComCodifyengineFactory::getEngine();
+        $this->objCodifyengine      = CtoComCodifyengineFactory::getEngine();
         $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aes");
-        $this->objDebug = CtoComDebug::getInstance();
+        $this->objIOEngine          = CtoComIOFactory::getEngine('default');
+        $this->objDebug             = CtoComDebug::getInstance();
 
-        $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
-        $this->arrError = array();
-        $this->arrNullFields = array();
+        $this->arrRpcList       = $GLOBALS["CTOCOM_FUNCTIONS"];
+        $this->arrError         = array();
+        $this->arrNullFields    = array();
 
         if (empty($GLOBALS['TL_CONFIG']['ctoCom_responseLength']) || $GLOBALS['TL_CONFIG']['ctoCom_responseLength'] < 10000)
         {
-            $this->intMaxResponseLength = 40000;
+            $this->intMaxResponseLength = 134217728;
         }
         else
         {
@@ -165,7 +170,7 @@ class CtoCommunication extends Backend
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
         if (is_array($arrPool) && key_exists(md5($strUrl), $arrPool))
         {
-            $this->strConnectionID = $arrPool[md5($strUrl)]["id"];
+            $this->strConnectionID  = $arrPool[md5($strUrl)]["id"];
             $this->strConnectionKey = $arrPool[md5($strUrl)]["key"];
         }
     }
@@ -185,13 +190,16 @@ class CtoCommunication extends Backend
      *
      * @param int $id ID from client
      */
-    public function setClient($strUrl, $strCodifyEngine = "aes")
+    public function setClient($strUrl, $strCodifyEngine = "aes", $strIOEngine = "defualt")
     {
         // Set client
         $this->strUrl = $strUrl;
 
         // Set codify
         $this->setCodifyengine($strCodifyEngine);
+        
+        // set I/O engine
+        $this->s
 
         // Load Session information
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
@@ -210,6 +218,36 @@ class CtoCommunication extends Backend
     public function setCodifyengine($strName = Null)
     {
         $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($strName);
+    }
+    
+    /**
+     * Change I/O enginge
+     * 
+     * @param string $strName 
+     */
+    public function setIOEngine($strName = 'default')
+    {
+        $this->objIOEngine = CtoComIOFactory::getEngine($strName);
+    }
+    
+    /**
+     * Change I/O enginge
+     * 
+     * @param string $strName 
+     */
+    public function setIOEngineByContentTyp($strName = 'text/plain')
+    {
+        $this->objIOEngine = CtoComIOFactory::getEngingeForContentType($strName);
+    }
+    
+    /**
+     * Change I/O enginge
+     * 
+     * @param string $strName 
+     */
+    public function setIOEngineByAccept($strName = 'text/plain')
+    {
+        $this->objIOEngine = CtoComIOFactory::getEngingeForAccept($strName);
     }
 
     /**
@@ -487,9 +525,6 @@ class CtoCommunication extends Backend
      */
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
-        $strMeasureID1 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $rpc);
-        $strMeasureID2 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. System");
-
         $this->strUrlGet = "";
 
         // Check if everything is set
@@ -510,8 +545,8 @@ class CtoCommunication extends Backend
         if (is_array($arrPoolInformation) && key_exists(md5($this->strUrl), $arrPoolInformation) && key_exists("codifyengine", $arrPoolInformation[md5($this->strUrl)]))
         {
             $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
-            
-            if($this->objCodifyengine->getName() == "aes")
+
+            if ($this->objCodifyengine->getName() == "aes")
             {
                 $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
             }
@@ -520,13 +555,11 @@ class CtoCommunication extends Backend
         // Set key for codifyengines
         if (!empty($this->strConnectionKey) && !in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")))
         {
-            // Set Key for codifyengine
             $this->objCodifyengineBasic->setKey($this->strConnectionKey);
             $this->objCodifyengine->setKey($this->strConnectionKey);
         }
         else
         {
-            // Set Key for codifyengine
             $this->objCodifyengineBasic->setKey($this->strApiKey);
             $this->objCodifyengine->setKey($this->strApiKey);
         }
@@ -544,16 +577,13 @@ class CtoCommunication extends Backend
             $this->strUrlGet .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . urlencode($strCryptApiKey) . "&con=" . $this->strConnectionID;
         }
 
-        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID2);
-
-        $strMeasureID3 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. Request");
-
         // New Request
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
         $objRequest->useragent .= "Mozilla/5.0 (compatible; CyberSpectrum RequestExtended on Contao " . VERSION . "." . BUILD . "; rv:1.0; CtoCommunication RPC System (ctoComV" . $GLOBALS["CTOCOM_VERSION"] . ")";
 
+        // Set http auth
         if (strlen($this->strHTTPUser) != 0 || strlen($this->strHTTPPassword) != 0)
         {
             $objRequest->username = $this->strHTTPUser;
@@ -578,8 +608,6 @@ class CtoCommunication extends Backend
             $objMultipartFormdata = new MultipartFormdata();
             foreach ($arrData as $key => $value)
             {
-                $strMeasureID4 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Init. MultipartFormdata - " . $value["name"]);
-
                 if (isset($value["filename"]) == true && strlen($value["filename"]) != 0)
                 {
                     // Set field for file
@@ -594,14 +622,14 @@ class CtoCommunication extends Backend
                     $strValue = serialize(array("data" => $value["value"]));
                     $intStrlenSer = strlen($strValue);
 
-                    $strValue     = $this->objCodifyengine->Encrypt($strValue);
+                    $strValue = $this->objCodifyengine->Encrypt($strValue);
                     $intStrlenCod = strlen($strValue);
 
                     //$strValue = bzcompress ($strValue);
-                    $strValue     = gzcompress($strValue);
+                    $strValue = gzcompress($strValue);
                     $intStrlenCom = strlen($strValue);
 
-                    $strValue     = base64_encode($strValue);
+                    $strValue = base64_encode($strValue);
                     $intStrlenB64 = strlen($strValue);
 
                     $this->objDebug->addDebug("Post Data - " . $value["name"], vsprintf("Ser: %s | Cod: %s | Com: %s | B64: %s", array($intStrlenSer, $intStrlenCod, $intStrlenCom, $intStrlenB64)));
@@ -609,8 +637,6 @@ class CtoCommunication extends Backend
                     // Set field
                     $objMultipartFormdata->setField($value["name"], $strValue);
                 }
-
-                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID4);
             }
 
             // Create HTTP Data code
@@ -621,14 +647,8 @@ class CtoCommunication extends Backend
             $objRequest->datamime = $objMultipartFormdata->getContentTypeHeader();
         }
 
-        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID3);
-
-        $strMeasureID5 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "Start sending.");
-
         // Send new request
         $objRequest->send($this->strUrl . $this->strUrlGet);
-
-        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID5);
 
         $response = $objRequest->response;
 
@@ -641,19 +661,18 @@ class CtoCommunication extends Backend
         {
             $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
         }
+        
         $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2000));
 
         // Check if we have time out
         if ($objRequest->timedOut)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Sorry we have a time out. Please try again.");
         }
 
         // Check if everything is okay for connection
         if ($objRequest->hasError())
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("Error on transmission, with message: " . $objRequest->code . " " . $objRequest->error);
         }
 
@@ -663,12 +682,10 @@ class CtoCommunication extends Backend
             // Check if we have time out
             if (empty($objRequest->code))
             {
-                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
                 throw new Exception("Sorry we have a time out. Please try again.");
             }
             else
             {
-                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
                 throw new Exception("Error on transmission, with message: " . $objRequest->code . " - " . $this->arrResponses[$objRequest->code]);
             }
         }
@@ -676,74 +693,42 @@ class CtoCommunication extends Backend
         // Check if we have a response
         if (strlen($response) == 0)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("We got a blank response from server.");
         }
 
         // Check for "Fatal error" on client side
         if (strpos($response, "Fatal error") !== FALSE)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
             throw new Exception("We got a Fatal error on client site. " . $response);
         }
 
         // Check for "Warning" on client side
         if (strpos($response, "Warning") !== FALSE)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
-
             $intStart = stripos($response, "<strong>Warning</strong>:");
-            $intEnd   = stripos($response, "on line");
+            $intEnd = stripos($response, "on line");
 
             throw new Exception("We got a Warning on client site.<br /><br />" . substr($response, $intStart, $intEnd - $intStart));
         }
 
-        // Check for start and end tag
-        if (strpos($response, "<|@|") === FALSE || strpos($response, "|@|>") === FALSE)
+        // ctoCom I/O System ---------------------------------------------------
+        
+        // Search engine
+        $objIOEngine = CtoComIOFactory::getEngingeForEncoding($objRequest->headers['Content-Type']);
+
+        // Check if we have found one
+        if ($objIOEngine == FALSE)
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
-            throw new Exception("Could not find start or endtag from response.");
+            throw new Exception("No I/O Class found for " . $objRequest->headers['Content-Type']);
         }
 
-        // Rebuild original msg
-        $mixContent = $response;
+        // Parse response
+        $objResponse = $objIOEngine->InputRsponse($response);
 
-        // Find position of start/end - tag
-        $intStart  = intval(strpos($mixContent, "<|@|") + 4);
-        $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
-
-        $mixContent = substr($mixContent, $intStart, $intLength);
-        $mixContent = base64_decode($mixContent);
-        //$mixContent = bzdecompress($mixContent);
-        $mixContent = @gzuncompress($mixContent);
-
-        // Check if uncompress works
-        if ($mixContent === FALSE)
-        {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
-            throw new Exception("Error on uncompressing the response. Maybe wrong API-Key or ctoCom version.");
-        }
-
-        // Decrypt response
-        $mixContent = $this->objCodifyengine->Decrypt($mixContent);
-
-        $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2000));
-
-        // Deserialize response
-        $mixContent = deserialize($mixContent);
-
-        // Check if we have a array
-        if (is_array($mixContent) == false)
-        {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
-            throw new Exception("Response is not an array. Maybe wrong API-Key or cryptionengine.");
-        }
-
-        // Clean array
-        $mixContent = $this->cleanUp($mixContent);
+        // Check Response ------------------------------------------------------
 
         // Check if client says "Everthing okay"
-        if ($mixContent["success"] == 1)
+        if ($objResponse->isSuccess())
         {
             if ($mixContent["splitcontent"] == true)
             {
@@ -753,18 +738,14 @@ class CtoCommunication extends Backend
                 }
                 catch (Exception $exc)
                 {
-                    $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
                     throw $exc;
                 }
             }
-
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
+            
             return $mixContent["response"];
         }
         else
         {
-            $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
-
             $string = vsprintf("There was an error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
                 nl2br($mixContent["error"][0]["msg"]),
                 $mixContent["error"][0]["rpc"],
@@ -775,8 +756,6 @@ class CtoCommunication extends Backend
 
             throw new Exception($string);
         }
-
-        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $strMeasureID1);
     }
 
     /**
@@ -831,7 +810,7 @@ class CtoCommunication extends Backend
         }
 
         // Find position of start/end - tag
-        $intStart  = intval(strpos($mixContent, "<|@|") + 4);
+        $intStart = intval(strpos($mixContent, "<|@|") + 4);
         $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
 
         $mixContent = substr($mixContent, $intStart, $intLength);
@@ -956,8 +935,8 @@ class CtoCommunication extends Backend
             exit();
         }
 
-        $mixVar    = $this->objCodifyengineBasic->Decrypt(base64_decode($this->Input->get("apikey", true)));
-        $mixVar    = trimsplit("@\|@", $mixVar);
+        $mixVar = $this->objCodifyengineBasic->Decrypt(base64_decode($this->Input->get("apikey", true)));
+        $mixVar = trimsplit("@\|@", $mixVar);
         $strApiKey = $mixVar[1];
         $strAction = $mixVar[0];
 
@@ -1217,7 +1196,7 @@ class CtoCommunication extends Backend
         {
             $mixOutput = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.5));
 
-            $strFileName  = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
+            $strFileName = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
             $intCountPart = count($mixOutput);
 
             foreach ($mixOutput as $keyOutput => $valueOutput)
@@ -1381,7 +1360,7 @@ class CtoCommunication extends Backend
             {
                 // Create random private key.
                 $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
-                $strPrivate       = rand(1, 9);
+                $strPrivate = rand(1, 9);
 
                 for ($ii = 0; $ii < $intPrivateLength; $ii++)
                 {
