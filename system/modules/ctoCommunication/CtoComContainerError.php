@@ -28,19 +28,20 @@
  */
 
 /**
- * Interface for Codifyengine
+ * Interface for CtoComContainerError
  */
-class CtoComContainerIO
+class CtoComContainerError
 {
 
-    protected $strLanguage;  
+    protected $strLanguage;
     protected $intID;
     protected $mixObject;
     protected $strMessage;
     protected $strRPC;
     protected $strClass;
     protected $strFunction;
-    
+    protected $objException;
+
     public function getLanguage()
     {
         return $this->strLanguage;
@@ -110,6 +111,17 @@ class CtoComContainerIO
     {
         $this->strFunction = $strFunction;
     }
+    
+    public function getException()
+    {
+        return $this->objException;
+    }
+
+    public function setException($objException)
+    {
+        $this->objException = $objException;
+    }
+
 
 
 }

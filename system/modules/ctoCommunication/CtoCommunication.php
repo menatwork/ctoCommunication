@@ -45,16 +45,35 @@ class CtoCommunication extends Backend
     protected $strApiKey;
     protected $strHTTPUser;
     protected $strHTTPPassword;
+    protected $strIOEngine;
     protected $arrCookies;
     protected $arrRpcList;
-    protected $arrError;
-    protected $arrNullFields;
     protected $mixOutput;
-    // Objects
+
+    /**
+     * @var CtoComCodifyengineAbstract 
+     */
     protected $objCodifyengine;
+
+    /**
+     * @var CtoComCodifyengineAbstract 
+     */
     protected $objCodifyengineBasic;
+
+    /**
+     * @var CtoComIOInterface 
+     */
     protected $objIOEngine;
+
+    /**
+     * @var CtoComDebug 
+     */
     protected $objDebug;
+
+    /**
+     * @var CtoComContainerError 
+     */
+    protected $objError;
     // Config
     /**
      * Time in seconds for handshake timeout.
@@ -117,14 +136,14 @@ class CtoCommunication extends Backend
     {
         parent::__construct();
 
-        $this->objCodifyengine      = CtoComCodifyengineFactory::getEngine();
         $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aes");
-        $this->objIOEngine          = CtoComIOFactory::getEngine('default');
-        $this->objDebug             = CtoComDebug::getInstance();
+        $this->objDebug = CtoComDebug::getInstance();
+        $this->objError = false;
 
-        $this->arrRpcList       = $GLOBALS["CTOCOM_FUNCTIONS"];
-        $this->arrError         = array();
-        $this->arrNullFields    = array();
+        $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
+
+        $this->setIOEngine("default");
+        $this->setCodifyengine();
 
         if (empty($GLOBALS['TL_CONFIG']['ctoCom_responseLength']) || $GLOBALS['TL_CONFIG']['ctoCom_responseLength'] < 10000)
         {
@@ -170,7 +189,7 @@ class CtoCommunication extends Backend
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
         if (is_array($arrPool) && key_exists(md5($strUrl), $arrPool))
         {
-            $this->strConnectionID  = $arrPool[md5($strUrl)]["id"];
+            $this->strConnectionID = $arrPool[md5($strUrl)]["id"];
             $this->strConnectionKey = $arrPool[md5($strUrl)]["key"];
         }
     }
@@ -190,16 +209,16 @@ class CtoCommunication extends Backend
      *
      * @param int $id ID from client
      */
-    public function setClient($strUrl, $strCodifyEngine = "aes", $strIOEngine = "defualt")
+    public function setClient($strUrl, $strCodifyEngine = "aes", $strIOEngine = "default")
     {
         // Set client
         $this->strUrl = $strUrl;
 
         // Set codify
         $this->setCodifyengine($strCodifyEngine);
-        
-        // set I/O engine
-        $this->s
+
+        // Set I/O engine
+        $this->setIOEngine($strIOEngine);
 
         // Load Session information
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
@@ -219,7 +238,7 @@ class CtoCommunication extends Backend
     {
         $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($strName);
     }
-    
+
     /**
      * Change I/O enginge
      * 
@@ -228,8 +247,9 @@ class CtoCommunication extends Backend
     public function setIOEngine($strName = 'default')
     {
         $this->objIOEngine = CtoComIOFactory::getEngine($strName);
+        $this->strIOEngine = $strName;
     }
-    
+
     /**
      * Change I/O enginge
      * 
@@ -237,9 +257,9 @@ class CtoCommunication extends Backend
      */
     public function setIOEngineByContentTyp($strName = 'text/plain')
     {
-        $this->objIOEngine = CtoComIOFactory::getEngingeForContentType($strName);
+        $this->setIOEngine(CtoComIOFactory::getEngingenameForContentType($strName));
     }
-    
+
     /**
      * Change I/O enginge
      * 
@@ -247,7 +267,7 @@ class CtoCommunication extends Backend
      */
     public function setIOEngineByAccept($strName = 'text/plain')
     {
-        $this->objIOEngine = CtoComIOFactory::getEngingeForAccept($strName);
+        $this->setIOEngine(CtoComIOFactory::getEngingenameForAccept($strName));
     }
 
     /**
@@ -527,7 +547,10 @@ class CtoCommunication extends Backend
     {
         $this->strUrlGet = "";
 
-        // Check if everything is set
+        /* ---------------------------------------------------------------------
+         * Check if everything is set
+         */
+
         if ($this->strApiKey == "" || $this->strApiKey == null)
         {
             throw new Exception("The API Key is not set. Please set first API Key.");
@@ -541,7 +564,10 @@ class CtoCommunication extends Backend
         // Get Session information for condify key & engine        
         $arrPoolInformation = $this->Session->get("CTOCOM_ConnectionPool");
 
-        // Check if we need another core codify engine
+        /* ---------------------------------------------------------------------
+         * Check if we need another core codify engine
+         */
+
         if (is_array($arrPoolInformation) && key_exists(md5($this->strUrl), $arrPoolInformation) && key_exists("codifyengine", $arrPoolInformation[md5($this->strUrl)]))
         {
             $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
@@ -564,7 +590,10 @@ class CtoCommunication extends Backend
             $this->objCodifyengine->setKey($this->strApiKey);
         }
 
-        // Add Get Parameter
+        /* ---------------------------------------------------------------------
+         * Add Get Parameter
+         */
+
         $strCryptApiKey = $this->objCodifyengineBasic->Encrypt($rpc . "@|@" . $this->strApiKey);
         $strCryptApiKey = base64_encode($strCryptApiKey);
 
@@ -577,7 +606,10 @@ class CtoCommunication extends Backend
             $this->strUrlGet .= "?engine=" . $this->objCodifyengine->getName() . "&act=" . $rpc . "&apikey=" . urlencode($strCryptApiKey) . "&con=" . $this->strConnectionID;
         }
 
-        // New Request
+        /* ---------------------------------------------------------------------
+         * New Request
+         */
+
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
@@ -617,25 +649,9 @@ class CtoCommunication extends Backend
                     }
                 }
                 else
-                {
-                    // serliaze/encrypt/compress/base64 function                    
-                    $strValue = serialize(array("data" => $value["value"]));
-                    $intStrlenSer = strlen($strValue);
-
-                    $strValue = $this->objCodifyengine->Encrypt($strValue);
-                    $intStrlenCod = strlen($strValue);
-
-                    //$strValue = bzcompress ($strValue);
-                    $strValue = gzcompress($strValue);
-                    $intStrlenCom = strlen($strValue);
-
-                    $strValue = base64_encode($strValue);
-                    $intStrlenB64 = strlen($strValue);
-
-                    $this->objDebug->addDebug("Post Data - " . $value["name"], vsprintf("Ser: %s | Cod: %s | Com: %s | B64: %s", array($intStrlenSer, $intStrlenCod, $intStrlenCom, $intStrlenB64)));
-
+                {                   
                     // Set field
-                    $objMultipartFormdata->setField($value["name"], $strValue);
+                    $objMultipartFormdata->setField($value["name"], $this->objIOEngine->OutputPost($value["value"], $this->objCodifyengine));
                 }
             }
 
@@ -661,7 +677,7 @@ class CtoCommunication extends Backend
         {
             $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
         }
-        
+
         $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2000));
 
         // Check if we have time out
@@ -712,9 +728,8 @@ class CtoCommunication extends Backend
         }
 
         // ctoCom I/O System ---------------------------------------------------
-        
         // Search engine
-        $objIOEngine = CtoComIOFactory::getEngingeForEncoding($objRequest->headers['Content-Type']);
+        $objIOEngine = CtoComIOFactory::getEngingeForContentType($objRequest->headers['Content-Type']);
 
         // Check if we have found one
         if ($objIOEngine == FALSE)
@@ -723,10 +738,9 @@ class CtoCommunication extends Backend
         }
 
         // Parse response
-        $objResponse = $objIOEngine->InputRsponse($response);
+        $objResponse = $objIOEngine->InputRsponse($response, $this->objCodifyengine);
 
         // Check Response ------------------------------------------------------
-
         // Check if client says "Everthing okay"
         if ($objResponse->isSuccess())
         {
@@ -741,7 +755,7 @@ class CtoCommunication extends Backend
                     throw $exc;
                 }
             }
-            
+
             return $mixContent["response"];
         }
         else
@@ -756,29 +770,6 @@ class CtoCommunication extends Backend
 
             throw new Exception($string);
         }
-    }
-
-    /**
-     * Run throw a array and decode html entities
-     * 
-     * @param array $arrArray
-     * @return array 
-     */
-    protected function cleanUp($arrArray)
-    {
-        foreach ($arrArray as $key => $value)
-        {
-            if (is_array($value))
-            {
-                $arrArray[$key] = $this->cleanUp($value);
-            }
-            else
-            {
-                $arrArray[$key] = html_entity_decode($value);
-            }
-        }
-
-        return $arrArray;
     }
 
     protected function rebuildSplitcontent($strSplitname, $intSplitCount)
@@ -867,22 +858,55 @@ class CtoCommunication extends Backend
      */
     public function runClient()
     {
-        // Start measurement
-        $intMeasurement1 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__, "RPC: " . $this->Input->get("act"));
-
         // If we have a ping, just do nothing
         if ($this->Input->get("act") == "ping")
         {
             exit();
         }
 
-        // Change basic codify engine.
-        if (preg_match("/.*\|@\|.*/", base64_decode($this->Input->get("apikey", true))))
+        /* ---------------------------------------------------------------------
+         * Check if we have a old AES or a new AES with IV.
+         * Set codifyengine keys.
+         * Check the connection ID and refresh/delete it.
+         */
+
+        // Check if IV was send, when send use the new AES else the old one.
+
+        try
         {
-            $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aesn");
+            if (preg_match("/.*\|@\|.*/", base64_decode($this->Input->get("apikey", true))))
+            {
+                $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aes");
+
+                if ($this->Input->get("engine") == "aes")
+                {
+                    $this->setCodifyengine($this->Input->get("aes"));
+                }
+                else
+                {
+                    $this->setCodifyengine($this->Input->get("engine"));
+                }
+            }
+            else
+            {
+                $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aeso");
+
+                if ($this->Input->get("engine") == "aes")
+                {
+                    $this->setCodifyengine($this->Input->get("aeso"));
+                }
+                else
+                {
+                    $this->setCodifyengine($this->Input->get("engine"));
+                }
+            }
+        }
+        catch (Exception $exc)
+        {
+            $this->log("Try to load codifyengine for ctoCommunication with error: " . $exc->getMessage(), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+            exit();
         }
 
-        // Set codify key ------------------------------------------------------
         // Check if we have a incomming connection for handshake
         if (in_array($this->Input->get("act"), array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE", "CTOCOM_VERSION")))
         {
@@ -895,27 +919,33 @@ class CtoCommunication extends Backend
             // Use the private key from connection pool
             if (strlen($this->Input->get("con")) != 0)
             {
+                // Check if we have some data
                 $arrConnections = $this->Database->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
                         ->execute($this->Input->get("con"))
                         ->fetchAllAssoc();
 
-                // Check if we have some data
                 if (count($arrConnections) == 0)
                 {
                     $this->log(vsprintf("Call from %s with a unknown connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
                     exit();
                 }
 
+                // Check if time out isn't reached.
                 if ($arrConnections[0]["tstamp"] + $this->intHandshakeTimeout < time())
                 {
+                    $this->Database->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")
+                            ->execute($this->Input->get("con"));
+
                     $this->log(vsprintf("Call from %s with a expired connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
                     exit();
                 }
 
+                // Reset timestamp
                 $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
                         ->set(array("tstamp" => time()))
                         ->execute($this->Input->get("con"));
 
+                // Set codify key from database
                 $this->objCodifyengineBasic->setKey($arrConnections[0]["shared_secret_key"]);
                 $this->objCodifyengine->setKey($arrConnections[0]["shared_secret_key"]);
                 $strCodifyKey = $arrConnections[0]["shared_secret_key"];
@@ -927,14 +957,21 @@ class CtoCommunication extends Backend
             }
         }
 
-        // API Key - Check -----------------------------------------------------
+        /* ---------------------------------------------------------------------
+         * Check the API key.
+         * Check if the API Key was send. 
+         * Check if the API key contains the RPC Call and the API Key from this
+         * Contao Version. 
+         */
 
+        // Check if a API-Key was send
         if (strlen($this->Input->get("apikey")) == 0)
         {
             $this->log(vsprintf("Call from %s without a API Key.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
             exit();
         }
 
+        // Check RPC Call from get and the RPC Call from API-Key
         $mixVar = $this->objCodifyengineBasic->Decrypt(base64_decode($this->Input->get("apikey", true)));
         $mixVar = trimsplit("@\|@", $mixVar);
         $strApiKey = $mixVar[1];
@@ -957,192 +994,216 @@ class CtoCommunication extends Backend
             exit();
         }
 
-        // Check language settings ---------------------------------------------
+        /* ---------------------------------------------------------------------
+         * Check language settings
+         */
 
         if (empty($GLOBALS['TL_LANGUAGE']))
         {
-            $GLOBALS['TL_LANGUAGE'] = "de";
+            $GLOBALS['TL_LANGUAGE'] = "en";
         }
 
-        // Change the Codifyengine if set --------------------------------------
+        /* ---------------------------------------------------------------------
+         * Set I/O System
+         */
 
-        if (strlen($this->Input->get("engine")) != 0)
+        if (strlen($this->Input->get("format")) != 0)
         {
-            // Try to change codifyengine
-            try
+            if (CtoComIOFactory::engineExist($this->Input->get("format")))
             {
-                // Set new an reload key
-                $this->setCodifyengine($this->Input->get("engine"));
-                $this->objCodifyengine->setKey($strCodifyKey);
+                $this->setIOEngine($this->Input->get("format"));
             }
-            // Error by setting new enigne.
-            catch (Exception $exc)
+            else
             {
-                $this->log("Try to load codifyengine for ctoCommunication with error: " . $exc->getMessage(), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+                $this->setIOEngine();
+
+                $this->objError = new CtoComContainerError();
+                $this->objError->setLanguage("unknown_io");
+                $this->objError->setID(10);
+                $this->objError->setObject("");
+                $this->objError->setMessage("No I/O Interface found for accept.");
+                $this->objError->setRPC("");
+                $this->objError->setClass("");
+                $this->objError->setFunction("");
+
+                $this->generateOutput();
                 exit();
             }
         }
         else
         {
-            $this->setCodifyengine("aes");
-            $this->objCodifyengine->setKey($strCodifyKey);
-        }
+            $strAccept = $_SERVER['HTTP_ACCEPT'];
+            $strAccept = preg_replace("/;q=\d\.\d/", "", $strAccept);
+            $arrAccept = trimsplit(",", $strAccept);
 
-        // Run RPC-Check function ----------------------------------------------
-
-        $mixRPCCall = $this->Input->get("act");
-        // Check if act is set
-        if (strlen($mixRPCCall) == 0)
-        {
-            $this->arrError[] = array(
-                "language" => "rpc_missing",
-                "id" => 1,
-                "object" => "",
-                "msg" => "Missing RPC Call",
-                "rpc" => $mixRPCCall,
-                "class" => "",
-                "function" => "",
-            );
-        }
-        else
-        {
-            if (!key_exists($mixRPCCall, $this->arrRpcList))
+            foreach ($arrAccept as $key => $value)
             {
-                $this->arrError[] = array(
-                    "language" => "rpc_unknown",
-                    "id" => 1,
-                    "object" => "",
-                    "msg" => "Unknown RPC Call",
-                    "rpc" => $mixRPCCall,
-                    "class" => "",
-                    "function" => "",
-                );
+                $strIOEngine = CtoComIOFactory::getEngingenameForAccept($value);
+
+                if ($strIOEngine !== false)
+                {
+                    break;
+                }
+            }
+
+            if ($strIOEngine === false)
+            {
+                $this->objIOEngine = CtoComIOFactory::getEngine('default');
+
+                $this->objError = new CtoComContainerError();
+                $this->objError->setLanguage("unknown_io");
+                $this->objError->setID(10);
+                $this->objError->setObject("");
+                $this->objError->setMessage("No I/O Interface found for accept: $strAccept");
+                $this->objError->setRPC("");
+                $this->objError->setClass("");
+                $this->objError->setFunction("");
+
+                $this->generateOutput();
+                exit();
             }
             else
             {
-                $arrParameter = array();
-
-                if ($this->arrRpcList[$mixRPCCall]["parameter"] != FALSE && is_array($this->arrRpcList[$mixRPCCall]["parameter"]))
-                {
-                    switch ($this->arrRpcList[$mixRPCCall]["typ"])
-                    {
-                        case "POST":
-                            // Decode post 
-                            foreach ($_POST as $key => $value)
-                            {
-                                $mixPost = $this->Input->postRaw($key);
-                                $mixPost = base64_decode($mixPost);
-                                //$mixPost = bzdecompress($mixPost);
-                                $mixPost = gzuncompress($mixPost);
-                                $mixPost = $this->objCodifyengine->Decrypt($mixPost);
-                                $mixPost = deserialize($mixPost);
-                                $mixPost = $mixPost["data"];
-
-                                if (is_null($mixPost))
-                                {
-                                    $this->arrNullFields[] = $key;
-                                    $this->Input->setPost($key, $mixPost);
-                                }
-                                else
-                                {
-                                    $this->Input->setPost($key, $mixPost);
-                                }
-                            }
-
-                            // Check if all post are set
-                            foreach ($this->arrRpcList[$mixRPCCall]["parameter"] as $value)
-                            {
-                                $arrPostKey = array_keys($_POST);
-
-                                if (!in_array($value, $arrPostKey) && !in_array($value, $this->arrNullFields))
-                                {
-                                    $this->arrError[] = array(
-                                        "language" => "rpc_data_missing",
-                                        "id" => 2,
-                                        "object" => $value,
-                                        "msg" => "Missing data for " . $value,
-                                        "rpc" => $mixRPCCall,
-                                        "class" => $this->arrRpcList[$mixRPCCall]["class"],
-                                        "function" => $this->arrRpcList[$mixRPCCall]["function"],
-                                    );
-                                }
-                                else
-                                {
-                                    if (in_array($value, $this->arrNullFields))
-                                    {
-                                        $arrParameter[$value] = NULL;
-                                    }
-                                    else
-                                    {
-                                        $arrParameter[$value] = $this->Input->postRaw($value);
-                                    }
-                                }
-                            }
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            if (count($this->arrError) != 0)
-            {
-                $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $intMeasurement1);
-                return $this->generateOutput();
-            }
-
-            try
-            {
-                $intMeasurement2 = $this->objDebug->startMeasurement($this->arrRpcList[$mixRPCCall]["class"], $this->arrRpcList[$mixRPCCall]["function"]);
-
-                $strClassname = $this->arrRpcList[$mixRPCCall]["class"];
-
-                if (!class_exists($strClassname))
-                {
-                    $this->arrError[] = array(
-                        "language" => "rpc_class_not_exists",
-                        "id" => 4,
-                        "object" => "",
-                        "msg" => "The choosen class didn`t exists.",
-                        "rpc" => $mixRPCCall,
-                        "class" => $this->arrRpcList[$mixRPCCall]["class"],
-                        "function" => $this->arrRpcList[$mixRPCCall]["function"],
-                    );
-                }
-
-                $objReflection = new ReflectionClass($strClassname);
-                if ($objReflection->hasMethod("getInstance"))
-                {
-                    $object = call_user_func_array(array($this->arrRpcList[$mixRPCCall]["class"], "getInstance"), array());
-                    $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]), $arrParameter);
-                }
-                else
-                {
-                    $object = new $this->arrRpcList[$mixRPCCall]["class"];
-                    $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]), $arrParameter);
-                }
-
-                $this->objDebug->stopMeasurement($this->arrRpcList[$mixRPCCall]["class"], $this->arrRpcList[$mixRPCCall]["function"], $intMeasurement2);
-            }
-            catch (Exception $exc)
-            {
-                $this->arrError[] = array(
-                    "language" => "rpc_unknown_exception",
-                    "id" => 3,
-                    "object" => "",
-                    "msg" => $exc->getMessage(),
-                    "rpc" => $mixRPCCall,
-                    "class" => $this->arrRpcList[$mixRPCCall]["class"],
-                    "function" => $this->arrRpcList[$mixRPCCall]["function"],
-                );
-
-                $this->log(vsprintf("RPC Exception: %s | %s", array($exc->getMessage(), nl2br($exc->getTraceAsString()))), __CLASS__ . " | " . __FUNCTION__, TL_ERROR);
+                $this->setIOEngine($strIOEngine);
             }
         }
 
-        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $intMeasurement1);
-        return $this->generateOutput();
+        /* ---------------------------------------------------------------------
+         * Run RPC-Check function
+         */
+
+        // Check if act is set
+        $mixRPCCall = $this->Input->get("act");
+
+        if (strlen($mixRPCCall) == 0)
+        {
+            $this->objError = new CtoComContainerError();
+            $this->objError->setLanguage("rpc_missing");
+            $this->objError->setID(1);
+            $this->objError->setObject("");
+            $this->objError->setMessage("Missing RPC Call");
+            $this->objError->setRPC($mixRPCCall);
+            $this->objError->setClass("");
+            $this->objError->setFunction("");
+
+            $this->generateOutput();
+            exit();
+        }
+
+        if (!key_exists($mixRPCCall, $this->arrRpcList))
+        {
+            $this->objError = new CtoComContainerError();
+            $this->objError->setLanguage("rpc_unknown");
+            $this->objError->setID(1);
+            $this->objError->setObject("");
+            $this->objError->setMessage("Unknown RPC Call");
+            $this->objError->setRPC($mixRPCCall);
+            $this->objError->setClass("");
+            $this->objError->setFunction("");
+
+            $this->generateOutput();
+            exit();
+        }
+
+        /* ---------------------------------------------------------------------
+         * Build a list with parameter from the POST
+         */
+
+        $arrParameter = array();
+
+        if ($this->arrRpcList[$mixRPCCall]["parameter"] != FALSE && is_array($this->arrRpcList[$mixRPCCall]["parameter"]))
+        {
+            switch ($this->arrRpcList[$mixRPCCall]["typ"])
+            {
+                // Decode post 
+                case "POST":
+                    // Decode each post
+                    foreach ($_POST as $key => $value)
+                    {
+                        $mixPost = $this->Input->postRaw($key);
+                        $mixPost = $this->objCodifyengine->Decrypt($mixPost);
+                        $mixPost = $this->objIOEngine->InputPost($mixPost);
+
+                        $this->Input->setPost($key, $mixPost);
+                    }
+
+                    // Check if all post are set
+                    foreach ($this->arrRpcList[$mixRPCCall]["parameter"] as $value)
+                    {
+                        $arrPostKey = array_keys($_POST);
+
+                        if (!in_array($value, $arrPostKey) && !in_array($value, $this->arrNullFields))
+                        {
+                            $arrParameter[$value] = NULL;
+                        }
+                        else
+                        {
+                            $arrParameter[$value] = $this->Input->postRaw($value);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        /* ---------------------------------------------------------------------
+         * Call function
+         */
+
+        try
+        {
+            $strClassname = $this->arrRpcList[$mixRPCCall]["class"];
+
+            if (!class_exists($strClassname))
+            {
+                $this->objError = new CtoComContainerError();
+                $this->objError->setLanguage("rpc_class_not_exists");
+                $this->objError->setID(4);
+                $this->objError->setObject($value);
+                $this->objError->setMessage("The choosen class didn`t exists.");
+                $this->objError->setRPC($mixRPCCall);
+                $this->objError->setClass($this->arrRpcList[$mixRPCCall]["class"]);
+                $this->objError->setFunction($this->arrRpcList[$mixRPCCall]["function"]);
+
+                $this->generateOutput();
+                exit();
+            }
+
+            $objReflection = new ReflectionClass($strClassname);
+
+            if ($objReflection->hasMethod("getInstance"))
+            {
+                $object = call_user_func_array(array($this->arrRpcList[$mixRPCCall]["class"], "getInstance"), array());
+                $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]), $arrParameter);
+            }
+            else
+            {
+                $object = new $this->arrRpcList[$mixRPCCall]["class"];
+                $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]), $arrParameter);
+            }
+        }
+        catch (Exception $exc)
+        {
+            $this->objError = new CtoComContainerError();
+            $this->objError->setLanguage("rpc_unknown_exception");
+            $this->objError->setID(3);
+            $this->objError->setObject("");
+            $this->objError->setMessage($exc->getMessage());
+            $this->objError->setRPC($mixRPCCall);
+            $this->objError->setClass($this->arrRpcList[$mixRPCCall]["class"]);
+            $this->objError->setFunction($this->arrRpcList[$mixRPCCall]["function"]);
+            $this->objError->setException($exc);
+
+            $this->log(vsprintf("RPC Exception: %s | %s", array($exc->getMessage(), nl2br($exc->getTraceAsString()))), __CLASS__ . " | " . __FUNCTION__, TL_ERROR);
+
+            $this->generateOutput();
+            exit();
+        }
+
+        $this->generateOutput();
+        exit();
     }
 
     /* --------------------------------------------------------------------------
@@ -1156,46 +1217,33 @@ class CtoCommunication extends Backend
      */
     protected function generateOutput()
     {
-        $intMeasurement1 = $this->objDebug->startMeasurement(__CLASS__, __FUNCTION__);
+        $objOutputContainer = new CtoComContainerIO();
 
-        if (count($this->arrError) == 0)
+        if ($this->objError == false)
         {
-            $mixOutput = serialize(array(
-                "success" => 1,
-                "error" => "",
-                "response" => $this->mixOutput,
-                "splitcontent" => false,
-                "splitcount" => 0,
-                "splitname" => ""
-                    ));
+            $objOutputContainer->setSuccess(true);
+            $objOutputContainer->setError(null);
+            $objOutputContainer->setResponse($this->mixOutput);
+            $objOutputContainer->setSplitcontent(false);
+            $objOutputContainer->setSplitcount(0);
+            $objOutputContainer->setSplitname("");
         }
         else
         {
-            $mixOutput = serialize(array(
-                "success" => 0,
-                "error" => $this->arrError,
-                "response" => "",
-                "splitcontent" => false,
-                "splitcount" => 0,
-                "splitname" => ""
-                    ));
+            $objOutputContainer->setSuccess(false);
+            $objOutputContainer->setError($this->objError);
+            $objOutputContainer->setResponse(null);
+            $objOutputContainer->setSplitcontent(false);
+            $objOutputContainer->setSplitcount(0);
+            $objOutputContainer->setSplitname("");
         }
 
-        $mixOutput = $this->objCodifyengine->Encrypt($mixOutput);
+        $mixOutput = $this->objIOEngine->OutputResponse($objOutputContainer, $this->objCodifyengine);
 
-        $this->objDebug->stopMeasurement(__CLASS__, __FUNCTION__, $intMeasurement1);
-
-        //$strOutput = bzcompress($strOutput);
-        $mixOutput = gzcompress($mixOutput);
-        $mixOutput = base64_encode($mixOutput);
-        $mixOutput = "<|@|" . $mixOutput . "|@|>";
-
-        //$this->objDebug->addDebug("Response", $mixOutput);
         // Check if we have a big output and split it 
         if (strlen($mixOutput) > $this->intMaxResponseLength)
         {
             $mixOutput = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.5));
-
             $strFileName = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
             $intCountPart = count($mixOutput);
 
@@ -1206,22 +1254,19 @@ class CtoCommunication extends Backend
                 $objFile->close();
             }
 
-            $mixOutput = serialize(array(
-                "success" => 1,
-                "error" => "",
-                "response" => "",
-                "splitcontent" => true,
-                "splitcount" => $intCountPart,
-                "splitname" => $strFileName
-                    ));
+            $objOutputContainer = new CtoComContainerIO();
+            $objOutputContainer->setSuccess(true);
+            $objOutputContainer->setError(null);
+            $objOutputContainer->setResponse(null);
+            $objOutputContainer->setSplitcontent(true);
+            $objOutputContainer->setSplitcount($intCountPart);
+            $objOutputContainer->setSplitname($strFileName);
 
-            $mixOutput = $this->objCodifyengine->Encrypt($mixOutput);
-
-            //$strOutput = bzcompress($strOutput);
-            $mixOutput = gzcompress($mixOutput);
-            $mixOutput = base64_encode($mixOutput);
-            $mixOutput = "<|@|" . $mixOutput . "|@|>";
+            $mixOutput = $this->objIOEngine->OutputResponse($objOutputContainer, $this->objCodifyengine);
         }
+
+        // Set some header fields
+        header("Content-Type: " . $GLOBALS["CTOCOM_IO"][$this->strIOEngine]["contentType"]);
 
         // Clean output buffer
         while (@ob_end_clean());

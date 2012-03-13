@@ -33,28 +33,31 @@ if (!defined('TL_ROOT'))
 /**
  * Interface for Codifyengine
  */
-interface CtoComIOInterface extends System
+interface CtoComIOInterface
 {
 
     /**
-     * 
+     * @param mix Anything like string, int, float, object, array and so on.
+     * @return string The string for output
      */
-    public function OutputPost();
+    public function OutputPost($mixOutput, CtoComCodifyengineAbstract $objCodifyEngine);
 
     /**
-     * 
+     * @param string $strPost The string from POST
+     * @return mix Anything you want like string, int, objects, array and so on
      */
-    public function InputPost();
+    public function InputPost($strPost, CtoComCodifyengineAbstract $objCodifyEngine);
 
     /**
-     *  
+     * @param CtoComContainerIO $container Container with information
      */
-    public function OutputResponse(CtoComContainerIO $container);
+    public function OutputResponse(CtoComContainerIO $container, CtoComCodifyengineAbstract $objCodifyEngine);
 
     /**
+     * @param string $strResponse The Response String
      * @return CtoComIOResponseContainer
      */
-    public function InputRsponse($strResponse);
+    public function InputRsponse($strResponse, CtoComCodifyengineAbstract $objCodifyEngine);
 }
 
 ?>

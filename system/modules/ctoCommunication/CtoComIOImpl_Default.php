@@ -33,23 +33,49 @@ if (!defined('TL_ROOT'))
 /**
  * Interface for Codifyengine
  */
-class CtoComIOImpl_Default extends CtoComIOInterface
+class CtoComIOImpl_Default extends System implements CtoComIOInterface
 {
 
     /**
      * 
      */
-    public function OutputPost();
+    public function OutputPost($mixOutput, CtoComCodifyengineAbstract $objCodifyEngine)
+    {
+        // serliaze/encrypt/compress/base64 function                    
+        $mixOutput = serialize(array("data" => $mixOutput));
+        $mixOutput = $objCodifyEngine->Encrypt($mixOutput);
+        $mixOutput = gzcompress($mixOutput);
+        $mixOutput = base64_encode($mixOutput);
+        
+        return $mixOutput;
+    }
 
     /**
-     * 
+     * @param string $strPost The string from POST
+     * @return mix Anything you want like string, int, objects, array and so on
      */
-    public function InputPost();
+    public function InputPost($mixPost, CtoComCodifyengineAbstract $objCodifyEngine)
+    {
+        $mixPost = base64_decode($mixPost);
+        $mixPost = gzuncompress($mixPost);
+        $mixPost = deserialize($mixPost);
+
+        $mixPost = $mixPost["data"];
+
+        if (is_null($mixPost))
+        {
+            return null;
+        }
+        else
+        {
+            return $mixPost;
+        }
+    }
 
     /**
      * String Response as String
      */
-    public function OutputResponse(CtoComContainerIO $objContainer)
+    public function OutputResponse(CtoComContainerIO $objContainer, CtoComCodifyengineAbstract $objCodifyEngine)
     {
         $mixOutput = array(
             "success" => $objContainer->isSuccess(),
@@ -61,10 +87,9 @@ class CtoComIOImpl_Default extends CtoComIOInterface
         );
 
         $mixOutput = serialize($mixOutput);
-
-        //$strOutput = bzcompress($strOutput);
+        $mixOutput = $objCodifyEngine->Encrypt($mixOutput);
         $mixOutput = gzcompress($mixOutput);
-        //$mixOutput = base64_encode($mixOutput);
+        $mixOutput = base64_encode($mixOutput);
         $mixOutput = "<|@|" . $mixOutput . "|@|>";
 
         return $mixOutput;
@@ -73,7 +98,7 @@ class CtoComIOImpl_Default extends CtoComIOInterface
     /**
      * @return CtoComIOResponseContainer
      */
-    public function InputRsponse($strResponse)
+    public function InputRsponse($strResponse, CtoComCodifyengineAbstract $objCodifyEngine)
     {
         // Check for start and end tag
         if (strpos($strResponse, "<|@|") === FALSE || strpos($strResponse, "|@|>") === FALSE)
@@ -86,8 +111,7 @@ class CtoComIOImpl_Default extends CtoComIOInterface
         $intLength = intval(strpos($strResponse, "|@|>") - $intStart);
 
         $strResponse = substr($strResponse, $intStart, $intLength);
-        //$strResponse = base64_decode($strResponse);
-        //$mixContent = bzdecompress($mixContent);
+        $strResponse = base64_decode($strResponse);
         $strResponse = @gzuncompress($strResponse);
 
         // Check if uncompress works
@@ -95,6 +119,9 @@ class CtoComIOImpl_Default extends CtoComIOInterface
         {
             throw new Exception("Error on uncompressing the response. Maybe wrong API-Key or ctoCom version.");
         }
+
+        // Decrypt
+        $strResponse = $objCodifyEngine->Decrypt($strResponse);
 
         // Deserialize response
         $strResponse = deserialize($strResponse);
@@ -107,7 +134,7 @@ class CtoComIOImpl_Default extends CtoComIOInterface
 
         // Clean array
         $strResponse = $this->cleanUp($strResponse);
-        
+
         $objContainer = new CtoComContainerIO();
         $objContainer->setSuccess($strResponse["success"]);
         $objContainer->setError($strResponse["error"]);
@@ -115,7 +142,7 @@ class CtoComIOImpl_Default extends CtoComIOInterface
         $objContainer->setSplitcontent($strResponse["splitcontent"]);
         $objContainer->setSplitcount($strResponse["splitcount"]);
         $objContainer->setSplitname($strResponse["splitname"]);
-        
+
         return $objContainer;
     }
 
