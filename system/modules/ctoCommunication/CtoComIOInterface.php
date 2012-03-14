@@ -55,9 +55,9 @@ interface CtoComIOInterface
 
     /**
      * @param string $strResponse The Response String
-     * @return CtoComIOResponseContainer
+     * @return CtoComContainerIO
      */
-    public function InputRsponse($strResponse, CtoComCodifyengineAbstract $objCodifyEngine);
+    public function InputResponse($strResponse, CtoComCodifyengineAbstract $objCodifyEngine);
 }
 
 ?>

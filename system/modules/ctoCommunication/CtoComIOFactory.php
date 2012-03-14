@@ -1,4 +1,7 @@
-<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
+<?php
+
+if (!defined('TL_ROOT'))
+    die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -54,7 +57,7 @@ class CtoComIOFactory extends Backend
             throw new Exception(vsprintf($GLOBALS['TL_LANG']['ERR']['missing_engine'], array($arrEngine["classname"] . ".php")));
         }
 
-        $strClass = $arrEngine["classname"];
+        $strClass   = $arrEngine["classname"];
         $objEnginge = new $strClass();
 
         // Get engine
@@ -66,6 +69,25 @@ class CtoComIOFactory extends Backend
         {
             throw new Exception($GLOBALS['TL_LANG']['ERR']['not_a_engine']);
         }
+    }
+
+    /**
+     * Check if a given I/O engine exist
+     * 
+     * @param string $strName Name of the engine
+     * @return boolean [True|False] 
+     */
+    public static function engineExist($strName)
+    {
+        foreach ($GLOBALS["CTOCOM_IO"] as $keyIO => $valueIO)
+        {
+            if ($strName == $keyIO)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -152,25 +174,6 @@ class CtoComIOFactory extends Backend
             if ($strName == $keyIO)
             {
                 return self::getEngine($keyIO);
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if a given I/O engine exist
-     * 
-     * @param string $strName Name of the engine
-     * @return boolean [True|False] 
-     */
-    public static function engineExist($strName)
-    {
-        foreach ($GLOBALS["CTOCOM_IO"] as $keyIO => $valueIO)
-        {
-            if ($strName == $keyIO)
-            {
-                return true;
             }
         }
 

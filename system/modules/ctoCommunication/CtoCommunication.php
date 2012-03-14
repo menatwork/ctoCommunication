@@ -29,6 +29,29 @@ if (!defined('TL_ROOT'))
  * @license    GNU/LGPL
  * @filesource
  */
+
+/**
+ *  CtoCommunication
+ * 
+ *  Core Features:
+ *      - I/O Interface System for Accept and Content-Typ
+ *      - Codify Interface System
+ *      - Splitcontent Managment System
+ *      - Handshake for private Key over DiffieHellman
+ *      - Connection ID`s for each session
+ *      - Error Handling
+ *      - RPC Functions
+ * 
+ *  Bugs:
+ *      - Sometimes the DiffieHellman throw a "Not a natural number" exception
+ *      - If Memory-Limit hits maximum on client, you will get a 500 as HTTP response
+ *      - If something goes wrong on client, you will get a 500 as HTTP response
+ * 
+ *  Warnings:
+ *      - Files are not codify
+ *      - GET is not codify
+ *      - Don't send files over 50MB, it would take a long time to send them
+ */
 class CtoCommunication extends Backend
 {
     /* -------------------------------------------------------------------------
@@ -36,52 +59,27 @@ class CtoCommunication extends Backend
      */
 
     // Singelten pattern
-    protected static $instance = null;
+    protected static $instance            = null;
     // Vars
-    protected $strConnectionID;
-    protected $strConnectionKey;
-    protected $strUrl;
-    protected $strUrlGet;
-    protected $strApiKey;
-    protected $strHTTPUser;
-    protected $strHTTPPassword;
-    protected $strIOEngine;
-    protected $arrCookies;
-    protected $arrRpcList;
-    protected $mixOutput;
-
-    /**
-     * @var CtoComCodifyengineAbstract 
-     */
-    protected $objCodifyengine;
-
-    /**
-     * @var CtoComCodifyengineAbstract 
-     */
-    protected $objCodifyengineBasic;
-
-    /**
-     * @var CtoComIOInterface 
-     */
-    protected $objIOEngine;
-
-    /**
-     * @var CtoComDebug 
-     */
-    protected $objDebug;
-
-    /**
-     * @var CtoComContainerError 
-     */
-    protected $objError;
+    protected $strConnectionID;     // Id of connection
+    protected $strConnectionKey;    // Used Key [API-Key|DiffieHellman]
+    protected $strUrl;              // Base url
+    protected $strUrlGet;           // GET Parameter for the call
+    protected $strApiKey;           // API Key
+    protected $strHTTPUser;         // HTTP Auth name
+    protected $strHTTPPassword;     // HTTP Auth password
+    protected $strIOEngine;         // Main Input/Output Engine
+    protected $arrCookies;          // Cookies - not used
+    protected $arrRpcList;          // A list with all RPC
+    protected $mixOutput;           // Output @todo - Check if we need this
     // Config
     /**
      * Time in seconds for handshake timeout.
      * @var int 
      */
-    protected $intHandshakeTimeout = 1200;
     protected $intMaxResponseLength;
-    protected $arrResponses = array(
+    protected $intHandshakeTimeout = 1200;
+    protected $arrResponses        = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
         200 => 'OK',
@@ -124,6 +122,31 @@ class CtoCommunication extends Backend
         504 => 'Gateway Timeout',
         505 => 'HTTP Version Not Supported'
     );
+
+    /**
+     * @var CtoComCodifyengineAbstract 
+     */
+    protected $objCodifyengine;
+
+    /**
+     * @var CtoComCodifyengineAbstract 
+     */
+    protected $objCodifyengineBasic;
+
+    /**
+     * @var CtoComIOInterface 
+     */
+    protected $objIOEngine;
+
+    /**
+     * @var CtoComDebug 
+     */
+    protected $objDebug;
+
+    /**
+     * @var CtoComContainerError 
+     */
+    protected $objError;
 
     /* -------------------------------------------------------------------------
      * Core
@@ -255,7 +278,7 @@ class CtoCommunication extends Backend
      * 
      * @param string $strName 
      */
-    public function setIOEngineByContentTyp($strName = 'text/plain')
+    public function setIOEngineByContentTyp($strName = 'text/html')
     {
         $this->setIOEngine(CtoComIOFactory::getEngingenameForContentType($strName));
     }
@@ -265,7 +288,7 @@ class CtoCommunication extends Backend
      * 
      * @param string $strName 
      */
-    public function setIOEngineByAccept($strName = 'text/plain')
+    public function setIOEngineByAccept($strName = 'text/html')
     {
         $this->setIOEngine(CtoComIOFactory::getEngingenameForAccept($strName));
     }
@@ -366,6 +389,11 @@ class CtoCommunication extends Backend
         if (!is_array($arrPool))
         {
             $arrPool = array();
+        }
+
+        if (empty($this->strUrl))
+        {
+            throw new Exception("Client or client-url missing. Could not set new basic codifyengine.");
         }
 
         $arrPool[md5($this->strUrl)]["codifyengine"] = $strCodify;
@@ -545,10 +573,8 @@ class CtoCommunication extends Backend
      */
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
-        $this->strUrlGet = "";
-
         /* ---------------------------------------------------------------------
-         * Check if everything is set
+         * Check if everything is set / Init
          */
 
         if ($this->strApiKey == "" || $this->strApiKey == null)
@@ -564,6 +590,9 @@ class CtoCommunication extends Backend
         // Get Session information for condify key & engine        
         $arrPoolInformation = $this->Session->get("CTOCOM_ConnectionPool");
 
+        // Reset GET parameter
+        $this->strUrlGet = "";
+
         /* ---------------------------------------------------------------------
          * Check if we need another core codify engine
          */
@@ -578,16 +607,15 @@ class CtoCommunication extends Backend
             }
         }
 
-        // Set key for codifyengines
-        if (!empty($this->strConnectionKey) && !in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")))
-        {
-            $this->objCodifyengineBasic->setKey($this->strConnectionKey);
-            $this->objCodifyengine->setKey($this->strConnectionKey);
-        }
-        else
+        if (empty($this->strConnectionKey) || in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")))
         {
             $this->objCodifyengineBasic->setKey($this->strApiKey);
             $this->objCodifyengine->setKey($this->strApiKey);
+        }
+        else
+        {
+            $this->objCodifyengineBasic->setKey($this->strConnectionKey);
+            $this->objCodifyengine->setKey($this->strConnectionKey);
         }
 
         /* ---------------------------------------------------------------------
@@ -649,7 +677,7 @@ class CtoCommunication extends Backend
                     }
                 }
                 else
-                {                   
+                {
                     // Set field
                     $objMultipartFormdata->setField($value["name"], $this->objIOEngine->OutputPost($value["value"], $this->objCodifyengine));
                 }
@@ -666,10 +694,11 @@ class CtoCommunication extends Backend
         // Send new request
         $objRequest->send($this->strUrl . $this->strUrlGet);
 
-        $response = $objRequest->response;
-
-        // Debug
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2000));
+
+        /* ---------------------------------------------------------------------
+         * Check response for errors
+         */
 
         // Build response Header informations
         $strResponseHeader = "";
@@ -678,7 +707,7 @@ class CtoCommunication extends Backend
             $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
         }
 
-        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($response, 0, 2000));
+        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($objRequest->response, 0, 2000));
 
         // Check if we have time out
         if ($objRequest->timedOut)
@@ -707,48 +736,59 @@ class CtoCommunication extends Backend
         }
 
         // Check if we have a response
-        if (strlen($response) == 0)
+        if (strlen($objRequest->response) == 0)
         {
             throw new Exception("We got a blank response from server.");
         }
 
         // Check for "Fatal error" on client side
-        if (strpos($response, "Fatal error") !== FALSE)
+        if (strpos($objRequest->response, "Fatal error") !== FALSE)
         {
-            throw new Exception("We got a Fatal error on client site. " . $response);
+            throw new Exception("We got a Fatal error on client site. " . $objRequest->response);
         }
 
         // Check for "Warning" on client side
-        if (strpos($response, "Warning") !== FALSE)
+        if (strpos($objRequest->response, "Warning") !== FALSE)
         {
             $intStart = stripos($response, "<strong>Warning</strong>:");
-            $intEnd = stripos($response, "on line");
+            $intEnd   = stripos($response, "on line");
 
-            throw new Exception("We got a Warning on client site.<br /><br />" . substr($response, $intStart, $intEnd - $intStart));
+            throw new Exception("We got a Warning on client site.<br /><br />" . substr($objRequest->response, $intStart, $intEnd - $intStart));
         }
 
-        // ctoCom I/O System ---------------------------------------------------
-        // Search engine
-        $objIOEngine = CtoComIOFactory::getEngingeForContentType($objRequest->headers['Content-Type']);
+        /* ---------------------------------------------------------------------
+         * ctoCom I/O System 
+         */
+
+        $strContentType = $objRequest->headers['Content-Type'];
+        $strContentType = preg_replace("/;.*$/", "", $strContentType);
+
+
+
+        // Search a engine
+        $objIOEngine = CtoComIOFactory::getEngingeForContentType($strContentType);
 
         // Check if we have found one
-        if ($objIOEngine == FALSE)
+        if ($objIOEngine == false)
         {
-            throw new Exception("No I/O Class found for " . $objRequest->headers['Content-Type']);
+            throw new Exception("No I/O class found for " . $strContentType);
         }
 
         // Parse response
-        $objResponse = $objIOEngine->InputRsponse($response, $this->objCodifyengine);
+        $objResponse = $objIOEngine->InputResponse($objRequest->response, $this->objCodifyengine);
 
-        // Check Response ------------------------------------------------------
+        /* ---------------------------------------------------------------------
+         * Check Response
+         */
+
         // Check if client says "Everthing okay"
         if ($objResponse->isSuccess())
         {
-            if ($mixContent["splitcontent"] == true)
+            if ($objResponse->isSplitcontent() == true)
             {
                 try
                 {
-                    $mixContent["response"] = $this->rebuildSplitcontent($mixContent["splitname"], $mixContent["splitcount"]);
+                    $objResponse->setResponse($this->rebuildSplitcontent($objResponse->getSplitname(), $objResponse->getSplitcount()));
                 }
                 catch (Exception $exc)
                 {
@@ -756,15 +796,15 @@ class CtoCommunication extends Backend
                 }
             }
 
-            return $mixContent["response"];
+            return $objResponse->getResponse();
         }
         else
         {
             $string = vsprintf("There was an error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
-                nl2br($mixContent["error"][0]["msg"]),
-                $mixContent["error"][0]["rpc"],
-                (strlen($mixContent["error"][0]["class"]) != 0) ? $mixContent["error"][0]["class"] : " - ",
-                (strlen($mixContent["error"][0]["function"]) != 0) ? $mixContent["error"][0]["function"] : " - ",
+                nl2br($objResponse->getError()->getMessage()),
+                $objResponse->getError()->getRPC(),
+                (strlen($objResponse->getError()->getClass()) != 0) ? $objResponse->getError()->getClass() : " - ",
+                (strlen($objResponse->getError()->getFunction()) != 0) ? $objResponse->getError()->getFunction() : " - ",
                     )
             );
 
@@ -778,7 +818,7 @@ class CtoCommunication extends Backend
 
         for ($i = 0; $i < $intSplitCount; $i++)
         {
-            @set_time_limit(60);
+            @set_time_limit(120);
 
             $arrData = array(
                 array(
@@ -794,56 +834,20 @@ class CtoCommunication extends Backend
             $mixContent .= $this->runServer("CTOCOM_GET_RESPONSE_PART", $arrData);
         }
 
-        // Check for start and end tag
-        if (strpos($mixContent, "<|@|") === FALSE || strpos($mixContent, "|@|>") === FALSE)
-        {
-            throw new Exception("Could not find start or endtag from response. Error in split content.");
-        }
-
-        // Find position of start/end - tag
-        $intStart = intval(strpos($mixContent, "<|@|") + 4);
-        $intLength = intval(strpos($mixContent, "|@|>") - $intStart);
-
-        $mixContent = substr($mixContent, $intStart, $intLength);
-        $mixContent = base64_decode($mixContent);
-        //$mixContent = bzdecompress($mixContent);
-        $mixContent = @gzuncompress($mixContent);
-
-        // Check if uncopress works
-        if ($mixContent === FALSE)
-        {
-            throw new Exception("Error on uncompressing the response. Maybe wrong API-Key or ctoCom version.");
-        }
-
-        // Decrypt response
-        $mixContent = $this->objCodifyengine->Decrypt($mixContent);
-
-        $this->objDebug->addDebug("Response Decrypte", substr($mixContent, 0, 2000));
-
-        // Deserialize response
-        $mixContent = deserialize($mixContent);
-
-        // Check if we have a array
-        if (is_array($mixContent) == false)
-        {
-            throw new Exception("Response is not an array. Maybe wrong API-Key or cryptionengine.");
-        }
-
-        // Clean array
-        $mixContent = $this->cleanUp($mixContent);
+        $objResponse = $this->objIOEngine->InputResponse($mixContent, $this->objCodifyengine);
 
         // Check if client says "Everthing okay"
-        if ($mixContent["success"] == 1)
+        if ($objResponse->isSuccess() == true)
         {
-            return $mixContent["response"];
+            return $objResponse->getResponse();
         }
         else
         {
             $string = vsprintf("There was an error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
-                nl2br($mixContent["error"][0]["msg"]),
-                $mixContent["error"][0]["rpc"],
-                (strlen($mixContent["error"][0]["class"]) != 0) ? $mixContent["error"][0]["class"] : " - ",
-                (strlen($mixContent["error"][0]["function"]) != 0) ? $mixContent["error"][0]["function"] : " - ",
+                nl2br($objResponse->getError()->getMessage()),
+                $objResponse->getError()->getRPC(),
+                (strlen($objResponse->getError()->getClass()) != 0) ? $objResponse->getError()->getClass() : " - ",
+                (strlen($objResponse->getError()->getFunction()) != 0) ? $objResponse->getError()->getFunction() : " - ",
                     )
             );
 
@@ -972,8 +976,8 @@ class CtoCommunication extends Backend
         }
 
         // Check RPC Call from get and the RPC Call from API-Key
-        $mixVar = $this->objCodifyengineBasic->Decrypt(base64_decode($this->Input->get("apikey", true)));
-        $mixVar = trimsplit("@\|@", $mixVar);
+        $mixVar    = $this->objCodifyengineBasic->Decrypt(base64_decode($this->Input->get("apikey", true)));
+        $mixVar    = trimsplit("@\|@", $mixVar);
         $strApiKey = $mixVar[1];
         $strAction = $mixVar[0];
 
@@ -1035,6 +1039,8 @@ class CtoCommunication extends Backend
             $strAccept = $_SERVER['HTTP_ACCEPT'];
             $strAccept = preg_replace("/;q=\d\.\d/", "", $strAccept);
             $arrAccept = trimsplit(",", $strAccept);
+
+            $strIOEngine = false;
 
             foreach ($arrAccept as $key => $value)
             {
@@ -1121,8 +1127,7 @@ class CtoCommunication extends Backend
                     foreach ($_POST as $key => $value)
                     {
                         $mixPost = $this->Input->postRaw($key);
-                        $mixPost = $this->objCodifyengine->Decrypt($mixPost);
-                        $mixPost = $this->objIOEngine->InputPost($mixPost);
+                        $mixPost = $this->objIOEngine->InputPost($mixPost, $this->objCodifyengine);
 
                         $this->Input->setPost($key, $mixPost);
                     }
@@ -1132,7 +1137,7 @@ class CtoCommunication extends Backend
                     {
                         $arrPostKey = array_keys($_POST);
 
-                        if (!in_array($value, $arrPostKey) && !in_array($value, $this->arrNullFields))
+                        if (!in_array($value, $arrPostKey))
                         {
                             $arrParameter[$value] = NULL;
                         }
@@ -1222,7 +1227,6 @@ class CtoCommunication extends Backend
         if ($this->objError == false)
         {
             $objOutputContainer->setSuccess(true);
-            $objOutputContainer->setError(null);
             $objOutputContainer->setResponse($this->mixOutput);
             $objOutputContainer->setSplitcontent(false);
             $objOutputContainer->setSplitcount(0);
@@ -1243,8 +1247,8 @@ class CtoCommunication extends Backend
         // Check if we have a big output and split it 
         if (strlen($mixOutput) > $this->intMaxResponseLength)
         {
-            $mixOutput = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.5));
-            $strFileName = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
+            $mixOutput    = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.5));
+            $strFileName  = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
             $intCountPart = count($mixOutput);
 
             foreach ($mixOutput as $keyOutput => $valueOutput)
@@ -1256,7 +1260,6 @@ class CtoCommunication extends Backend
 
             $objOutputContainer = new CtoComContainerIO();
             $objOutputContainer->setSuccess(true);
-            $objOutputContainer->setError(null);
             $objOutputContainer->setResponse(null);
             $objOutputContainer->setSplitcontent(true);
             $objOutputContainer->setSplitcount($intCountPart);
@@ -1270,7 +1273,7 @@ class CtoCommunication extends Backend
 
         // Clean output buffer
         while (@ob_end_clean());
-
+        
         // Echo response
         echo($mixOutput);
     }
@@ -1405,7 +1408,7 @@ class CtoCommunication extends Backend
             {
                 // Create random private key.
                 $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
-                $strPrivate = rand(1, 9);
+                $strPrivate       = rand(1, 9);
 
                 for ($ii = 0; $ii < $intPrivateLength; $ii++)
                 {

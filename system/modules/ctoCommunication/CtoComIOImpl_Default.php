@@ -1,7 +1,4 @@
-<?php
-
-if (!defined('TL_ROOT'))
-    die('You cannot access this file directly!');
+<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 
 /**
  * Contao Open Source CMS
@@ -46,7 +43,7 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
         $mixOutput = $objCodifyEngine->Encrypt($mixOutput);
         $mixOutput = gzcompress($mixOutput);
         $mixOutput = base64_encode($mixOutput);
-        
+
         return $mixOutput;
     }
 
@@ -58,6 +55,7 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
     {
         $mixPost = base64_decode($mixPost);
         $mixPost = gzuncompress($mixPost);
+        $mixPost = $objCodifyEngine->Decrypt($mixPost);
         $mixPost = deserialize($mixPost);
 
         $mixPost = $mixPost["data"];
@@ -77,9 +75,26 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
      */
     public function OutputResponse(CtoComContainerIO $objContainer, CtoComCodifyengineAbstract $objCodifyEngine)
     {
+        if ($objContainer->getError() != null)
+        {
+            $mixError = array();
+            $mixError["language"]  = $objContainer->getError()->getLanguage();
+            $mixError["id"]        = $objContainer->getError()->getID();
+            $mixError["object"]    = $objContainer->getError()->getObject();
+            $mixError["msg"]       = $objContainer->getError()->getMessage();
+            $mixError["rpc"]       = $objContainer->getError()->getRPC();
+            $mixError["class"]     = $objContainer->getError()->getClass();
+            $mixError["function"]  = $objContainer->getError()->getFunction();
+            $mixError["exception"] = $objContainer->getError()->getException();
+        }
+        else
+        {
+            $mixError = "";
+        }
+
         $mixOutput = array(
             "success" => $objContainer->isSuccess(),
-            "error" => $objContainer->getError(),
+            "error" => $mixError,
             "response" => $objContainer->getResponse(),
             "splitcontent" => $objContainer->isSplitcontent(),
             "splitcount" => $objContainer->getSplitcount(),
@@ -96,9 +111,10 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
     }
 
     /**
+     * @todo Update the error class or better make a implementation of it
      * @return CtoComIOResponseContainer
      */
-    public function InputRsponse($strResponse, CtoComCodifyengineAbstract $objCodifyEngine)
+    public function InputResponse($strResponse, CtoComCodifyengineAbstract $objCodifyEngine)
     {
         // Check for start and end tag
         if (strpos($strResponse, "<|@|") === FALSE || strpos($strResponse, "|@|>") === FALSE)
@@ -107,7 +123,7 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
         }
 
         // Find position of start/end - tag
-        $intStart = intval(strpos($strResponse, "<|@|") + 4);
+        $intStart  = intval(strpos($strResponse, "<|@|") + 4);
         $intLength = intval(strpos($strResponse, "|@|>") - $intStart);
 
         $strResponse = substr($strResponse, $intStart, $intLength);
@@ -124,25 +140,39 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
         $strResponse = $objCodifyEngine->Decrypt($strResponse);
 
         // Deserialize response
-        $strResponse = deserialize($strResponse);
+        $arrResponse = deserialize($strResponse);
 
         // Check if we have a array
-        if (is_array($strResponse) == false)
+        if (is_array($arrResponse) == false)
         {
             throw new Exception("Response is not an array. Maybe wrong API-Key or cryptionengine.");
         }
 
         // Clean array
-        $strResponse = $this->cleanUp($strResponse);
+        $arrResponse = $this->cleanUp($arrResponse);
 
         $objContainer = new CtoComContainerIO();
-        $objContainer->setSuccess($strResponse["success"]);
-        $objContainer->setError($strResponse["error"]);
-        $objContainer->setResponse($strResponse["response"]);
-        $objContainer->setSplitcontent($strResponse["splitcontent"]);
-        $objContainer->setSplitcount($strResponse["splitcount"]);
-        $objContainer->setSplitname($strResponse["splitname"]);
+        $objContainer->setSuccess($arrResponse["success"]);
+        $objContainer->setResponse($arrResponse["response"]);
+        $objContainer->setSplitcontent($arrResponse["splitcontent"]);
+        $objContainer->setSplitcount($arrResponse["splitcount"]);
+        $objContainer->setSplitname($arrResponse["splitname"]);
 
+        // Set error
+        if ($arrResponse["error"] != "")       
+        {
+            $objError = new CtoComContainerError();
+            $objError->setID($arrResponse["error"]["id"]);
+            $objError->setObject($arrResponse["error"]["object"]);
+            $objError->setMessage($arrResponse["error"]["msg"]);
+            $objError->setRPC($arrResponse["error"]["rpc"]);
+            $objError->setClass($arrResponse["error"]["class"]);
+            $objError->setFunction($arrResponse["error"]["function"]);
+            $objError->setException($arrResponse["error"]["exception"]);
+            
+            $objContainer->setError($objError);
+        }
+        
         return $objContainer;
     }
 
