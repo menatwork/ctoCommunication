@@ -36,23 +36,19 @@ if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
  */
 class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
 {
-    
-    protected $strKey   = "";
-    protected $strName  = "aes";
+
+    protected $strKey  = "";
+    protected $strName = "aes";
     protected $objAES;
 
     /**
      * Constructor
      */
     public function __construct()
-    {   
-        if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+    {
+        if (!file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
         {
-            $this->objAES = new Crypt_AES();
-        }
-        else
-        {
-            $this->objAES = null;
+            throw new Exception("Missing AES plugin in '/plugins/phpseclib/Crypt/AES.php'");
         }
     }
 
@@ -62,16 +58,18 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
 
     public function setKey($strKey)
     {
-        if ($this->objAES == null)
+        $strKey = str_replace(array("-", "_"), array("", "") , $strKey);
+        
+        if(strlen($strKey) < 16)
         {
-            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+            $strKey .= str_repeat("5", strlen($strKey) - 16);
         }
-
-        $strKey = str_replace("-", "", $strKey);
-        $strKey = substr($strKey, 0, 16);
+        else if(strlen($strKey) > 16)
+        {
+            $strKey = substr($strKey, 0, 16);
+        }        
+        
         $this->strKey = $strKey;
-
-        $this->objAES->setKey($this->strKey);
     }
 
     /* -------------------------------------------------------------------------
@@ -81,23 +79,20 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
     // Encrypt
     public function Encrypt($text)
     {
-        if ($this->objAES == null)
-        {
-            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
-        }
-
+        $this->objAES = new Crypt_AES();
+        $this->objAES->setKey($this->strKey);
+        
         $iv = mcrypt_create_iv(16, MCRYPT_DEV_RANDOM);
         $this->objAES->setIV($iv);
+        
         return $iv . "|@|" . $this->objAES->encrypt($text);
     }
 
     // Decrypt
     public function Decrypt($text)
     {
-        if ($this->objAES == null)
-        {
-            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
-        }
+        $this->objAES = new Crypt_AES();
+        $this->objAES->setKey($this->strKey);
 
         $arrText = explode("|@|", $text);
 
