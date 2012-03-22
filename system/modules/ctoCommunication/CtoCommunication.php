@@ -587,15 +587,15 @@ class CtoCommunication extends Backend
             throw new Exception("There is no URL set for connection. Please set first the url.");
         }
 
-        // Get Session information for condify key & engine        
-        $arrPoolInformation = $this->Session->get("CTOCOM_ConnectionPool");
-
         // Reset GET parameter
         $this->strUrlGet = "";
 
         /* ---------------------------------------------------------------------
          * Check if we need another core codify engine
          */
+
+        // Get Session information for condify key & engine        
+        $arrPoolInformation = $this->Session->get("CTOCOM_ConnectionPool");
 
         if (is_array($arrPoolInformation) && key_exists(md5($this->strUrl), $arrPoolInformation) && key_exists("codifyengine", $arrPoolInformation[md5($this->strUrl)]))
         {
@@ -606,8 +606,11 @@ class CtoCommunication extends Backend
                 $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
             }
         }
+        
+        var_dump($this->objCodifyengineBasic->getName());
+        var_dump($this->objCodifyengine->getName());
 
-        if (empty($this->strConnectionKey) || in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE")))
+        if (empty($this->strConnectionKey) || in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE", "CTOCOM_VERSION")))
         {
             $this->objCodifyengineBasic->setKey($this->strApiKey);
             $this->objCodifyengine->setKey($this->strApiKey);
@@ -763,8 +766,6 @@ class CtoCommunication extends Backend
         $strContentType = $objRequest->headers['Content-Type'];
         $strContentType = preg_replace("/;.*$/", "", $strContentType);
 
-
-
         // Search a engine
         $objIOEngine = CtoComIOFactory::getEngingeForContentType($strContentType);
 
@@ -776,6 +777,8 @@ class CtoCommunication extends Backend
 
         // Parse response
         $objResponse = $objIOEngine->InputResponse($objRequest->response, $this->objCodifyengine);
+
+        $this->objDebug->addDebug("Response Array", json_encode($objResponse));
 
         /* ---------------------------------------------------------------------
          * Check Response
@@ -875,7 +878,6 @@ class CtoCommunication extends Backend
          */
 
         // Check if IV was send, when send use the new AES else the old one.
-
         try
         {
             if (preg_match("/.*\|@\|.*/", base64_decode($this->Input->get("apikey", true))))
@@ -897,7 +899,7 @@ class CtoCommunication extends Backend
 
                 if ($this->Input->get("engine") == "aes")
                 {
-                    $this->setCodifyengine($this->Input->get("aeso"));
+                    $this->setCodifyengine("aeso");
                 }
                 else
                 {
@@ -1126,6 +1128,8 @@ class CtoCommunication extends Backend
                     // Decode each post
                     foreach ($_POST as $key => $value)
                     {
+                        var_dump(" USED CODIFY " . $this->objCodifyengine->getName());
+
                         $mixPost = $this->Input->postRaw($key);
                         $mixPost = $this->objIOEngine->InputPost($mixPost, $this->objCodifyengine);
 
@@ -1247,7 +1251,7 @@ class CtoCommunication extends Backend
         // Check if we have a big output and split it 
         if (strlen($mixOutput) > $this->intMaxResponseLength)
         {
-            $mixOutput    = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.5));
+            $mixOutput    = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.8));
             $strFileName  = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
             $intCountPart = count($mixOutput);
 
@@ -1273,7 +1277,7 @@ class CtoCommunication extends Backend
 
         // Clean output buffer
         while (@ob_end_clean());
-        
+
         // Echo response
         echo($mixOutput);
     }
@@ -1346,7 +1350,11 @@ class CtoCommunication extends Backend
 
     public function startConnection()
     {
-        // Try to check the Version        
+        /*
+         * Try to get the Version from client. 
+         * If we get a blank response or a error, the system try to use the 
+         * old AES Codifyengine. 
+         */
         try
         {
             $strVersion = $this->runServer("CTOCOM_VERSION");
@@ -1362,6 +1370,7 @@ class CtoCommunication extends Backend
             $this->setConnectionBasicCodify("aeso");
         }
 
+        // Check handshake
         if ($GLOBALS['TL_CONFIG']['ctoCom_handshake'] == true)
         {
             // Set flag for API key use
