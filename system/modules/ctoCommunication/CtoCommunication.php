@@ -606,9 +606,6 @@ class CtoCommunication extends Backend
                 $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
             }
         }
-        
-        var_dump($this->objCodifyengineBasic->getName());
-        var_dump($this->objCodifyengine->getName());
 
         if (empty($this->strConnectionKey) || in_array($rpc, array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE", "CTOCOM_VERSION")))
         {
@@ -1128,8 +1125,6 @@ class CtoCommunication extends Backend
                     // Decode each post
                     foreach ($_POST as $key => $value)
                     {
-                        var_dump(" USED CODIFY " . $this->objCodifyengine->getName());
-
                         $mixPost = $this->Input->postRaw($key);
                         $mixPost = $this->objIOEngine->InputPost($mixPost, $this->objCodifyengine);
 
