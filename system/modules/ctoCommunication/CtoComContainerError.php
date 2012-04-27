@@ -52,7 +52,7 @@ class CtoComContainerError
         $this->strLanguage = $strLanguage;
     }
 
-    public function gettID()
+    public function getID()
     {
         return $this->intID;
     }
