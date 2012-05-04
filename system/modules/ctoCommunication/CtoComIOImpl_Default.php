@@ -190,6 +190,10 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
             {
                 $arrArray[$key] = $this->cleanUp($value);
             }
+            else if (is_object($value))
+            {
+                continue;
+            }
             else
             {
                 $arrArray[$key] = html_entity_decode($value);
