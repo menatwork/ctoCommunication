@@ -124,7 +124,7 @@ class CtoCommunication extends Backend
 
         if (empty($GLOBALS['TL_CONFIG']['ctoCom_responseLength']) || $GLOBALS['TL_CONFIG']['ctoCom_responseLength'] < 10000)
         {
-            $this->intMaxResponseLength = 134217728;
+            $this->intMaxResponseLength = -1;
         }
         else
         {
@@ -646,27 +646,36 @@ class CtoCommunication extends Backend
         }
 
         $booRequestResult = $objRequest->send($this->strUrl . $this->strUrlGet);
-        
+
         // Send new request
-        if($booRequestResult == false || $objRequest->hasError())
+        if ($booRequestResult == false || $objRequest->hasError())
         {
             throw new Exception("Error on transmission, with message: " . $objRequest->code . " " . $objRequest->error);
         }
 
-        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2000));
+        $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2048));
 
         /* ---------------------------------------------------------------------
          * Check response for errors
          */
-        
-        // Build response Header informations
+
+        // Build response Header informations        
+        $arrHeaderKeys = array();
         $strResponseHeader = "";
-        foreach ($objRequest->headers as $keyHeader => $valueHeader)
+
+        foreach ($objRequest->getResponseHeaderKeys() as $keyHeader)
         {
-            $strResponseHeader .= $keyHeader . ": " . $valueHeader . "\n";
+            $arrHeaderKeys[] = strtolower($keyHeader);
         }
 
-        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($objRequest->response, 0, 2000));
+        $arrHeaderKeys = array_unique($arrHeaderKeys);
+
+        foreach ($arrHeaderKeys as $keyHeader)
+        {
+            $strResponseHeader .= $keyHeader . ": " . $objRequest->getResponseHeader($keyHeader) . "\n";
+        }
+
+        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . substr($objRequest->response, 0, 2048));
 
         // Check if we have time out
         if ($objRequest->timedOut)
@@ -714,7 +723,22 @@ class CtoCommunication extends Backend
         // Parse response
         $objResponse = $objIOEngine->InputResponse($objRequest->response, $this->objCodifyengine);
 
-        $this->objDebug->addDebug("Response Array", json_encode($objResponse));
+        // Write Debug msg
+        $strDebug = "";
+        $strDebug .= "Success:  " . $objResponse->isSuccess();
+        $strDebug .= "\n";
+        $strDebug .= "Split:     " . $objResponse->isSplitcontent();
+        $strDebug .= "\n";
+        if ($objResponse->isSplitcontent() == true)
+        {
+            $strDebug .= "Splitinfo: " . "Count - " . $objResponse->getSplitcount() . " Name - " . $objResponse->getSplitname();
+            $strDebug .= "\n";
+        }
+        $strDebug .= "Error:     " . $objResponse->getError();
+        $strDebug .= "\n";
+        $strDebug .= "Response:  " . substr(json_encode($objResponse->getResponse()), 0, 2048);
+
+        $this->objDebug->addDebug("Response Object", $strDebug);
 
         /* ---------------------------------------------------------------------
          * Check Response
@@ -757,7 +781,7 @@ class CtoCommunication extends Backend
 
         for ($i = 0; $i < $intSplitCount; $i++)
         {
-            @set_time_limit(120);
+            @set_time_limit(300);
 
             $arrData = array(
                 array(
@@ -804,6 +828,8 @@ class CtoCommunication extends Backend
         // If we have a ping, just do nothing
         if ($this->Input->get("act") == "ping")
         {
+            // Clean output buffer
+            while (@ob_end_clean());
             exit();
         }
 
@@ -846,6 +872,8 @@ class CtoCommunication extends Backend
         catch (Exception $exc)
         {
             $this->log("Try to load codifyengine for ctoCommunication with error: " . $exc->getMessage(), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+            // Clean output buffer
+            while (@ob_end_clean());
             exit();
         }
 
@@ -869,6 +897,8 @@ class CtoCommunication extends Backend
                 if (count($arrConnections) == 0)
                 {
                     $this->log(vsprintf("Call from %s with a unknown connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+                    // Clean output buffer
+                    while (@ob_end_clean());
                     exit();
                 }
 
@@ -879,6 +909,8 @@ class CtoCommunication extends Backend
                             ->execute($this->Input->get("con"));
 
                     $this->log(vsprintf("Call from %s with a expired connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+                    // Clean output buffer
+                    while (@ob_end_clean());
                     exit();
                 }
 
@@ -895,6 +927,9 @@ class CtoCommunication extends Backend
             else
             {
                 $this->log(vsprintf("Call from %s without a connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+                
+                // Clean output buffer
+                while (@ob_end_clean());
                 exit();
             }
         }
@@ -910,6 +945,9 @@ class CtoCommunication extends Backend
         if (strlen($this->Input->get("apikey")) == 0)
         {
             $this->log(vsprintf("Call from %s without a API Key.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+             
+            // Clean output buffer
+            while (@ob_end_clean());
             exit();
         }
 
@@ -927,12 +965,18 @@ class CtoCommunication extends Backend
                         $strAction,
                         $strApiKey
                     )), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+            
+            // Clean output buffer
+            while (@ob_end_clean());
             exit();
         }
 
         if ($GLOBALS['TL_CONFIG']['ctoCom_APIKey'] != $strApiKey)
         {
             $this->log(vsprintf("Call from %s with a wrong API Key: %s", array($this->Environment->ip, $this->Input->get("apikey"))), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+            
+            // Clean output buffer
+            while (@ob_end_clean());
             exit();
         }
 
@@ -1183,7 +1227,7 @@ class CtoCommunication extends Backend
         $mixOutput = $this->objIOEngine->OutputResponse($objOutputContainer, $this->objCodifyengine);
 
         // Check if we have a big output and split it 
-        if (strlen($mixOutput) > $this->intMaxResponseLength)
+        if ($this->intMaxResponseLength != -1 &&  strlen($mixOutput) > $this->intMaxResponseLength)
         {
             $mixOutput    = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.8));
             $strFileName  = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
