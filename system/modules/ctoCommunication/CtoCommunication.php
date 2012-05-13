@@ -734,7 +734,7 @@ class CtoCommunication extends Backend
             $strDebug .= "Splitinfo: " . "Count - " . $objResponse->getSplitcount() . " Name - " . $objResponse->getSplitname();
             $strDebug .= "\n";
         }
-        $strDebug .= "Error:     " . $objResponse->getError();
+        $strDebug .= "Error:     " . $objResponse->getError()->getMessage();
         $strDebug .= "\n";
         $strDebug .= "Response:  " . substr(json_encode($objResponse->getResponse()), 0, 2048);
 
