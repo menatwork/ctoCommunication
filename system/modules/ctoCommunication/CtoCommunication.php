@@ -725,18 +725,28 @@ class CtoCommunication extends Backend
 
         // Write Debug msg
         $strDebug = "";
-        $strDebug .= "Success:  " . $objResponse->isSuccess();
-        $strDebug .= "\n";
-        $strDebug .= "Split:     " . $objResponse->isSplitcontent();
+        $strDebug .= "Success:     ";
+        $strDebug .= ($objResponse->isSuccess()) ? "true" : "false";
         $strDebug .= "\n";
         if ($objResponse->isSplitcontent() == true)
         {
-            $strDebug .= "Splitinfo: " . "Count - " . $objResponse->getSplitcount() . " Name - " . $objResponse->getSplitname();
+            $strDebug .= "Split:       " . $objResponse->isSplitcontent();
+            $strDebug .= "\n";
+            $strDebug .= "Splitinfo:   " . "Count - " . $objResponse->getSplitcount() . " Name - " . $objResponse->getSplitname();
             $strDebug .= "\n";
         }
-        $strDebug .= "Error:     " . $objResponse->getError()->getMessage();
-        $strDebug .= "\n";
-        $strDebug .= "Response:  " . substr(json_encode($objResponse->getResponse()), 0, 2048);
+        if ($objResponse->getError() != null && is_object($objResponse->getError()))
+        {
+            $strDebug .= "Error:       " . $objResponse->getError()->getMessage();
+            $strDebug .= "\n";
+            $strDebug .= "Error RPC:   " . $objResponse->getError()->getRPC();
+            $strDebug .= "\n";
+            $strDebug .= "Error Class: " . $objResponse->getError()->getClass();
+            $strDebug .= "\n";
+            $strDebug .= "Error Func.: " . $objResponse->getError()->getFunction();
+            $strDebug .= "\n";            
+        }
+        $strDebug .= "Response:    " . substr(json_encode($objResponse->getResponse()), 0, 2048);
 
         $this->objDebug->addDebug("Response Object", $strDebug);
 
@@ -927,7 +937,7 @@ class CtoCommunication extends Backend
             else
             {
                 $this->log(vsprintf("Call from %s without a connection ID.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-                
+
                 // Clean output buffer
                 while (@ob_end_clean());
                 exit();
@@ -945,7 +955,7 @@ class CtoCommunication extends Backend
         if (strlen($this->Input->get("apikey")) == 0)
         {
             $this->log(vsprintf("Call from %s without a API Key.", $this->Environment->ip), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-             
+
             // Clean output buffer
             while (@ob_end_clean());
             exit();
@@ -965,7 +975,7 @@ class CtoCommunication extends Backend
                         $strAction,
                         $strApiKey
                     )), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-            
+
             // Clean output buffer
             while (@ob_end_clean());
             exit();
@@ -974,7 +984,7 @@ class CtoCommunication extends Backend
         if ($GLOBALS['TL_CONFIG']['ctoCom_APIKey'] != $strApiKey)
         {
             $this->log(vsprintf("Call from %s with a wrong API Key: %s", array($this->Environment->ip, $this->Input->get("apikey"))), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-            
+
             // Clean output buffer
             while (@ob_end_clean());
             exit();
@@ -1227,7 +1237,7 @@ class CtoCommunication extends Backend
         $mixOutput = $this->objIOEngine->OutputResponse($objOutputContainer, $this->objCodifyengine);
 
         // Check if we have a big output and split it 
-        if ($this->intMaxResponseLength != -1 &&  strlen($mixOutput) > $this->intMaxResponseLength)
+        if ($this->intMaxResponseLength != -1 && strlen($mixOutput) > $this->intMaxResponseLength)
         {
             $mixOutput    = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.8));
             $strFileName  = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
