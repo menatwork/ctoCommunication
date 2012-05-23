@@ -271,7 +271,6 @@ class CtoComRPCFunctions extends Backend
                     ->execute($this->Input->get("con"));
 
             $arrDiffieHellman["public_key"]  = $strPublicKey;
-            $arrDiffieHellman["private_key"] = $strPrivate;
 
             return $arrDiffieHellman;
         }
