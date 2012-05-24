@@ -351,7 +351,7 @@ class CtoComDebug extends Backend
 
             foreach ($this->arrDebug as $key => $value)
             {
-                $$strContent .="\n";
+                $strContent .="\n";
                 $strContent .="<|-- Start " . $key . " -----------------------------------|>";
                 $strContent .="\n\n";
 
