@@ -65,7 +65,7 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
 
         /* Create the IV and determine the keysize length, use MCRYPT_RAND
          * on Windows instead */
-        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td));
+        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_DEV_URANDOM);
         $ks = mcrypt_enc_get_key_size($td);
         
         /* Create key */

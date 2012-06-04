@@ -82,7 +82,7 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
         $this->objAES = new Crypt_AES();
         $this->objAES->setKey($this->strKey);
         
-        $iv = mcrypt_create_iv(16, MCRYPT_DEV_RANDOM);
+        $iv = mcrypt_create_iv(16, MCRYPT_DEV_URANDOM);
         $this->objAES->setIV($iv);
         
         return $iv . "|@|" . $this->objAES->encrypt($text);
