@@ -30,7 +30,7 @@
 /**
  * Initialize the system
  */
-define('TL_MODE', 'BE');
+define('TL_MODE', 'CTO_BE');
 require('system/initialize.php');
 require_once 'system/modules/ctoCommunication/CtoCommunication.php';
 

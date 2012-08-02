@@ -130,6 +130,10 @@ class CtoCommunication extends Backend
         {
             $this->intMaxResponseLength = $GLOBALS['TL_CONFIG']['ctoCom_responseLength'];
         }
+        
+        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
+        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman/Exception.php';
+        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman/Math/Exception.php';
     }
 
     /**
