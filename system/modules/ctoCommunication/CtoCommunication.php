@@ -777,11 +777,9 @@ class CtoCommunication extends Backend
         }
         else
         {
-            $string = vsprintf("There was an error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
+            $string = vsprintf("There was an error on client site with message:<br />%s<br /><br />RPC Call: %s", array(
                 nl2br($objResponse->getError()->getMessage()),
                 $objResponse->getError()->getRPC(),
-                (strlen($objResponse->getError()->getClass()) != 0) ? $objResponse->getError()->getClass() : " - ",
-                (strlen($objResponse->getError()->getFunction()) != 0) ? $objResponse->getError()->getFunction() : " - ",
                     )
             );
 
@@ -820,11 +818,9 @@ class CtoCommunication extends Backend
         }
         else
         {
-            $string = vsprintf("There was an error on client site with message:<br/><br/>%s<br/><br/>RPC Call: %s | Class: %s | Function: %s", array(
+            $string = vsprintf("There was an error on client site with message:<br />%s<br /><br />RPC Call: %s", array(
                 nl2br($objResponse->getError()->getMessage()),
                 $objResponse->getError()->getRPC(),
-                (strlen($objResponse->getError()->getClass()) != 0) ? $objResponse->getError()->getClass() : " - ",
-                (strlen($objResponse->getError()->getFunction()) != 0) ? $objResponse->getError()->getFunction() : " - ",
                     )
             );
 
