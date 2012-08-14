@@ -777,11 +777,31 @@ class CtoCommunication extends Backend
         }
         else
         {
-            $string = vsprintf("There was an error on client site with message:<br />%s<br /><br />RPC Call: %s", array(
-                nl2br($objResponse->getError()->getMessage()),
-                $objResponse->getError()->getRPC(),
-                    )
-            );
+            if ($this->getDebug() == true)
+            {
+                $string = vsprintf("There was an error on client site with message:<br />%s<br /><br />RPC Call: %s | Class: %s | Function: %s", array(
+                    nl2br($objResponse->getError()->getMessage()),
+                    $objResponse->getError()->getRPC(),
+                    (strlen($objResponse->getError()->getClass()) != 0) ? $objResponse->getError()->getClass() : " - ",
+                    (strlen($objResponse->getError()->getFunction()) != 0) ? $objResponse->getError()->getFunction() : " - ",
+                        )
+                );
+            }
+            else
+            {
+                if ($objResponse->getError()->getRPC() == "")
+                {
+                    $string = "There was an unknown error on client site.";
+                }
+                else
+                {
+                    $string = vsprintf("There was an error on client site with message:<br />%s<br /><br />RPC Call: %s", array(
+                        nl2br($objResponse->getError()->getMessage()),
+                        $objResponse->getError()->getRPC(),
+                            )
+                    );
+                }
+            }
 
             throw new Exception($string);
         }
