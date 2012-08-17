@@ -779,7 +779,7 @@ class CtoCommunication extends Backend
         {
             if ($this->getDebug() == true)
             {
-                $string = vsprintf("There was an error on client site with message:<br />%s<br /><br />RPC Call: %s | Class: %s | Function: %s", array(
+                $string = vsprintf($GLOBALS['TL_LANG']['ERR']['client_error'] . ":<br />%s<br /><br />RPC Call: %s | Class: %s | Function: %s", array(
                     nl2br($objResponse->getError()->getMessage()),
                     $objResponse->getError()->getRPC(),
                     (strlen($objResponse->getError()->getClass()) != 0) ? $objResponse->getError()->getClass() : " - ",
@@ -795,7 +795,7 @@ class CtoCommunication extends Backend
                 }
                 else
                 {
-                    $string = vsprintf("There was an error on client site with message:<br />%s<br /><br />RPC Call: %s", array(
+                    $string = vsprintf($GLOBALS['TL_LANG']['ERR']['client_error'] . ":<br />%s<br /><br />RPC Call: %s", array(
                         nl2br($objResponse->getError()->getMessage()),
                         $objResponse->getError()->getRPC(),
                             )
@@ -831,14 +831,14 @@ class CtoCommunication extends Backend
 
         $objResponse = $this->objIOEngine->InputResponse($mixContent, $this->objCodifyengine);
 
-        // Check if client says "Everthing okay"
+        // Check if client says "Everything ok"
         if ($objResponse->isSuccess() == true)
         {
             return $objResponse->getResponse();
         }
         else
         {
-            $string = vsprintf("There was an error on client site with message:<br />%s<br /><br />RPC Call: %s", array(
+            $string = vsprintf($GLOBALS['TL_LANG']['ERR']['client_error'] . ":<br />%s<br /><br />RPC Call: %s", array(
                 nl2br($objResponse->getError()->getMessage()),
                 $objResponse->getError()->getRPC(),
                     )
@@ -901,7 +901,7 @@ class CtoCommunication extends Backend
         }
         catch (Exception $exc)
         {
-            $this->log("Try to load codifyengine for ctoCommunication with error: " . $exc->getMessage(), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
+            $this->log("Try to load the engine for ctoCommunication with error: " . $exc->getMessage(), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
             // Clean output buffer
             while (@ob_end_clean());
             exit();
