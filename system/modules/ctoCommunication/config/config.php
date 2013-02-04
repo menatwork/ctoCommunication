@@ -42,6 +42,14 @@ $GLOBALS['TL_CACHE']['ctoCom']='tl_ctocom_cache';
 $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('CtoCommunication', 'checkExtensions');
 
 /**
+ * Blacklists Tables for syncCto
+ */
+$GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge( (array) $GLOBALS['SYC_CONFIG']['table_hidden'], array(    
+    'tl_ctocom_cache',
+    'tl_requestcache',
+));
+
+/**
  * ctoCommunication engines
  */
 $GLOBALS["CTOCOM_ENGINE"] = array(
