@@ -581,7 +581,7 @@ class CtoCommunication extends Backend
         $objRequest = new RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
-        $objRequest->useragent .= "Mozilla/5.0 (compatible; CyberSpectrum RequestExtended on Contao '.VERSION.'.'.BUILD.'; rv:1.0); CtoCommunication RPC (ctoComV" . $GLOBALS["CTOCOM_VERSION"] . ")";
+        $objRequest->useragent .= "Mozilla/5.0 (compatible; CyberSpectrum RequestExtended on Contao ".VERSION.".".BUILD."; rv:1.0); CtoCommunication RPC (ctoComV" . $GLOBALS["CTOCOM_VERSION"] . ")";
 
         // Set http auth
         if (strlen($this->strHTTPUser) != 0 || strlen($this->strHTTPPassword) != 0)
