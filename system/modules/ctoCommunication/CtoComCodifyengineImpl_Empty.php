@@ -43,5 +43,3 @@ class CtoComCodifyengineImpl_Empty extends CtoComCodifyengineAbstract
     }
 
 }
-
-?>

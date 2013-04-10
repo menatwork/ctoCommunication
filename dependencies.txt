@@ -1,9 +1,0 @@
- /*
-  * httprequestextended
-  * http://www.contao.org/erweiterungsliste/view/httprequestextended.html
-  */
-  
- /*
-  * phpseclib
-  * http://www.contao.org/de/extension-list/view/phpseclib.html
-  */

@@ -364,5 +364,3 @@ class CtoComDebug extends Backend
     }
 
 }
-
-?>

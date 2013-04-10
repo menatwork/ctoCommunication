@@ -89,5 +89,3 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
     }
 
 }
-
-?>

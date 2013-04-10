@@ -1,4 +1,4 @@
-<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
+<?php
 
 /**
  * Contao Open Source CMS
@@ -10,14 +10,14 @@
  */
 
 /**
- * ctoCommunication Version
+ * ctoCommunication version
  */
-$GLOBALS["CTOCOM_VERSION"] = "1.0.1";
+$GLOBALS["CTOCOM_VERSION"] = "1.1.0";
 
 /**
  * Maintenance 
  */
-$GLOBALS['TL_CACHE']['ctoCom']='tl_ctocom_cache';
+$GLOBALS['TL_CACHE']['ctoCom'] = 'tl_ctocom_cache';
 
 /**
  * Hooks
@@ -25,9 +25,9 @@ $GLOBALS['TL_CACHE']['ctoCom']='tl_ctocom_cache';
 $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('CtoCommunication', 'checkExtensions');
 
 /**
- * Blacklists Tables for syncCto
+ * Blacklists tables for syncCto
  */
-$GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge( (array) $GLOBALS['SYC_CONFIG']['table_hidden'], array(    
+$GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge( (array) $GLOBALS['SYC_CONFIG']['table_hidden'], array(
     'tl_ctocom_cache',
     'tl_requestcache',
 ));
@@ -36,25 +36,25 @@ $GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge( (array) $GLOBALS['SYC_CONF
  * ctoCommunication engines
  */
 $GLOBALS["CTOCOM_ENGINE"] = array(
-    "empty"     => array(
+    "empty" => array(
         "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"],
         "classname" => "CtoComCodifyengineImpl_Empty",
         "folder"    => "system/modules/ctoCommunication",
         "invisible" => FALSE
     ),
-    "mcrypt"    => array(
+    "mcrypt" => array(
         "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"],
         "classname" => "CtoComCodifyengineImpl_Mcrypt",
         "folder"    => "system/modules/ctoCommunication",
         "invisible" => FALSE
     ),
-    "aeso"      => array(
+    "aeso" => array(
         "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes_old"],
         "classname" => "CtoComCodifyengineImpl_AESO",
         "folder"    => "system/modules/ctoCommunication",
         "invisible" => TRUE
     ),
-    "aes"       => array(
+    "aes" => array(
         "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"],
         "classname" => "CtoComCodifyengineImpl_AES",
         "folder"    => "system/modules/ctoCommunication",
@@ -63,7 +63,7 @@ $GLOBALS["CTOCOM_ENGINE"] = array(
 );
 
 $GLOBALS["CTOCOM_IO"] = array(
-    "default"   => array(
+    "default" => array(
         "accept"        => array("text/html", "text/plain", "*/*"),
         "contentType"   => "text/html",
         "classname"     => "CtoComIOImpl_Default",
@@ -78,65 +78,64 @@ $GLOBALS["CTOCOM_IO"] = array(
 $GLOBALS["CTOCOM_FUNCTIONS"] = array(
     //- Referer Functions --------
     "CTOCOM_REFERRER_DISABLE" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "referrer_disable",
-        "typ" => "GET",
-        "parameter" => false,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "referrer_disable",
+        "typ"              => "GET",
+        "parameter"        => false,
     ),
     "CTOCOM_REFERRER_ENABLE" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "referrer_enable",
-        "typ" => "GET",
-        "parameter" => false,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "referrer_enable",
+        "typ"              => "GET",
+        "parameter"        => false,
     ),
     //- Version Functions --------
     "CTOCOM_VERSION" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "getCtoComVersion",
-        "typ" => "GET",
-        "parameter" => false,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "getCtoComVersion",
+        "typ"              => "GET",
+        "parameter"        => false,
     ),
     "CONTAO_VERSION" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "getContaoVersion",
-        "typ" => "GET",
-        "parameter" => false,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "getContaoVersion",
+        "typ"              => "GET",
+        "parameter"        => false,
     ),
     "CONTAO_FULL_VERSION" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "getContaoFullVersion",
-        "typ" => "GET",
-        "parameter" => false,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "getContaoFullVersion",
+        "typ"              => "GET",
+        "parameter"        => false,
     ),
     "CTOCOM_GET_RESPONSE_PART" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "getResponsePart",
-        "typ" => "POST",
-        "parameter" => array("splitname", "splitcount"),
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "getResponsePart",
+        "typ"              => "POST",
+        "parameter"        => array("splitname", "splitcount"),
     ),
     "CTOCOM_HELLO" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "generateUUID",
-        "typ" => "GET",
-        "parameter" => FALSE,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "generateUUID",
+        "typ"              => "GET",
+        "parameter"        => FALSE,
     ),
     "CTOCOM_START_HANDSHAKE" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "startHandshake",
-        "typ" => "GET",
-        "parameter" => FALSE,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "startHandshake",
+        "typ"              => "GET",
+        "parameter"        => FALSE,
     ),
     "CTOCOM_CHECK_HANDSHAKE" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "checkHandshake",
-        "typ" => "GET",
-        "parameter" => FALSE,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "checkHandshake",
+        "typ"              => "GET",
+        "parameter"        => FALSE,
     ),
     "CTOCOM_BYE" => array(
-        "class" => "CtoComRPCFunctions",
-        "function" => "deleteUUID",
-        "typ" => "GET",
-        "parameter" => FALSE,
+        "class"            => "CtoComRPCFunctions",
+        "function"         => "deleteUUID",
+        "typ"              => "GET",
+        "parameter"        => FALSE,
     ),
 );
-?>

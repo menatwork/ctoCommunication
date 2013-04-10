@@ -305,5 +305,3 @@ class CtoComRPCFunctions extends Backend
     }
 
 }
-
-?>

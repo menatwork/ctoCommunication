@@ -160,5 +160,3 @@ class CtoComIOFactory extends Backend
     }
 
 }
-
-?>

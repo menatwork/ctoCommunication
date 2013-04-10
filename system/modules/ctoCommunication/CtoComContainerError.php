@@ -104,8 +104,4 @@ class CtoComContainerError
         $this->objException = $objException;
     }
 
-
-
 }
-
-?>

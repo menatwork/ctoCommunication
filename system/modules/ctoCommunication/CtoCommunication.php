@@ -1487,5 +1487,3 @@ class CtoCommunication extends Backend
     }
 
 }
-
-?>
