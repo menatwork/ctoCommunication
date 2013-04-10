@@ -1,0 +1,40 @@
+{
+	"name":"menatwork/ctoCommunication",
+	"description":"General communication class for contao",
+	"keywords":["synchronization", "communication", "framework"],
+	"type":"contao-library",
+	"license":"LGPL-3.0+",
+	"authors":[
+		{
+			"name":"Andreas Isaak",
+			"email":"isaak@men-at-work.de",
+			"homepage":"http://www.men-at-work.de",
+			"role":"Project leader"
+		},
+		{
+			"name":"Stefan Heimes",
+			"email":"heimes@men-at-work.de",
+			"homepage":"http://www.men-at-work.de",
+			"role":"Developer"
+		}
+	],
+	"require":{
+		"php":">=5.3",
+		"contao":">=2.11"
+	},
+	"autoload":{
+		"classmap":["system/"]
+	},
+	"extra":{
+		"contao": {
+			"symlinks":{
+				"ctoCommunication.php": "ctoCommunication.php",
+				"system/modules/ctoCommunication": "system/modules/ctoCommunication"
+			},
+			"runonce":[
+				"system/runonce.php",
+				"system/modules/ctoCommunication/config/runonce.php",
+			]
+		}
+	}
+}
