@@ -38,5 +38,3 @@ interface CtoComIOInterface
      */
     public function InputResponse($strResponse, CtoComCodifyengineAbstract $objCodifyEngine);
 }
-
-?>

@@ -9,9 +9,9 @@
  * @filesource
  */
 
-if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+if (file_exists(TL_ROOT . '/system/modules/phpseclib/Crypt/AES.php'))
 {
-    include_once(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php');
+    include_once(TL_ROOT . '/system/modules/phpseclib/Crypt/AES.php');
 }
 
 /**
@@ -29,7 +29,7 @@ class CtoComCodifyengineImpl_AESO extends CtoComCodifyengineAbstract
      */
     public function __construct()
     {
-        if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+        if (file_exists(TL_ROOT . '/system/modules/phpseclib/Crypt/AES.php'))
         {
             $this->objAES = new Crypt_AES();
         }
@@ -47,7 +47,7 @@ class CtoComCodifyengineImpl_AESO extends CtoComCodifyengineAbstract
     {
         if ($this->objAES == null)
         {
-            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+            throw new Exception("Could not find '/system/modules/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
         }
         
         $this->strKey = $strKey;
@@ -63,7 +63,7 @@ class CtoComCodifyengineImpl_AESO extends CtoComCodifyengineAbstract
     {
         if ($this->objAES == null)
         {
-            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+            throw new Exception("Could not find '/system/modules/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
         }
 
         return $this->objAES->encrypt($text);
@@ -74,12 +74,10 @@ class CtoComCodifyengineImpl_AESO extends CtoComCodifyengineAbstract
     {
         if ($this->objAES == null)
         {
-            throw new Exception("Could not find '/plugins/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
+            throw new Exception("Could not find '/system/modules/phpseclib/Crypt/AES.php'. Please install 'phpseclib'.");
         }
 
         return $this->objAES->decrypt($text);
     }
 
 }
-
-?>

@@ -9,9 +9,9 @@
  * @filesource
  */
 
-if (file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+if (file_exists(TL_ROOT . '/system/modules/phpseclib/Crypt/AES.php'))
 {
-    include_once(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php');
+    include_once(TL_ROOT . '/system/modules/phpseclib/Crypt/AES.php');
 }
 
 /**
@@ -29,9 +29,9 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
      */
     public function __construct()
     {
-        if (!file_exists(TL_ROOT . '/plugins/phpseclib/Crypt/AES.php'))
+        if (!file_exists(TL_ROOT . '/system/modules/phpseclib/Crypt/AES.php'))
         {
-            throw new Exception("Missing AES plugin in '/plugins/phpseclib/Crypt/AES.php'");
+            throw new Exception("Missing AES plugin in '/system/modules/phpseclib/Crypt/AES.php'");
         }
     }
 
@@ -89,5 +89,3 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
     }
 
 }
-
-?>

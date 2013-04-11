@@ -186,5 +186,3 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
     }
 
 }
-
-?>

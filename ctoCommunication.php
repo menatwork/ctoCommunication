@@ -19,5 +19,4 @@ require_once 'system/modules/ctoCommunication/CtoCommunication.php';
 $communication = CtoCommunication::getInstance();
 $communication->runClient();
 
-
 ?>

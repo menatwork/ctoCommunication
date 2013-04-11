@@ -113,9 +113,9 @@ class CtoCommunication extends Backend
             $this->intMaxResponseLength = $GLOBALS['TL_CONFIG']['ctoCom_responseLength'];
         }
         
-        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
-        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman/Exception.php';
-        require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman/Math/Exception.php';
+        require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
+        require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman/Exception.php';
+        require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman/Math/Exception.php';
     }
 
     /**
@@ -1295,7 +1295,7 @@ class CtoCommunication extends Backend
 
             // required files
             $arrRequiredFiles = array(
-                'phpseclib' => 'plugins/phpseclib/Crypt/AES.php'
+                'phpseclib' => 'system/modules/phpseclib/Crypt/AES.php'
             );
 
             // check for required extensions
@@ -1392,7 +1392,7 @@ class CtoCommunication extends Backend
         else
         {
             // Imoprt
-            require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
+            require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
 
             // Say "Hello" for connection id
             $strMyNumber = $this->runServer("CTOCOM_HELLO");
@@ -1487,5 +1487,3 @@ class CtoCommunication extends Backend
     }
 
 }
-
-?>

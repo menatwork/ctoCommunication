@@ -1,4 +1,4 @@
-<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
+<?php
 
 /**
  * Contao Open Source CMS
@@ -26,12 +26,14 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_APIKey'] = array(
     'exclude' => true,
     'save_callback' => array(array('CtoCommunicationSettings', 'save_callback')),
 );
+
 $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_responseLength'] = array(
     'label' => &$GLOBALS['TL_LANG']['tl_settings']['ctoCom_responseLength'],
     'inputType' => 'text',
     'eval' => array('rgxp' => 'digit', 'tl_class' => 'long', 'maxlength' => '64', 'minlength' => '5'),
     'exclude' => true,
 );
+
 $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_handshake'] = array(
     'label' => &$GLOBALS['TL_LANG']['tl_settings']['handshake'],
     'inputType' => 'checkbox',
@@ -65,5 +67,3 @@ class CtoCommunicationSettings extends Backend
     }
 
 }
-
-?>

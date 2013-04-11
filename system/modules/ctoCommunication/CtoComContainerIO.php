@@ -85,7 +85,4 @@ class CtoComContainerIO
         $this->objError = $objError;
     }
 
-
 }
-
-?>

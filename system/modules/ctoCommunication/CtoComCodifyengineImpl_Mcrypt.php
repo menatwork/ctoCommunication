@@ -104,5 +104,3 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
     }
 
 }
-
-?>

@@ -168,7 +168,7 @@ class CtoComRPCFunctions extends Backend
         else
         {
             // Imoprt
-            require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
+            require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
 
             // Init
             $intPrimeLength = 32;
@@ -274,7 +274,7 @@ class CtoComRPCFunctions extends Backend
         else
         {
             // Imoprt
-            require_once TL_ROOT . '/plugins/DiffieHellman/DiffieHellman.php';
+            require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
 
             if (strlen($this->Input->get("key")) == 0)
             {
@@ -305,5 +305,3 @@ class CtoComRPCFunctions extends Backend
     }
 
 }
-
-?>

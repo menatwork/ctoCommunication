@@ -24,5 +24,3 @@ $GLOBALS['TL_LANG']['ERR']['unknown_engine']                        = 'Unknown e
 $GLOBALS['TL_LANG']['ERR']['missing_engine']                        = 'Could not find the following encryption engine: %s.';
 $GLOBALS['TL_LANG']['ERR']['not_a_engine']                          = 'The selected encryption engine is not derived from the standard engine.';
 $GLOBALS['TL_LANG']['ERR']['client_error']                          = 'The client reports the following error';
-
-?>
