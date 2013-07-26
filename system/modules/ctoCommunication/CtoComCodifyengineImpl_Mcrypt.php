@@ -12,7 +12,7 @@
 /**
  * CtoComCodifyengineImpl_Mcrypt
  */
-class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
+class CtoComCodifyengineImpl_Mcrypt extends \CtoComCodifyengineAbstract
 {
     
     protected $strKey = "";
@@ -74,7 +74,7 @@ class CtoComCodifyengineImpl_Mcrypt extends CtoComCodifyengineAbstract
         
         if(!is_array($arrText) || count($arrText) != 2)
         {
-            throw new Exception("Error by decrypt. Missing IV");
+            throw new \RuntimeException("Error by decrypt. Missing IV");
         }
         
         /* Open the cipher */

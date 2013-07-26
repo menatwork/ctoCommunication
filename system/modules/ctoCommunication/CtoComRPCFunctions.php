@@ -12,7 +12,7 @@
 /**
  * Remote Procedure Call Class
  */
-class CtoComRPCFunctions extends Backend
+class CtoComRPCFunctions extends \Backend
 {
     /* -------------------------------------------------------------------------
      * Vars
@@ -43,7 +43,7 @@ class CtoComRPCFunctions extends Backend
     public static function getInstance()
     {
         if (self::$instance == null)
-            self::$instance = new CtoComRPCFunctions();
+            self::$instance = new \CtoComRPCFunctions();
 
         return self::$instance;
     }
@@ -60,10 +60,10 @@ class CtoComRPCFunctions extends Backend
 
         if (!file_exists(TL_ROOT . $strFilepath))
         {
-            throw new Exception("Missing partfile $strFilepath");
+            throw new \RuntimeException("Missing partfile $strFilepath");
         }
 
-        $objFile   = new File($strFilepath);
+        $objFile   = new \File($strFilepath);
         $strReturn = $objFile->getContent();
         $objFile->close();
 
@@ -215,7 +215,7 @@ class CtoComRPCFunctions extends Backend
                 try
                 {
                     // Start key gen
-                    $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate, Crypt_DiffieHellman::NUMBER);
+                    $objDiffieHellman = new \Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate, \Crypt_DiffieHellman::NUMBER);
                     $objDiffieHellman->generateKeys();
 
                     $strPublicKey = $objDiffieHellman->getPublicKey();
@@ -239,7 +239,7 @@ class CtoComRPCFunctions extends Backend
 
             if ($objLastException)
             {
-                throw new Exception($objLastException->getMessage());
+                throw new \RuntimeException($objLastException->getMessage());
             }
 
             $this->Database->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
@@ -287,7 +287,7 @@ class CtoComRPCFunctions extends Backend
                     ->fetchAllAssoc();
 
             // Start key gen
-            $objDiffieHellman = new Crypt_DiffieHellman($arrConnections[0]["prime"], $arrConnections[0]["generator"], $arrConnections[0]["private_key"]);
+            $objDiffieHellman = new \Crypt_DiffieHellman($arrConnections[0]["prime"], $arrConnections[0]["generator"], $arrConnections[0]["private_key"]);
             $objDiffieHellman->generateKeys();
 
             $strSecretKey = $objDiffieHellman->computeSecretKey($this->Input->get("key"))

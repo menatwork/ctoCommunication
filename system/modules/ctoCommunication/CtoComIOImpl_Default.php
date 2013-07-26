@@ -12,13 +12,13 @@
 /**
  * Interface for Codifyengine
  */
-class CtoComIOImpl_Default extends System implements CtoComIOInterface
+class CtoComIOImpl_Default extends \System implements \CtoComIOInterface
 {
 
     /**
      * 
      */
-    public function OutputPost($mixOutput, CtoComCodifyengineAbstract $objCodifyEngine)
+    public function OutputPost($mixOutput, \CtoComCodifyengineAbstract $objCodifyEngine)
     {
         // serliaze/encrypt/compress/base64 function                    
         $mixOutput = serialize(array("data" => $mixOutput));
@@ -33,7 +33,7 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
      * @param string $strPost The string from POST
      * @return mix Anything you want like string, int, objects, array and so on
      */
-    public function InputPost($mixPost, CtoComCodifyengineAbstract $objCodifyEngine)
+    public function InputPost($mixPost, \CtoComCodifyengineAbstract $objCodifyEngine)
     {
         $mixPost = base64_decode($mixPost);
         $mixPost = gzuncompress($mixPost);
@@ -55,7 +55,7 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
     /**
      * String Response as String
      */
-    public function OutputResponse(CtoComContainerIO $objContainer, CtoComCodifyengineAbstract $objCodifyEngine)
+    public function OutputResponse(\CtoComContainerIO $objContainer, \CtoComCodifyengineAbstract $objCodifyEngine)
     {
         if ($objContainer->getError() != null)
         {
@@ -96,12 +96,12 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
      * @todo Update the error class or better make a implementation of it
      * @return CtoComIOResponseContainer
      */
-    public function InputResponse($strResponse, CtoComCodifyengineAbstract $objCodifyEngine)
+    public function InputResponse($strResponse, \CtoComCodifyengineAbstract $objCodifyEngine)
     {
         // Check for start and end tag
         if (strpos($strResponse, "<|@|") === FALSE || strpos($strResponse, "|@|>") === FALSE)
         {
-            throw new Exception("Could not find start or endtag from response.");
+            throw new \RuntimeException("Could not find start or endtag from response.");
         }
 
         // Find position of start/end - tag
@@ -115,7 +115,7 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
         // Check if uncompress works
         if ($strResponse === FALSE)
         {
-            throw new Exception("Error on uncompressing the response. Maybe wrong API-Key or ctoCom version.");
+            throw new \RuntimeException("Error on uncompressing the response. Maybe wrong API-Key or ctoCom version.");
         }
 
         // Decrypt
@@ -127,13 +127,13 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
         // Check if we have a array
         if (is_array($arrResponse) == false)
         {
-            throw new Exception("Response is not an array. Maybe wrong API-Key or cryptionengine.");
+            throw new \RuntimeException("Response is not an array. Maybe wrong API-Key or cryptionengine.");
         }
 
         // Clean array
         $arrResponse = $this->cleanUp($arrResponse);
 
-        $objContainer = new CtoComContainerIO();
+        $objContainer = new \CtoComContainerIO();
         $objContainer->setSuccess($arrResponse["success"]);
         $objContainer->setResponse($arrResponse["response"]);
         $objContainer->setSplitcontent($arrResponse["splitcontent"]);
@@ -143,7 +143,7 @@ class CtoComIOImpl_Default extends System implements CtoComIOInterface
         // Set error
         if ($arrResponse["error"] != "")       
         {
-            $objError = new CtoComContainerError();
+            $objError = new \CtoComContainerError();
             $objError->setID($arrResponse["error"]["id"]);
             $objError->setObject($arrResponse["error"]["object"]);
             $objError->setMessage($arrResponse["error"]["msg"]);

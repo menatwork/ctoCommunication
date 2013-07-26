@@ -40,7 +40,7 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_handshake'] = array(
     'exclude' => true,
 );
 
-class CtoCommunicationSettings extends Backend
+class CtoCommunicationSettings extends \Backend
 {
 
     public function __construct()

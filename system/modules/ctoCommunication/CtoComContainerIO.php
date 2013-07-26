@@ -80,7 +80,7 @@ class CtoComContainerIO
         return $this->objError;
     }
 
-    public function setError(CtoComContainerError $objError)
+    public function setError(\CtoComContainerError $objError)
     {
         $this->objError = $objError;
     }

@@ -16,7 +16,7 @@
 /**
  * Runonce Job
  */
-class runonceJob extends Backend
+class runonceJob extends \Backend
 {
 
     //- Core Functions ---------------------------------------------------------
@@ -69,7 +69,7 @@ class runonceJob extends Backend
                 }
             }
         }
-        catch (Exception $exc)
+        catch (\RuntimeException $exc)
         {
             $this->log("Error by updating database table tl_ctocom_cache.", "ctoCommunictaion Runonce", TL_ERROR);          
         }

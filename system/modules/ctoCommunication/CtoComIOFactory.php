@@ -12,7 +12,7 @@
 /**
  * Factory for create the codifyengine
  */
-class CtoComIOFactory extends Backend
+class CtoComIOFactory extends \Backend
 {
 
     /**
@@ -25,7 +25,7 @@ class CtoComIOFactory extends Backend
         // Check if engeni is known
         if (!key_exists($strEngine, $GLOBALS["CTOCOM_IO"]))
         {
-            throw new Exception(vsprintf($GLOBALS['TL_LANG']['ERR']['unknown_engine'], array($strEngine)));
+            throw new \RuntimeException(vsprintf($GLOBALS['TL_LANG']['ERR']['unknown_engine'], array($strEngine)));
         }
 
         $arrEngine = $GLOBALS["CTOCOM_IO"][$strEngine];
@@ -33,20 +33,20 @@ class CtoComIOFactory extends Backend
         // Check if engine exists in filesystem
         if (!file_exists(TL_ROOT . "/" . $arrEngine["folder"] . "/" . $arrEngine["classname"] . ".php"))
         {
-            throw new Exception(vsprintf($GLOBALS['TL_LANG']['ERR']['missing_engine'], array($arrEngine["classname"] . ".php")));
+            throw new \RuntimeException(vsprintf($GLOBALS['TL_LANG']['ERR']['missing_engine'], array($arrEngine["classname"] . ".php")));
         }
 
         $strClass   = $arrEngine["classname"];
         $objEnginge = new $strClass();
 
         // Get engine
-        if ($objEnginge instanceof CtoComIOInterface)
+        if ($objEnginge instanceof \CtoComIOInterface)
         {
             return $objEnginge;
         }
         else
         {
-            throw new Exception($GLOBALS['TL_LANG']['ERR']['not_a_engine']);
+            throw new \RuntimeException($GLOBALS['TL_LANG']['ERR']['not_a_engine']);
         }
     }
 

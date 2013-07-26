@@ -12,7 +12,7 @@
 /**
  * Debug class
  */
-class CtoComDebug extends Backend
+class CtoComDebug extends \Backend
 {
 
     //- Singelten pattern --------
@@ -58,7 +58,7 @@ class CtoComDebug extends Backend
     public static function getInstance()
     {
         if (self::$instance == null)
-            self::$instance = new CtoComDebug();
+            self::$instance = new \CtoComDebug();
 
         return self::$instance;
     }
@@ -271,7 +271,7 @@ class CtoComDebug extends Backend
                 return;
             }
             
-            $objFile = new File($this->strFileMeasurement);
+            $objFile = new \File($this->strFileMeasurement);
             
             $intTime = time();
 
@@ -297,7 +297,7 @@ class CtoComDebug extends Backend
 
             $objFile->close();
         }
-        catch (Exception $exc)
+        catch (\RuntimeException $exc)
         {
             $this->log("Could not write CtoCom Measurement file. Exit with error: " . $exc->getMessage(), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
         }
@@ -317,7 +317,7 @@ class CtoComDebug extends Backend
                 return;
             }            
             
-            $objFile = new File($this->strFileDebug);
+            $objFile = new \File($this->strFileDebug);
                 
             $intTime = time();
 
@@ -357,7 +357,7 @@ class CtoComDebug extends Backend
 
             $objFile->close();
         }
-        catch (Exception $exc)
+        catch (\RuntimeException $exc)
         {
             $this->log("Could not write CtoCom Measurement file. Exit with error: " . $exc->getMessage(), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
         }

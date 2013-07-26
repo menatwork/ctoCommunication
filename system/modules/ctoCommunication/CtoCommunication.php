@@ -31,7 +31,7 @@
  *      - GET is not codify
  *      - Don't send files over 50MB, it would take a long time to send them
  */
-class CtoCommunication extends Backend
+class CtoCommunication extends \Backend
 {
     /* -------------------------------------------------------------------------
      * Vars
@@ -95,8 +95,8 @@ class CtoCommunication extends Backend
     {
         parent::__construct();
 
-        $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aes");
-        $this->objDebug = CtoComDebug::getInstance();
+        $this->objCodifyengineBasic = \CtoComCodifyengineFactory::getEngine("aes");
+        $this->objDebug = \CtoComDebug::getInstance();
         $this->objError = false;
 
         $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
@@ -121,13 +121,13 @@ class CtoCommunication extends Backend
     /**
      * Singelton Pattern
      * 
-     * @return CtoCommunication 
+     * @return \CtoCommunication 
      */
     public static function getInstance()
     {
         if (self::$instance == null)
         {
-            self::$instance = new CtoCommunication();
+            self::$instance = new \CtoCommunication();
         }
 
         return self::$instance;
@@ -199,7 +199,7 @@ class CtoCommunication extends Backend
      */
     public function setCodifyengine($strName = Null)
     {
-        $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($strName);
+        $this->objCodifyengine = \CtoComCodifyengineFactory::getEngine($strName);
     }
 
     /**
@@ -209,7 +209,7 @@ class CtoCommunication extends Backend
      */
     public function setIOEngine($strName = 'default')
     {
-        $this->objIOEngine = CtoComIOFactory::getEngine($strName);
+        $this->objIOEngine = \CtoComIOFactory::getEngine($strName);
         $this->strIOEngine = $strName;
     }
 
@@ -220,7 +220,7 @@ class CtoCommunication extends Backend
      */
     public function setIOEngineByContentTyp($strName = 'text/html')
     {
-        $this->setIOEngine(CtoComIOFactory::getEngingenameForContentType($strName));
+        $this->setIOEngine(\CtoComIOFactory::getEngingenameForContentType($strName));
     }
 
     /**
@@ -230,7 +230,7 @@ class CtoCommunication extends Backend
      */
     public function setIOEngineByAccept($strName = 'text/html')
     {
-        $this->setIOEngine(CtoComIOFactory::getEngingenameForAccept($strName));
+        $this->setIOEngine(\CtoComIOFactory::getEngingenameForAccept($strName));
     }
 
     /**
@@ -321,7 +321,7 @@ class CtoCommunication extends Backend
     public function setConnectionBasicCodify($strCodify)
     {
         // Set the new engine
-        $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine($strCodify);
+        $this->objCodifyengineBasic = \CtoComCodifyengineFactory::getEngine($strCodify);
 
         // Save information in Session
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
@@ -333,7 +333,7 @@ class CtoCommunication extends Backend
 
         if (empty($this->strUrl))
         {
-            throw new Exception("Client or client-url missing. Could not set new basic codifyengine.");
+            throw new \RuntimeException("Client or client-url missing. Could not set new basic codifyengine.");
         }
 
         $arrPool[md5($this->strUrl)]["codifyengine"] = $strCodify;
@@ -519,12 +519,12 @@ class CtoCommunication extends Backend
 
         if ($this->strApiKey == "" || $this->strApiKey == null)
         {
-            throw new Exception("The API Key is not set. Please set first API Key.");
+            throw new \RuntimeException("The API Key is not set. Please set first API Key.");
         }
 
         if ($this->strUrl == "" || $this->strUrl == null)
         {
-            throw new Exception("There is no URL set for connection. Please set first the url.");
+            throw new \RuntimeException("There is no URL set for connection. Please set first the url.");
         }
 
         // Reset GET parameter
@@ -539,11 +539,11 @@ class CtoCommunication extends Backend
 
         if (is_array($arrPoolInformation) && key_exists(md5($this->strUrl), $arrPoolInformation) && key_exists("codifyengine", $arrPoolInformation[md5($this->strUrl)]))
         {
-            $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
+            $this->objCodifyengineBasic = \CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
 
             if ($this->objCodifyengine->getName() == "aes")
             {
-                $this->objCodifyengine = CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
+                $this->objCodifyengine = \CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
             }
         }
 
@@ -578,7 +578,7 @@ class CtoCommunication extends Backend
          * New Request
          */
 
-        $objRequest = new RequestExtended();
+        $objRequest = new \RequestExtended();
         $objRequest->acceptgzip = 0;
         $objRequest->acceptdeflate = 0;
         $objRequest->useragent .= "Mozilla/5.0 (compatible; CyberSpectrum RequestExtended on Contao ".VERSION.".".BUILD."; rv:1.0); CtoCommunication RPC (ctoComV" . $GLOBALS["CTOCOM_VERSION"] . ")";
@@ -605,7 +605,7 @@ class CtoCommunication extends Backend
         else
         {
             // Build Multipart Post Data
-            $objMultipartFormdata = new MultipartFormdata();
+            $objMultipartFormdata = new \MultipartFormdata();
             foreach ($arrData as $key => $value)
             {
                 if (isset($value["filename"]) == true && strlen($value["filename"]) != 0)
@@ -613,7 +613,7 @@ class CtoCommunication extends Backend
                     // Set field for file
                     if (!$objMultipartFormdata->setFileField($value["name"], $value["filepath"], $value["mime"]))
                     {
-                        throw new Exception("Could not add file to postheader.");
+                        throw new \RuntimeException("Could not add file to postheader.");
                     }
                 }
                 else
@@ -636,7 +636,7 @@ class CtoCommunication extends Backend
         // Send new request
         if ($booRequestResult == false || $objRequest->hasError())
         {
-            throw new Exception("Error on transmission, with message: " . $objRequest->code . " " . $objRequest->error);
+            throw new \RuntimeException("Error on transmission, with message: " . $objRequest->code . " " . $objRequest->error);
         }
 
         $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2048));
@@ -666,19 +666,19 @@ class CtoCommunication extends Backend
         // Check if we have time out
         if ($objRequest->timedOut)
         {
-            throw new Exception("Sorry we have a time out. Please try again.");
+            throw new \RuntimeException("Sorry we have a time out. Please try again.");
         }
 
         // Check if we have a response
         if (strlen($objRequest->response) == 0)
         {
-            throw new Exception("We got a blank response from server.");
+            throw new \RuntimeException("We got a blank response from server.");
         }
 
         // Check for "Fatal error" on client side
         if (strpos($objRequest->response, "Fatal error") !== FALSE)
         {
-            throw new Exception("We got a Fatal error on client site. " . $objRequest->response);
+            throw new \RuntimeException("We got a Fatal error on client site. " . $objRequest->response);
         }
 
         // Check for "Warning" on client side
@@ -687,7 +687,7 @@ class CtoCommunication extends Backend
             $intStart = stripos($response, "<strong>Warning</strong>:");
             $intEnd   = stripos($response, "on line");
 
-            throw new Exception("We got a Warning on client site.<br /><br />" . substr($objRequest->response, $intStart, $intEnd - $intStart));
+            throw new \RuntimeException("We got a Warning on client site.<br /><br />" . substr($objRequest->response, $intStart, $intEnd - $intStart));
         }
 
         /* ---------------------------------------------------------------------
@@ -698,12 +698,12 @@ class CtoCommunication extends Backend
         $strContentType = preg_replace("/;.*$/", "", $strContentType);
 
         // Search a engine
-        $objIOEngine = CtoComIOFactory::getEngingeForContentType($strContentType);
+        $objIOEngine = \CtoComIOFactory::getEngingeForContentType($strContentType);
 
         // Check if we have found one
         if ($objIOEngine == false)
         {
-            throw new Exception("No I/O class found for " . $strContentType);
+            throw new \RuntimeException("No I/O class found for " . $strContentType);
         }
 
         // Parse response
@@ -749,7 +749,7 @@ class CtoCommunication extends Backend
                 {
                     $objResponse->setResponse($this->rebuildSplitcontent($objResponse->getSplitname(), $objResponse->getSplitcount()));
                 }
-                catch (Exception $exc)
+                catch (\RuntimeException $exc)
                 {
                     throw $exc;
                 }
@@ -785,7 +785,7 @@ class CtoCommunication extends Backend
                 }
             }
 
-            throw new Exception($string);
+            throw new \RuntimeException($string);
         }
     }
 
@@ -826,7 +826,7 @@ class CtoCommunication extends Backend
                     )
             );
 
-            throw new Exception($string);
+            throw new \RuntimeException($string);
         }
     }
 
@@ -856,7 +856,7 @@ class CtoCommunication extends Backend
         {
             if (preg_match("/.*\|@\|.*/", base64_decode($this->Input->get("apikey", true))))
             {
-                $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aes");
+                $this->objCodifyengineBasic = \CtoComCodifyengineFactory::getEngine("aes");
 
                 if ($this->Input->get("engine") == "aes")
                 {
@@ -869,7 +869,7 @@ class CtoCommunication extends Backend
             }
             else
             {
-                $this->objCodifyengineBasic = CtoComCodifyengineFactory::getEngine("aeso");
+                $this->objCodifyengineBasic = \CtoComCodifyengineFactory::getEngine("aeso");
 
                 if ($this->Input->get("engine") == "aes")
                 {
@@ -881,7 +881,7 @@ class CtoCommunication extends Backend
                 }
             }
         }
-        catch (Exception $exc)
+        catch (\RuntimeException $exc)
         {
             $this->log("Try to load the engine for ctoCommunication with error: " . $exc->getMessage(), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
             // Clean output buffer
@@ -1007,7 +1007,7 @@ class CtoCommunication extends Backend
 
         if (strlen($this->Input->get("format")) != 0)
         {
-            if (CtoComIOFactory::engineExist($this->Input->get("format")))
+            if (\CtoComIOFactory::engineExist($this->Input->get("format")))
             {
                 $this->setIOEngine($this->Input->get("format"));
             }
@@ -1015,7 +1015,7 @@ class CtoCommunication extends Backend
             {
                 $this->setIOEngine();
 
-                $this->objError = new CtoComContainerError();
+                $this->objError = new \CtoComContainerError();
                 $this->objError->setLanguage("unknown_io");
                 $this->objError->setID(10);
                 $this->objError->setObject("");
@@ -1038,7 +1038,7 @@ class CtoCommunication extends Backend
 
             foreach ($arrAccept as $key => $value)
             {
-                $strIOEngine = CtoComIOFactory::getEngingenameForAccept($value);
+                $strIOEngine = \CtoComIOFactory::getEngingenameForAccept($value);
 
                 if ($strIOEngine !== false)
                 {
@@ -1048,9 +1048,9 @@ class CtoCommunication extends Backend
 
             if ($strIOEngine === false)
             {
-                $this->objIOEngine = CtoComIOFactory::getEngine('default');
+                $this->objIOEngine = \CtoComIOFactory::getEngine('default');
 
-                $this->objError = new CtoComContainerError();
+                $this->objError = new \CtoComContainerError();
                 $this->objError->setLanguage("unknown_io");
                 $this->objError->setID(10);
                 $this->objError->setObject("");
@@ -1077,7 +1077,7 @@ class CtoCommunication extends Backend
 
         if (strlen($mixRPCCall) == 0)
         {
-            $this->objError = new CtoComContainerError();
+            $this->objError = new \CtoComContainerError();
             $this->objError->setLanguage("rpc_missing");
             $this->objError->setID(1);
             $this->objError->setObject("");
@@ -1092,7 +1092,7 @@ class CtoCommunication extends Backend
 
         if (!key_exists($mixRPCCall, $this->arrRpcList))
         {
-            $this->objError = new CtoComContainerError();
+            $this->objError = new \CtoComContainerError();
             $this->objError->setLanguage("rpc_unknown");
             $this->objError->setID(1);
             $this->objError->setObject("");
@@ -1157,7 +1157,7 @@ class CtoCommunication extends Backend
 
             if (!class_exists($strClassname))
             {
-                $this->objError = new CtoComContainerError();
+                $this->objError = new \CtoComContainerError();
                 $this->objError->setLanguage("rpc_class_not_exists");
                 $this->objError->setID(4);
                 $this->objError->setObject($value);
@@ -1170,7 +1170,7 @@ class CtoCommunication extends Backend
                 exit();
             }
 
-            $objReflection = new ReflectionClass($strClassname);
+            $objReflection = new \ReflectionClass($strClassname);
 
             if ($objReflection->hasMethod("getInstance"))
             {
@@ -1183,9 +1183,9 @@ class CtoCommunication extends Backend
                 $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]), $arrParameter);
             }
         }
-        catch (Exception $exc)
+        catch (\RuntimeException $exc)
         {
-            $this->objError = new CtoComContainerError();
+            $this->objError = new \CtoComContainerError();
             $this->objError->setLanguage("rpc_unknown_exception");
             $this->objError->setID(3);
             $this->objError->setObject("");
@@ -1216,7 +1216,7 @@ class CtoCommunication extends Backend
      */
     protected function generateOutput()
     {
-        $objOutputContainer = new CtoComContainerIO();
+        $objOutputContainer = new \CtoComContainerIO();
 
         if ($this->objError == false)
         {
@@ -1252,7 +1252,7 @@ class CtoCommunication extends Backend
                 $objFile->close();
             }
 
-            $objOutputContainer = new CtoComContainerIO();
+            $objOutputContainer = new \CtoComContainerIO();
             $objOutputContainer->setSuccess(true);
             $objOutputContainer->setResponse(null);
             $objOutputContainer->setSplitcontent(true);
@@ -1354,7 +1354,7 @@ class CtoCommunication extends Backend
                 $this->setConnectionBasicCodify("aeso");
             }
         }
-        catch (Exception $exc)
+        catch (\RuntimeException $exc)
         {
             $this->log("The client with the adress: " . $this->strUrl . " seems to be an older Version.", __CLASS__ . " | " . __FUNCTION__, TL_INFO);
             $this->setConnectionBasicCodify("aeso");
@@ -1378,12 +1378,12 @@ class CtoCommunication extends Backend
             // Start key handshake
             if (!$this->runServer("CTOCOM_START_HANDSHAKE", $arrData, true))
             {
-                throw new Exception("Could not set API Key for handshake.");
+                throw new \RuntimeException("Could not set API Key for handshake.");
             }
 
             if (!$this->runServer("CTOCOM_CHECK_HANDSHAKE", $arrData, true))
             {
-                throw new Exception("Could not set API Key for handshake.");
+                throw new \RuntimeException("Could not set API Key for handshake.");
             }
 
             // Save and end 
@@ -1416,14 +1416,14 @@ class CtoCommunication extends Backend
 
                 if (!preg_match("/^\d+$/", $strPrivate))
                 {
-                    $objLastException = new Exception("Private key is not a natural number");
+                    $objLastException = new \RuntimeException("Private key is not a natural number");
                     continue;
                 }
 
                 try
                 {
                     // Start key gen
-                    $objDiffieHellman = new Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
+                    $objDiffieHellman = new \Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
                     $objDiffieHellman->generateKeys();
 
                     // Send public key for check 
@@ -1434,7 +1434,7 @@ class CtoCommunication extends Backend
                         )
                     );
                 }
-                catch (Exception $exc)
+                catch (\RuntimeException $exc)
                 {
                     $objLastException = $exc;
                     continue;
@@ -1453,7 +1453,7 @@ class CtoCommunication extends Backend
 
             if ($arrDiffieHellman["public_key"] != $strPublicKey)
             {
-                throw new Exception("Error for handshake. Public-Key from client isn't valide.");
+                throw new \RuntimeException("Error for handshake. Public-Key from client isn't valide.");
             }
 
             $strSecretKey = $objDiffieHellman->computeSecretKey($arrDiffieHellman["public_key"])

@@ -17,7 +17,7 @@ if (file_exists(TL_ROOT . '/system/modules/phpseclib/Crypt/AES.php'))
 /**
  * CtoComCodifyengineImpl_AES
  */
-class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
+class CtoComCodifyengineImpl_AES extends \CtoComCodifyengineAbstract
 {
 
     protected $strKey  = "";
@@ -31,7 +31,7 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
     {
         if (!file_exists(TL_ROOT . '/system/modules/phpseclib/Crypt/AES.php'))
         {
-            throw new Exception("Missing AES plugin in '/system/modules/phpseclib/Crypt/AES.php'");
+            throw new \RuntimeException("Missing AES plugin in '/system/modules/phpseclib/Crypt/AES.php'");
         }
     }
 
@@ -62,7 +62,7 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
     // Encrypt
     public function Encrypt($text)
     {
-        $this->objAES = new Crypt_AES();
+        $this->objAES = new \Crypt_AES();
         $this->objAES->setKey($this->strKey);
         
         $iv = mcrypt_create_iv(16, MCRYPT_DEV_URANDOM);
@@ -74,14 +74,14 @@ class CtoComCodifyengineImpl_AES extends CtoComCodifyengineAbstract
     // Decrypt
     public function Decrypt($text)
     {
-        $this->objAES = new Crypt_AES();
+        $this->objAES = new \Crypt_AES();
         $this->objAES->setKey($this->strKey);
 
         $arrText = explode("|@|", $text);
 
         if (!is_array($arrText) || count($arrText) != 2)
         {
-            throw new Exception("Error by decrypt. Missing IV");
+            throw new \RuntimeException("Error by decrypt. Missing IV");
         }
 
         $this->objAES->setIV($arrText[0]);
