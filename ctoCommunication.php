@@ -16,7 +16,7 @@ define('TL_MODE', 'CTO_BE');
 require('system/initialize.php');
 require_once 'system/modules/ctoCommunication/CtoCommunication.php';
 
-$communication = CtoCommunication::getInstance();
+$communication = \CtoCommunication::getInstance();
 $communication->runClient();
 
 ?>
