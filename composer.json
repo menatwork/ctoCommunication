@@ -20,10 +20,16 @@
 	],
 	"require":{
 		"php":">=5.3",
-		"contao":">=2.11"
+		"contao/core":">=2.11",
+		"discordier/httprequestextended":">=1.10",
+		"contao-legacy/diffiehellman":">=0.3.0",
+		"contao-legacy/phpseclib":">=0.3.1"
 	},
 	"autoload":{
 		"classmap":["system/"]
+	},
+	"replace": {
+		"contao-legacy/ctocommunication": "*"
 	},
 	"extra":{
 		"contao": {
