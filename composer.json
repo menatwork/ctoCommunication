@@ -2,7 +2,7 @@
 	"name":"menatwork/ctocommunication",
 	"description":"General communication class for contao",
 	"keywords":["synchronization", "communication", "framework"],
-	"type":"contao-library",
+	"type":"contao-module",
 	"license":"LGPL-3.0+",
 	"authors":[
 		{
