@@ -694,7 +694,7 @@ class CtoCommunication extends \Backend
          * ctoCom I/O System 
          */
 
-        $strContentType = $objRequest->headers['Content-Type'];
+        $strContentType = $objRequest->getResponseHeader('Content-Type');
         $strContentType = preg_replace("/;.*$/", "", $strContentType);
 
         // Search a engine
