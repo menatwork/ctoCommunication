@@ -33,7 +33,7 @@
 			},
 			"runonce":[
 				"system/runonce.php",
-				"system/modules/ctoCommunication/config/runonce.php",
+				"system/modules/ctoCommunication/config/runonce.php"
 			]
 		}
 	}
