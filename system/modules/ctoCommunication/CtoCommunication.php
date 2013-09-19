@@ -684,10 +684,19 @@ class CtoCommunication extends \Backend
         // Check for "Warning" on client side
         if (strpos($objRequest->response, "Warning") !== FALSE)
         {
-            $intStart = stripos($response, "<strong>Warning</strong>:");
-            $intEnd   = stripos($response, "on line");
+            $intStart = stripos($objRequest->response, "<strong>Warning</strong>:");
+            $intEnd   = stripos($objRequest->response, "on line");
 
-            throw new \RuntimeException("We got a Warning on client site.<br /><br />" . substr($objRequest->response, $intStart, $intEnd - $intStart));
+            if($intEnd === false)
+            {
+                $intLength = strlen($objRequest->response) - $intStart;
+            }
+            else
+            {
+                $intLength = $intEnd - $intStart;
+            }
+
+            throw new \RuntimeException("We got a Warning on client site.<br /><br />" . substr($objRequest->response, $intStart, $intLength));
         }
 
         /* ---------------------------------------------------------------------
