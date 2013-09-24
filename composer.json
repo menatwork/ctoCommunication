@@ -28,6 +28,7 @@
 	"require":{
 		"php":">=5.3",
 		"contao/core":">=2.11,<4",
+		"contao-community-alliance/composer-installer":"*",
 		"discordier/httprequestextended":">=1.10,<2",
 		"menatwork/diffiehellman":"~0.3",
 		"menatwork/phpseclib":"~0.3"
