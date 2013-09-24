@@ -1,46 +1,56 @@
 {
 	"name":"menatwork/ctocommunication",
 	"description":"General communication class for contao",
-	"keywords":["synchronization", "communication", "framework"],
+	"keywords":["synchronization","communication","framework"],
 	"type":"contao-module",
+	"homepage":"http://www.men-at-work.de",
 	"license":"LGPL-3.0+",
 	"authors":[
 		{
 			"name":"Andreas Isaak",
-			"email":"isaak@men-at-work.de",
+			"email":"contao@men-at-work.de",
 			"homepage":"http://www.men-at-work.de",
 			"role":"Project leader"
 		},
 		{
 			"name":"Stefan Heimes",
-			"email":"heimes@men-at-work.de",
+			"email":"contao@men-at-work.de",
 			"homepage":"http://www.men-at-work.de",
 			"role":"Developer"
 		}
 	],
+	"support":{
+		"email":"contao@men-at-work.de",
+		"issues":"https://github.com/menatwork/ctoCommunication/issues",
+		"irc":"irc://irc.freenode.org/contao.dev",
+		"source":"https://github.com/menatwork/ctoCommunication"
+	},
 	"require":{
 		"php":">=5.3",
 		"contao/core":">=2.11",
 		"discordier/httprequestextended":">=1.10",
-		"contao-legacy/diffiehellman":">=0.3.0",
-		"contao-legacy/phpseclib":">=0.3.1"
+		"menatwork/diffiehellman":">=0.3.0",
+		"menatwork/phpseclib":">=0.3.1"
 	},
 	"autoload":{
 		"classmap":["system/"]
 	},
-	"replace": {
-		"contao-legacy/ctocommunication": "*"
+	"replace":{
+		"contao-legacy/ctocommunication":"*"
 	},
 	"extra":{
-		"contao": {
-			"symlinks":{
-				"ctoCommunication.php": "ctoCommunication.php",
-				"system/modules/ctoCommunication": "system/modules/ctoCommunication"
+		"contao":{
+			"sources":{
+				"ctoCommunication.php":"ctoCommunication.php",
+				"system/modules/ctoCommunication":"system/modules/ctoCommunication"
 			},
 			"runonce":[
 				"system/runonce.php",
 				"system/modules/ctoCommunication/config/runonce.php"
 			]
+		},
+		"branch-alias":{
+			"dev-master":"1.2.x-dev"
 		}
 	}
 }
