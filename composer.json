@@ -27,10 +27,10 @@
 	},
 	"require":{
 		"php":">=5.3",
-		"contao/core":">=2.11",
-		"discordier/httprequestextended":">=1.10",
-		"menatwork/diffiehellman":">=0.3.0",
-		"menatwork/phpseclib":">=0.3.1"
+		"contao/core":">=2.11,<4",
+		"discordier/httprequestextended":">=1.10,<2",
+		"menatwork/diffiehellman":"~0.3",
+		"menatwork/phpseclib":"~0.3"
 	},
 	"autoload":{
 		"classmap":["system/"]
