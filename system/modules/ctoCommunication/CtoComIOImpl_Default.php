@@ -38,7 +38,7 @@ class CtoComIOImpl_Default extends \System implements \CtoComIOInterface
         $mixPost = base64_decode($mixPost);
         $mixPost = gzuncompress($mixPost);
         $mixPost = $objCodifyEngine->Decrypt($mixPost);
-        $mixPost = deserialize($mixPost);
+        $mixPost = unserialize($mixPost);
 
         $mixPost = $mixPost["data"];
 
@@ -122,7 +122,7 @@ class CtoComIOImpl_Default extends \System implements \CtoComIOInterface
         $strResponse = $objCodifyEngine->Decrypt($strResponse);
 
         // Deserialize response
-        $arrResponse = deserialize($strResponse);
+        $arrResponse = unserialize($strResponse);
 
         // Check if we have a array
         if (is_array($arrResponse) == false)
