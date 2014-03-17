@@ -636,6 +636,9 @@ class CtoCommunication extends \Backend
         // Send new request
         if ($booRequestResult == false || $objRequest->hasError())
         {
+            $this->objDebug->addDebug("Request", substr($objRequest->request, 0, 2048));
+            $this->objDebug->addDebug("Error Response", substr($objRequest->response, 0, 4096));
+
             throw new \RuntimeException("Error on transmission, with message: " . $objRequest->code . " " . $objRequest->error);
         }
 
