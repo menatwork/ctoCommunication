@@ -98,9 +98,12 @@ class CtoComIOImpl_Default extends \System implements \CtoComIOInterface
      */
     public function InputResponse($strResponse, \CtoComCodifyengineAbstract $objCodifyEngine)
     {
+        $objDebug = \CtoComDebug::getInstance();
+
         // Check for start and end tag
         if (strpos($strResponse, "<|@|") === FALSE || strpos($strResponse, "|@|>") === FALSE)
         {
+            $objDebug->addDebug("Error CtoComIOImpl_Default", substr($strResponse, 0, 4096));
             throw new \RuntimeException("Could not find start or endtag from response.");
         }
 
@@ -127,6 +130,7 @@ class CtoComIOImpl_Default extends \System implements \CtoComIOInterface
         // Check if we have a array
         if (is_array($arrResponse) == false)
         {
+            $objDebug->addDebug("Error CtoComIOImpl_Default", substr($arrResponse, 0, 4096));
             throw new \RuntimeException("Response is not an array. Maybe wrong API-Key or cryptionengine.");
         }
 
@@ -141,7 +145,7 @@ class CtoComIOImpl_Default extends \System implements \CtoComIOInterface
         $objContainer->setSplitname($arrResponse["splitname"]);
 
         // Set error
-        if ($arrResponse["error"] != "")       
+        if ($arrResponse["error"] != "")
         {
             $objError = new \CtoComContainerError();
             $objError->setID($arrResponse["error"]["id"]);
