@@ -46,7 +46,7 @@
 				"system/modules/ctoCommunication":"system/modules/ctoCommunication"
 			},
 			"runonce":[
-				"system/modules/ctoCommunication/config/runonce.php"
+				"system/modules/ctoCommunication/runonce/runonce.php"
 			]
 		},
 		"branch-alias":{
