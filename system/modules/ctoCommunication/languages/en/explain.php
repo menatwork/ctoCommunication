@@ -9,4 +9,4 @@
  * @filesource
  */
 
-$GLOBALS['TL_LANG']['XPL']['ctoComKey']['0'] = array('ctoCommunication API Key', 'Der API Key ist für die Verschlüsselung bei der Synchronisation von zwei Contao-Installationen zuständig.<br /><br />Lassen Sie das Feld leer um beim Speichern einen neuen Key zu generieren. Diesen Key kopieren Sie dann und fügen Ihn bei den Clienteinstellungen des Servers ein.');
+$GLOBALS['TL_LANG']['XPL']['ctoComKey']['0'] = array('ctoCommunication API Key', 'The API Key is responsible for the encryption when synchronizing two contao installations.<br /><br />Leave the field blank when saving to generate a new key. Copy and paste this key in the client settings of the client installation.');
