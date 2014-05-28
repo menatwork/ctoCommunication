@@ -1195,7 +1195,7 @@ class CtoCommunication extends \Backend
                 $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]), $arrParameter);
             }
         }
-        catch (\RuntimeException $exc)
+        catch (\Exception $exc)
         {
             $this->objError = new \CtoComContainerError();
             $this->objError->setLanguage("rpc_unknown_exception");
