@@ -150,7 +150,7 @@ class CtoCommunication extends \Backend
 
         // Load Session information
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
-        if (is_array($arrPool) && key_exists(md5($strUrl), $arrPool))
+        if (is_array($arrPool) && array_key_exists(md5($strUrl), $arrPool))
         {
             $this->strConnectionID = $arrPool[md5($strUrl)]["id"];
             $this->strConnectionKey = $arrPool[md5($strUrl)]["key"];
@@ -185,7 +185,7 @@ class CtoCommunication extends \Backend
 
         // Load Session information
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
-        if (is_array($arrPool) && key_exists(md5($strUrl), $arrPool))
+        if (is_array($arrPool) && array_key_exists(md5($strUrl), $arrPool))
         {
             $this->strConnectionID = $arrPool[md5($strUrl)]["id"];
             $this->strConnectionKey = $arrPool[md5($strUrl)]["key"];
@@ -537,7 +537,7 @@ class CtoCommunication extends \Backend
         // Get Session information for condify key & engine        
         $arrPoolInformation = $this->Session->get("CTOCOM_ConnectionPool");
 
-        if (is_array($arrPoolInformation) && key_exists(md5($this->strUrl), $arrPoolInformation) && key_exists("codifyengine", $arrPoolInformation[md5($this->strUrl)]))
+        if (is_array($arrPoolInformation) && array_key_exists(md5($this->strUrl), $arrPoolInformation) && array_key_exists("codifyengine", $arrPoolInformation[md5($this->strUrl)]))
         {
             $this->objCodifyengineBasic = \CtoComCodifyengineFactory::getEngine($arrPoolInformation[md5($this->strUrl)]["codifyengine"]);
 
@@ -1319,7 +1319,7 @@ class CtoCommunication extends \Backend
                 }
                 else
                 {
-                    if (is_array($_SESSION["TL_INFO"]) && key_exists($val, $_SESSION["TL_INFO"]))
+                    if (is_array($_SESSION["TL_INFO"]) && array_key_exists($val, $_SESSION["TL_INFO"]))
                     {
                         unset($_SESSION["TL_INFO"][$val]);
                     }
@@ -1335,7 +1335,7 @@ class CtoCommunication extends \Backend
                 }
                 else
                 {
-                    if (is_array($_SESSION["TL_INFO"]) && key_exists($val, $_SESSION["TL_INFO"]))
+                    if (is_array($_SESSION["TL_INFO"]) && array_key_exists($val, $_SESSION["TL_INFO"]))
                     {
                         unset($_SESSION["TL_INFO"][$val]);
                     }
@@ -1490,7 +1490,7 @@ class CtoCommunication extends \Backend
 
         // Reset Session information
         $arrPool = $this->Session->get("CTOCOM_ConnectionPool");
-        if (is_array($arrPool) && key_exists(md5($this->strUrl), $arrPool))
+        if (is_array($arrPool) && array_key_exists(md5($this->strUrl), $arrPool))
         {
             unset($arrPool[md5($this->strUrl)]);
         }
