@@ -1165,7 +1165,7 @@ class CtoCommunication extends \Backend
                                 || version_compare('3.3.7', VERSION . '.' . BUILD, '<='))
                             {
                                 // Get the raw data.
-                                $arrParameter[$value] = $this->Input->postUnsafeRaw($key);
+                                $arrParameter[$value] = $this->Input->postUnsafeRaw($value);
                             }
                             else
                             {
