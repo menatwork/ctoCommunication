@@ -1102,7 +1102,7 @@ class CtoCommunication extends \Backend
             exit();
         }
 
-        if (!key_exists($mixRPCCall, $this->arrRpcList))
+        if (!array_key_exists($mixRPCCall, $this->arrRpcList))
         {
             $this->objError = new \CtoComContainerError();
             $this->objError->setLanguage("rpc_unknown");
