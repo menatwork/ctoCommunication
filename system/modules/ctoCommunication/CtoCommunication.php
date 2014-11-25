@@ -1127,12 +1127,24 @@ class CtoCommunication extends \Backend
         {
             switch ($this->arrRpcList[$mixRPCCall]["typ"])
             {
-                // Decode post 
+                // Decode post
                 case "POST":
                     // Decode each post
                     foreach ($_POST as $key => $value)
                     {
-                        $mixPost = $this->Input->postRaw($key);
+
+                        if( (version_compare('3.2.16', VERSION . '.' . BUILD, '<=') && version_compare('3.3.0', VERSION . '.' . BUILD, '>'))
+                            || version_compare('3.3.7', VERSION . '.' . BUILD, '<='))
+                        {
+                            // Get the raw data.
+                            $mixPost = $this->Input->postUnsafeRaw($key);
+                        }
+                        else
+                        {
+                            // Get the raw data for older contao versions.
+                            $mixPost = $this->Input->postRaw($key);
+                        }
+
                         $mixPost = $this->objIOEngine->InputPost($mixPost, $this->objCodifyengine);
 
                         $this->Input->setPost($key, $mixPost);
@@ -1149,7 +1161,17 @@ class CtoCommunication extends \Backend
                         }
                         else
                         {
-                            $arrParameter[$value] = $this->Input->postRaw($value);
+                            if( (version_compare('3.2.16', VERSION . '.' . BUILD, '<=') && version_compare('3.3.0', VERSION . '.' . BUILD, '>'))
+                                || version_compare('3.3.7', VERSION . '.' . BUILD, '<='))
+                            {
+                                // Get the raw data.
+                                $arrParameter[$value] = $this->Input->postUnsafeRaw($key);
+                            }
+                            else
+                            {
+                                // Get the raw data for older contao versions.
+                                $arrParameter[$value] = $this->Input->postRaw($value);
+                            }
                         }
                     }
                     break;
