@@ -5,13 +5,13 @@
  *
  * @copyright  MEN AT WORK 2014
  * @package    ctoCommunication
- * @license    GNU/LGPL 
+ * @license    GNU/LGPL
  * @filesource
  */
 
 /**
  *  CtoCommunication
- * 
+ *
  *  Core Features:
  *      - I/O Interface System for Accept and Content-Typ
  *      - Codify Interface System
@@ -20,12 +20,12 @@
  *      - Connection ID`s for each session
  *      - Error Handling
  *      - RPC Functions
- * 
+ *
  *  Bugs:
  *      - Sometimes the DiffieHellman throw a "Not a natural number" exception
  *      - If Memory-Limit hits maximum on client, you will get a 500 as HTTP response
  *      - If something goes wrong on client, you will get a 500 as HTTP response
- * 
+ *
  *  Warnings:
  *      - Files are not codify
  *      - GET is not codify
@@ -54,33 +54,33 @@ class CtoCommunication extends \Backend
     // Config
     /**
      * Time in seconds for handshake timeout.
-     * @var int 
+     * @var int
      */
     protected $intMaxResponseLength;
     protected $intHandshakeTimeout = 1200;
 
     /**
-     * @var CtoComCodifyengineAbstract 
+     * @var CtoComCodifyengineAbstract
      */
     protected $objCodifyengine;
 
     /**
-     * @var CtoComCodifyengineAbstract 
+     * @var CtoComCodifyengineAbstract
      */
     protected $objCodifyengineBasic;
 
     /**
-     * @var CtoComIOInterface 
+     * @var CtoComIOInterface
      */
     protected $objIOEngine;
 
     /**
-     * @var CtoComDebug 
+     * @var CtoComDebug
      */
     protected $objDebug;
 
     /**
-     * @var CtoComContainerError 
+     * @var CtoComContainerError
      */
     protected $objError;
 
@@ -112,7 +112,7 @@ class CtoCommunication extends \Backend
         {
             $this->intMaxResponseLength = $GLOBALS['TL_CONFIG']['ctoCom_responseLength'];
         }
-        
+
         require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
         require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman/Exception.php';
         require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman/Math/Exception.php';
@@ -120,8 +120,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Singelton Pattern
-     * 
-     * @return \CtoCommunication 
+     *
+     * @return \CtoCommunication
      */
     public static function getInstance()
     {
@@ -141,8 +141,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Set the url for connection
-     * 
-     * @param type $strUrl 
+     *
+     * @param type $strUrl
      */
     public function setUrl($strUrl)
     {
@@ -159,8 +159,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Set the API Key
-     * 
-     * @param stirng $strApiKey 
+     *
+     * @param stirng $strApiKey
      */
     public function setApiKey($strApiKey)
     {
@@ -194,8 +194,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Change codifyengine
-     * 
-     * @param string $strName 
+     *
+     * @param string $strName
      */
     public function setCodifyengine($strName = Null)
     {
@@ -204,8 +204,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Change I/O enginge
-     * 
-     * @param string $strName 
+     *
+     * @param string $strName
      */
     public function setIOEngine($strName = 'default')
     {
@@ -215,8 +215,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Change I/O enginge
-     * 
-     * @param string $strName 
+     *
+     * @param string $strName
      */
     public function setIOEngineByContentTyp($strName = 'text/html')
     {
@@ -225,8 +225,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Change I/O enginge
-     * 
-     * @param string $strName 
+     *
+     * @param string $strName
      */
     public function setIOEngineByAccept($strName = 'text/html')
     {
@@ -235,9 +235,9 @@ class CtoCommunication extends \Backend
 
     /**
      * Set Cookie information
-     * 
+     *
      * @param string $name Key name of array
-     * @param mix $value Value for Cookie 
+     * @param mix $value Value for Cookie
      */
     public function setCookies($name, $value)
     {
@@ -253,8 +253,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Set a username for http auth
-     * 
-     * @param string $strHTTPUser 
+     *
+     * @param string $strHTTPUser
      */
     public function setHTTPUser($strHTTPUser)
     {
@@ -263,8 +263,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Set a password for http auth
-     * 
-     * @param string $strHTTPPassword 
+     *
+     * @param string $strHTTPPassword
      */
     public function setHTTPPassword($strHTTPPassword)
     {
@@ -273,8 +273,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Set the Connection ID
-     * 
-     * @param stirng $strConnectionID 
+     *
+     * @param stirng $strConnectionID
      */
     public function setConnectionID($strConnectionID)
     {
@@ -294,8 +294,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Save the connection key
-     * 
-     * @param string $strConnectionKey 
+     *
+     * @param string $strConnectionKey
      */
     public function setConnectionKey($strConnectionKey)
     {
@@ -315,8 +315,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Save the connection key
-     * 
-     * @param string $strConnectionKey 
+     *
+     * @param string $strConnectionKey
      */
     public function setConnectionBasicCodify($strCodify)
     {
@@ -344,8 +344,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Retrun Url
-     * 
-     * @return string 
+     *
+     * @return string
      */
     public function getUrl()
     {
@@ -354,8 +354,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Return Api Key
-     * 
-     * @return string 
+     *
+     * @return string
      */
     public function getApiKey()
     {
@@ -364,7 +364,7 @@ class CtoCommunication extends \Backend
 
     /**
      * Return Cookies
-     * 
+     *
      * @return array
      */
     public function getCookies()
@@ -374,8 +374,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Return name of the codifyengine
-     * 
-     * @return string 
+     *
+     * @return string
      */
     public function getCodifyengine()
     {
@@ -384,8 +384,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Get username for http auth.
-     * 
-     * @return string 
+     *
+     * @return string
      */
     public function getHTTPUser()
     {
@@ -394,8 +394,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Get password for http auth.
-     * 
-     * @return string 
+     *
+     * @return string
      */
     public function getHTTPPassword()
     {
@@ -404,8 +404,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Get the Connection ID
-     * 
-     * @return string 
+     *
+     * @return string
      */
     public function getConnectionID()
     {
@@ -414,8 +414,8 @@ class CtoCommunication extends \Backend
 
     /**
      * Return the connection key
-     * 
-     * @return string 
+     *
+     * @return string
      */
     public function getConnectionKey()
     {
@@ -428,7 +428,7 @@ class CtoCommunication extends \Backend
 
     /**
      *
-     * @return boolean 
+     * @return boolean
      */
     public function getMeasurement()
     {
@@ -437,7 +437,7 @@ class CtoCommunication extends \Backend
 
     /**
      *
-     * @param boolean $booMeasurement 
+     * @param boolean $booMeasurement
      */
     public function setMeasurement($booMeasurement)
     {
@@ -446,7 +446,7 @@ class CtoCommunication extends \Backend
 
     /**
      *
-     * @return boolean 
+     * @return boolean
      */
     public function getDebug()
     {
@@ -455,7 +455,7 @@ class CtoCommunication extends \Backend
 
     /**
      *
-     * @param boolean $booDebug 
+     * @param boolean $booDebug
      */
     public function setDebug($booDebug)
     {
@@ -464,7 +464,7 @@ class CtoCommunication extends \Backend
 
     /**
      *
-     * @return string 
+     * @return string
      */
     public function getFileMeasurement()
     {
@@ -473,7 +473,7 @@ class CtoCommunication extends \Backend
 
     /**
      *
-     * @param string $strFileMeasurement 
+     * @param string $strFileMeasurement
      */
     public function setFileMeasurement($strFileMeasurement)
     {
@@ -482,7 +482,7 @@ class CtoCommunication extends \Backend
 
     /**
      *
-     * @return string 
+     * @return string
      */
     public function getFileDebug()
     {
@@ -491,7 +491,7 @@ class CtoCommunication extends \Backend
 
     /**
      *
-     * @param string $strFileDebug 
+     * @param string $strFileDebug
      */
     public function setFileDebug($strFileDebug)
     {
@@ -504,12 +504,12 @@ class CtoCommunication extends \Backend
 
     /**
      * Run as Server and send some data or files
-     * 
+     *
      * @param string $rpc
      * @param array $arrData
      * @param boolean $isGET
      * @return mixed
-     * @throws Exception 
+     * @throws Exception
      */
     public function runServer($rpc, $arrData = array(), $isGET = FALSE)
     {
@@ -534,7 +534,7 @@ class CtoCommunication extends \Backend
          * Check if we need another core codify engine
          */
 
-        // Get Session information for condify key & engine        
+        // Get Session information for condify key & engine
         $arrPoolInformation = $this->Session->get("CTOCOM_ConnectionPool");
 
         if (is_array($arrPoolInformation) && array_key_exists(md5($this->strUrl), $arrPoolInformation) && array_key_exists("codifyengine", $arrPoolInformation[md5($this->strUrl)]))
@@ -590,7 +590,7 @@ class CtoCommunication extends \Backend
             $objRequest->password = $this->strHTTPPassword;
         }
 
-        // Set Header Accept-Language        
+        // Set Header Accept-Language
         $objRequest->setHeader("Accept-Language", vsprintf("%s, en;q=0.8", array($GLOBALS['TL_LANGUAGE'])));
 
         // Which method ? GET or POST
@@ -648,7 +648,7 @@ class CtoCommunication extends \Backend
          * Check response for errors
          */
 
-        // Build response Header informations        
+        // Build response Header informations
         $arrHeaderKeys = array();
         $strResponseHeader = "";
 
@@ -703,7 +703,7 @@ class CtoCommunication extends \Backend
         }
 
         /* ---------------------------------------------------------------------
-         * ctoCom I/O System 
+         * ctoCom I/O System
          */
 
         $strContentType = $objRequest->getResponseHeader('Content-Type');
@@ -742,7 +742,7 @@ class CtoCommunication extends \Backend
             $strDebug .= "Error Class: " . $objResponse->getError()->getClass();
             $strDebug .= "\n";
             $strDebug .= "Error Func.: " . $objResponse->getError()->getFunction();
-            $strDebug .= "\n";            
+            $strDebug .= "\n";
         }
         $strDebug .= "Response:    " . substr(json_encode($objResponse->getResponse()), 0, 2048);
 
@@ -960,9 +960,9 @@ class CtoCommunication extends \Backend
 
         /* ---------------------------------------------------------------------
          * Check the API key.
-         * Check if the API Key was send. 
+         * Check if the API Key was send.
          * Check if the API key contains the RPC Call and the API Key from this
-         * Contao Version. 
+         * Contao Version.
          */
 
         // Check if a API-Key was send
@@ -1272,7 +1272,7 @@ class CtoCommunication extends \Backend
 
         $mixOutput = $this->objIOEngine->OutputResponse($objOutputContainer, $this->objCodifyengine);
 
-        // Check if we have a big output and split it 
+        // Check if we have a big output and split it
         if ($this->intMaxResponseLength != -1 && strlen($mixOutput) > $this->intMaxResponseLength)
         {
             $mixOutput    = str_split($mixOutput, (int) ($this->intMaxResponseLength * 0.8));
@@ -1308,7 +1308,7 @@ class CtoCommunication extends \Backend
 
     /**
      * Check the required extensions and files for ctoCommunication
-     * 
+     *
      * @param string $strContent
      * @param string $strTemplate
      * @return string
@@ -1375,9 +1375,9 @@ class CtoCommunication extends \Backend
     public function startConnection()
     {
         /*
-         * Try to get the Version from client. 
-         * If we get a blank response or a error, the system try to use the 
-         * old AES Codifyengine. 
+         * Try to get the Version from client.
+         * If we get a blank response or a error, the system try to use the
+         * old AES Codifyengine.
          */
         try
         {
@@ -1420,7 +1420,7 @@ class CtoCommunication extends \Backend
                 throw new \RuntimeException("Could not set API Key for handshake.");
             }
 
-            // Save and end 
+            // Save and end
             $this->setConnectionKey($this->strApiKey);
         }
         else
@@ -1460,7 +1460,7 @@ class CtoCommunication extends \Backend
                     $objDiffieHellman = new \Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate);
                     $objDiffieHellman->generateKeys();
 
-                    // Send public key for check 
+                    // Send public key for check
                     $arrData = array(
                         array(
                             "name" => "key",
@@ -1493,7 +1493,7 @@ class CtoCommunication extends \Backend
             $strSecretKey = $objDiffieHellman->computeSecretKey($arrDiffieHellman["public_key"])
                     ->getSharedSecretKey();
 
-            // Save and end 
+            // Save and end
             $this->setConnectionKey($strSecretKey);
         }
     }
