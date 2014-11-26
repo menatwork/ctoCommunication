@@ -1130,9 +1130,9 @@ class CtoCommunication extends \Backend
                 // Decode post
                 case "POST":
                     // Decode each post
+                    $arrPostValues = array();
                     foreach ($_POST as $key => $value)
                     {
-
                         if( (version_compare('3.2.16', VERSION . '.' . BUILD, '<=') && version_compare('3.3.0', VERSION . '.' . BUILD, '>'))
                             || version_compare('3.3.7', VERSION . '.' . BUILD, '<='))
                         {
@@ -1145,7 +1145,8 @@ class CtoCommunication extends \Backend
                             $mixPost = $this->Input->postRaw($key);
                         }
 
-                        $mixPost = $this->objIOEngine->InputPost($mixPost, $this->objCodifyengine);
+                        $mixPost               = $this->objIOEngine->InputPost($mixPost, $this->objCodifyengine);
+                        $arrPostValues[ $key ] = $mixPost;
 
                         $this->Input->setPost($key, $mixPost);
                     }
@@ -1153,7 +1154,7 @@ class CtoCommunication extends \Backend
                     // Check if all post are set
                     foreach ($this->arrRpcList[$mixRPCCall]["parameter"] as $value)
                     {
-                        $arrPostKey = array_keys($_POST);
+                        $arrPostKey = array_keys($arrPostValues);
 
                         if (!in_array($value, $arrPostKey))
                         {
@@ -1161,19 +1162,12 @@ class CtoCommunication extends \Backend
                         }
                         else
                         {
-                            if( (version_compare('3.2.16', VERSION . '.' . BUILD, '<=') && version_compare('3.3.0', VERSION . '.' . BUILD, '>'))
-                                || version_compare('3.3.7', VERSION . '.' . BUILD, '<='))
-                            {
-                                // Get the raw data.
-                                $arrParameter[$value] = $this->Input->postUnsafeRaw($value);
-                            }
-                            else
-                            {
-                                // Get the raw data for older contao versions.
-                                $arrParameter[$value] = $this->Input->postRaw($value);
-                            }
+                            // Get the raw data.
+                            $arrParameter[$value] = $arrPostValues[$value];
                         }
                     }
+
+                    unset($arrPostValues);
                     break;
 
                 default:
