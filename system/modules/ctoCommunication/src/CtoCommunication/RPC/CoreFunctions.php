@@ -5,14 +5,16 @@
  *
  * @copyright  MEN AT WORK 2014
  * @package    ctoCommunication
- * @license    GNU/LGPL 
+ * @license    GNU/LGPL
  * @filesource
  */
+
+namespace CtoCommunication\RPC;
 
 /**
  * Remote Procedure Call Class
  */
-class CtoComRPCFunctions extends \Backend
+class CoreFunctions extends \Backend
 {
     /* -------------------------------------------------------------------------
      * Vars
@@ -37,13 +39,13 @@ class CtoComRPCFunctions extends \Backend
 
     /**
      * Singelten pattern
-     * 
-     * @return CtoComRPCFunctions 
+     *
+     * @return CoreFunctions
      */
     public static function getInstance()
     {
         if (self::$instance == null)
-            self::$instance = new \CtoComRPCFunctions();
+            self::$instance = new self();
 
         return self::$instance;
     }
@@ -74,14 +76,14 @@ class CtoComRPCFunctions extends \Backend
 
      /**
      * Disable referer check from contao
-     * 
-     * @return boolean 
+     *
+     * @return boolean
      */
     public function referrer_disable()
     {
         if ($GLOBALS['TL_CONFIG']['disableRefererCheck'] == false)
-        {            
-            if (key_exists("ctoCom_disableRefererCheck", $GLOBALS['TL_CONFIG']))
+        {
+            if (array_key_exists("ctoCom_disableRefererCheck", $GLOBALS['TL_CONFIG']))
             {
                 $this->Config->update("\$GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck']", false);
             }
@@ -89,12 +91,12 @@ class CtoComRPCFunctions extends \Backend
             {
                 $this->Config->add("\$GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck']", false);
             }
-            
+
             $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", true);
         }
         else
         {
-            if (key_exists("ctoCom_disableRefererCheck", $GLOBALS['TL_CONFIG']))
+            if (array_key_exists("ctoCom_disableRefererCheck", $GLOBALS['TL_CONFIG']))
             {
                 $this->Config->update("\$GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck']", true);
             }
@@ -109,8 +111,8 @@ class CtoComRPCFunctions extends \Backend
 
     /**
      * Enable referer check from contao
-     * 
-     * @return boolean 
+     *
+     * @return boolean
      */
     public function referrer_enable()
     {

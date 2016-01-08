@@ -5,14 +5,16 @@
  *
  * @copyright  MEN AT WORK 2014
  * @package    ctoCommunication
- * @license    GNU/LGPL 
+ * @license    GNU/LGPL
  * @filesource
  */
 
+namespace CtoCommunication\Container;
+
 /**
- * Interface for CtoComContainerError
+ * Interface for Error
  */
-class CtoComContainerError
+class Error
 {
 
     protected $strLanguage;
@@ -93,7 +95,7 @@ class CtoComContainerError
     {
         $this->strFunction = $strFunction;
     }
-    
+
     public function getException()
     {
         return $this->objException;

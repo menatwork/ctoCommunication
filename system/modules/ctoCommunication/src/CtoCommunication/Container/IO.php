@@ -5,17 +5,21 @@
  *
  * @copyright  MEN AT WORK 2014
  * @package    ctoCommunication
- * @license    GNU/LGPL 
+ * @license    GNU/LGPL
  * @filesource
  */
+
+namespace CtoCommunication\Container;
+
+use CtoCommunication\Container\Error;
 
 /**
  * Interface for Codifyengine
  */
-class CtoComContainerIO
+class IO
 {
 
-    protected $booSuccess;    
+    protected $booSuccess;
     protected $mixResponse;
     protected $booSplitcontent;
     protected $intSplitcount;
@@ -61,7 +65,7 @@ class CtoComContainerIO
     {
         $this->strSplitname = $strSplitname;
     }
-    
+
     public function isSplitcontent()
     {
         return $this->booSplitcontent;
@@ -71,16 +75,16 @@ class CtoComContainerIO
     {
         $this->booSplitcontent = $booSplitcontent;
     }
-    
+
     /**
-     * @return CtoComContainerError 
+     * @return Error
      */
     public function getError()
     {
         return $this->objError;
     }
 
-    public function setError(\CtoComContainerError $objError)
+    public function setError(Error $objError)
     {
         $this->objError = $objError;
     }
