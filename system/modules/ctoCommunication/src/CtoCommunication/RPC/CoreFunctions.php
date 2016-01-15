@@ -204,13 +204,13 @@ class CoreFunctions extends \Backend
 
                 if (!preg_match("/^\d+$/", $strPrivate))
                 {
-                    $objLastException = new Exception("Private key is not a natural number");
+                    $objLastException = new \Exception("Private key is not a natural number");
                     continue;
                 }
 
                 if (!preg_match("/^\d+$/", $strPrime))
                 {
-                    $objLastException = new Exception("Prime key is not a natural number");
+                    $objLastException = new \Exception("Prime key is not a natural number");
                     continue;
                 }
 
@@ -222,7 +222,7 @@ class CoreFunctions extends \Backend
 
                     $strPublicKey = $objDiffieHellman->getPublicKey();
                 }
-                catch (Exception $exc)
+                catch (\Exception $exc)
                 {
                     $objLastException = $exc;
                     continue;
@@ -231,7 +231,7 @@ class CoreFunctions extends \Backend
                 // Check puplic key
                 if (!preg_match("/^\d+$/", $strPublicKey))
                 {
-                    $objLastException = new Exception("Public key is not a natural number");
+                    $objLastException = new \Exception("Public key is not a natural number");
                     continue;
                 }
 
@@ -280,7 +280,7 @@ class CoreFunctions extends \Backend
 
             if (strlen($this->Input->get("key")) == 0)
             {
-                throw new Exception("Could not find public key for handshake.");
+                throw new \Exception("Could not find public key for handshake.");
             }
 
             // Load information
