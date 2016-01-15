@@ -29,9 +29,9 @@
 		"php":">=5.3",
 		"contao/core":">=2.11,<4",
 		"contao-community-alliance/composer-installer":"*",
-		"discordier/httprequestextended":"~1.1",
 		"menatwork/diffiehellman":"~0.3",
-		"menatwork/phpseclib":"~0.3"
+		"phpseclib/phpseclib":"~2.0",
+		"guzzlehttp/guzzle":"~5.3"
 	},
 	"autoload":{
 		"classmap":["system/"]

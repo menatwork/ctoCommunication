@@ -5,63 +5,53 @@
  *
  * @copyright  MEN AT WORK 2014
  * @package    ctoCommunication
- * @license    GNU/LGPL 
+ * @license    GNU/LGPL
  * @filesource
  */
+
+namespace CtoCommunication\InputOutput;
 
 /**
  * Factory for create the codifyengine
  */
-class CtoComIOFactory extends \Backend
+class Factory
 {
 
     /**
      * Create the codifyengine.
-     * 
-     * @return CtoComIOInterface 
+     *
+     * @return InterfaceInputOutput
      */
     public static function getEngine($strEngine)
     {
-        // Check if engeni is known
-        if (!key_exists($strEngine, $GLOBALS["CTOCOM_IO"]))
-        {
+        // Check if engine is known
+        if (!array_key_exists($strEngine, $GLOBALS['CTOCOM_IO'])) {
             throw new \RuntimeException(vsprintf($GLOBALS['TL_LANG']['ERR']['unknown_engine'], array($strEngine)));
         }
 
-        $arrEngine = $GLOBALS["CTOCOM_IO"][$strEngine];
-
-        // Check if engine exists in filesystem
-        if (!file_exists(TL_ROOT . "/" . $arrEngine["folder"] . "/" . $arrEngine["classname"] . ".php"))
-        {
-            throw new \RuntimeException(vsprintf($GLOBALS['TL_LANG']['ERR']['missing_engine'], array($arrEngine["classname"] . ".php")));
-        }
-
-        $strClass   = $arrEngine["classname"];
+        $arrEngine  = $GLOBALS['CTOCOM_IO'][$strEngine];
+        $strClass   = $arrEngine['classname'];
         $objEnginge = new $strClass();
 
         // Get engine
-        if ($objEnginge instanceof \CtoComIOInterface)
-        {
+        if ($objEnginge instanceof InterfaceInputOutput) {
             return $objEnginge;
-        }
-        else
-        {
+        } else {
             throw new \RuntimeException($GLOBALS['TL_LANG']['ERR']['not_a_engine']);
         }
     }
 
     /**
      * Check if a given I/O engine exist
-     * 
+     *
      * @param string $strName Name of the engine
-     * @return boolean [True|False] 
+     *
+     * @return boolean [True|False]
      */
     public static function engineExist($strName)
     {
-        foreach ($GLOBALS["CTOCOM_IO"] as $keyIO => $valueIO)
-        {
-            if ($strName == $keyIO)
-            {
+        foreach ($GLOBALS['CTOCOM_IO'] as $keyIO => $valueIO) {
+            if ($strName == $keyIO) {
                 return true;
             }
         }
@@ -72,14 +62,13 @@ class CtoComIOFactory extends \Backend
     /**
      *
      * @param string $strAccept
-     * @return String 
+     *
+     * @return String
      */
     public static function getEngingenameForAccept($strAccept)
     {
-        foreach ($GLOBALS["CTOCOM_IO"] as $keyIO => $valueIO)
-        {
-            if (in_array($strAccept, $valueIO["accept"]))
-            {
+        foreach ($GLOBALS['CTOCOM_IO'] as $keyIO => $valueIO) {
+            if (in_array($strAccept, $valueIO['accept'])) {
                 return $keyIO;
             }
         }
@@ -90,14 +79,13 @@ class CtoComIOFactory extends \Backend
     /**
      *
      * @param string $strAccept
-     * @return CtoComIOInterface 
+     *
+     * @return InterfaceInputOutput
      */
     public static function getEngingeForAccept($strAccept)
     {
-        foreach ($GLOBALS["CTOCOM_IO"] as $keyIO => $valueIO)
-        {
-            if (in_array($strAccept, $valueIO["accept"]))
-            {
+        foreach ($GLOBALS['CTOCOM_IO'] as $keyIO => $valueIO) {
+            if (in_array($strAccept, $valueIO['accept'])) {
                 return self::getEngine($keyIO);
             }
         }
@@ -108,14 +96,13 @@ class CtoComIOFactory extends \Backend
     /**
      *
      * @param string $strContentType
-     * @return String 
+     *
+     * @return String
      */
     public static function getEngingenameForContentType($strContentType)
     {
-        foreach ($GLOBALS["CTOCOM_IO"] as $keyIO => $valueIO)
-        {
-            if ($strContentType == $valueIO["contentType"])
-            {
+        foreach ($GLOBALS['CTOCOM_IO'] as $keyIO => $valueIO) {
+            if ($strContentType == $valueIO['contentType']) {
                 return $keyIO;
             }
         }
@@ -126,14 +113,13 @@ class CtoComIOFactory extends \Backend
     /**
      *
      * @param string $strContentType
-     * @return CtoComIOInterface 
+     *
+     * @return InterfaceInputOutput
      */
     public static function getEngingeForContentType($strContentType)
     {
-        foreach ($GLOBALS["CTOCOM_IO"] as $keyIO => $valueIO)
-        {
-            if ($strContentType == $valueIO["contentType"])
-            {
+        foreach ($GLOBALS['CTOCOM_IO'] as $keyIO => $valueIO) {
+            if ($strContentType == $valueIO['contentType']) {
                 return self::getEngine($keyIO);
             }
         }
@@ -144,14 +130,13 @@ class CtoComIOFactory extends \Backend
     /**
      *
      * @param string $strContentType
-     * @return CtoComIOInterface 
+     *
+     * @return InterfaceInputOutput
      */
     public static function getEngingeByName($strName)
     {
-        foreach ($GLOBALS["CTOCOM_IO"] as $keyIO => $valueIO)
-        {
-            if ($strName == $keyIO)
-            {
+        foreach ($GLOBALS['CTOCOM_IO'] as $keyIO => $valueIO) {
+            if ($strName == $keyIO) {
                 return self::getEngine($keyIO);
             }
         }

@@ -5,29 +5,24 @@
  *
  * @copyright  MEN AT WORK 2014
  * @package    ctoCommunication
- * @license    GNU/LGPL 
+ * @license    GNU/LGPL
  * @filesource
  */
 
 /**
  * ctoCommunication version
  */
-$GLOBALS["CTOCOM_VERSION"] = "1.2.3";
+$GLOBALS['CTOCOM_VERSION'] = '2.0.0';
 
 /**
- * Maintenance 
+ * Maintenance
  */
 $GLOBALS['TL_CACHE']['ctoCom'] = 'tl_ctocom_cache';
 
 /**
- * Hooks
- */
-$GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('CtoCommunication', 'checkExtensions');
-
-/**
  * Blacklists tables for syncCto
  */
-$GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge( (array) $GLOBALS['SYC_CONFIG']['table_hidden'], array
+$GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge((array)$GLOBALS['SYC_CONFIG']['table_hidden'], array
 (
     'tl_ctocom_cache',
     'tl_requestcache',
@@ -36,46 +31,35 @@ $GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge( (array) $GLOBALS['SYC_CONF
 /**
  * ctoCommunication engines
  */
-$GLOBALS["CTOCOM_ENGINE"] = array
+$GLOBALS['CTOCOM_ENGINE'] = array
 (
-    "empty" => array
+    'empty'  => array
     (
-        "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["empty"],
-        "classname" => "CtoComCodifyengineImpl_Empty",
-        "folder"    => "system/modules/ctoCommunication",
-        "invisible" => FALSE
+        'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['empty'],
+        'classname' => '\CtoCommunication\Codifyengine\NoneCrypt',
+        'invisible' => false
     ),
-    "mcrypt" => array
+    'mcrypt' => array
     (
-        "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["mcrypt"],
-        "classname" => "CtoComCodifyengineImpl_Mcrypt",
-        "folder"    => "system/modules/ctoCommunication",
-        "invisible" => FALSE
+        'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['mcrypt'],
+        'classname' => '\CtoCommunication\Codifyengine\Mcrypt',
+        'invisible' => false
     ),
-    "aeso" => array
+    'aes'    => array
     (
-        "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes_old"],
-        "classname" => "CtoComCodifyengineImpl_AESO",
-        "folder"    => "system/modules/ctoCommunication",
-        "invisible" => TRUE
-    ),
-    "aes" => array
-    (
-        "name"      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']["phpseclib_aes"],
-        "classname" => "CtoComCodifyengineImpl_AES",
-        "folder"    => "system/modules/ctoCommunication",
-        "invisible" => FALSE
+        'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['phpseclib_aes'],
+        'classname' => '\CtoCommunication\Codifyengine\AES',
+        'invisible' => false
     ),
 );
 
-$GLOBALS["CTOCOM_IO"] = array
+$GLOBALS['CTOCOM_IO'] = array
 (
-    "default" => array
+    'default' => array
     (
-        "accept"        => array("text/html", "text/plain", "*/*"),
-        "contentType"   => "text/html",
-        "classname"     => "CtoComIOImpl_Default",
-        "folder"        => "system/modules/ctoCommunication",
+        'accept'      => array('text/html', 'text/plain', '*/*'),
+        'contentType' => 'text/html',
+        'classname'   => '\CtoCommunication\InputOutput\Base',
     )
 );
 
@@ -83,78 +67,78 @@ $GLOBALS["CTOCOM_IO"] = array
  * Register for RPC-Call functions
  * Base configuration and ctoCommunication RPC Calls
  */
-$GLOBALS["CTOCOM_FUNCTIONS"] = array
+$GLOBALS['CTOCOM_FUNCTIONS'] = array
 (
     //- Referer Functions --------
-    "CTOCOM_REFERRER_DISABLE" => array
+    'CTOCOM_REFERRER_DISABLE'  => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "referrer_disable",
-        "typ"              => "GET",
-        "parameter"        => false,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'referrer_disable',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
-    "CTOCOM_REFERRER_ENABLE" => array
+    'CTOCOM_REFERRER_ENABLE'   => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "referrer_enable",
-        "typ"              => "GET",
-        "parameter"        => false,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'referrer_enable',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
     //- Version Functions --------
-    "CTOCOM_VERSION" => array
+    'CTOCOM_VERSION'           => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "getCtoComVersion",
-        "typ"              => "GET",
-        "parameter"        => false,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'getCtoComVersion',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
-    "CONTAO_VERSION" => array
+    'CONTAO_VERSION'           => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "getContaoVersion",
-        "typ"              => "GET",
-        "parameter"        => false,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'getContaoVersion',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
-    "CONTAO_FULL_VERSION" => array
+    'CONTAO_FULL_VERSION'      => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "getContaoFullVersion",
-        "typ"              => "GET",
-        "parameter"        => false,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'getContaoFullVersion',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
-    "CTOCOM_GET_RESPONSE_PART" => array
+    'CTOCOM_GET_RESPONSE_PART' => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "getResponsePart",
-        "typ"              => "POST",
-        "parameter"        => array("splitname", "splitcount"),
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'getResponsePart',
+        'typ'       => 'POST',
+        'parameter' => array('splitname', 'splitcount'),
     ),
-    "CTOCOM_HELLO" => array
+    'CTOCOM_HELLO'             => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "generateUUID",
-        "typ"              => "GET",
-        "parameter"        => FALSE,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'generateUUID',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
-    "CTOCOM_START_HANDSHAKE" => array
+    'CTOCOM_START_HANDSHAKE'   => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "startHandshake",
-        "typ"              => "GET",
-        "parameter"        => FALSE,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'startHandshake',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
-    "CTOCOM_CHECK_HANDSHAKE" => array
+    'CTOCOM_CHECK_HANDSHAKE'   => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "checkHandshake",
-        "typ"              => "GET",
-        "parameter"        => FALSE,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'checkHandshake',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
-    "CTOCOM_BYE" => array
+    'CTOCOM_BYE'               => array
     (
-        "class"            => "CtoComRPCFunctions",
-        "function"         => "deleteUUID",
-        "typ"              => "GET",
-        "parameter"        => FALSE,
+        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'function'  => 'deleteUUID',
+        'typ'       => 'GET',
+        'parameter' => false,
     ),
 );
