@@ -12,7 +12,7 @@
 /**
  * Initialize the system
  */
-define('TL_MODE', 'BE');
+define('TL_MODE', 'FE');
 require('system/initialize.php');
 
 $communication = new \CtoCommunication\Serivces\Client();
