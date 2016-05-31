@@ -16,6 +16,36 @@ use CtoCommunication\Helper\Config;
 
 class Client extends Base
 {
+    /**
+     * A list with some special calls.
+     *
+     * @var array
+     */
+    protected $specialCalls = array(
+        'CTOCOM_HELLO',
+        'CTOCOM_START_HANDSHAKE',
+        'CTOCOM_CHECK_HANDSHAKE',
+        'CTOCOM_VERSION'
+    );
+
+    /**
+     * Holds the current crypt key.
+     *
+     * @var string
+     */
+    protected $strCodifyKey;
+
+    /**
+     * Set the crypt key to all elements.
+     *
+     * @param $key
+     */
+    protected function setCryptKey($key)
+    {
+        $this->objCodifyengine->setKey($key);
+        $this->objCodifyengineBasic->setKey($key);
+        $this->strCodifyKey = $key;
+    }
 
     /**
      * Run the communication as client
@@ -24,112 +54,10 @@ class Client extends Base
      */
     public function run()
     {
-        // If we have a ping, just do nothing
-        if (\Input::get("act") == "ping") {
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
-
-        /* ---------------------------------------------------------------------
-         * Check if we have a old AES or a new AES with IV.
-         * Set codifyengine keys.
-         * Check the connection ID and refresh/delete it.
-         */
-
-        // Check if IV was send, when send use the new AES else the old one.
-        try {
-            $this->objCodifyengineBasic = Factory::getEngine("aes");
-            $this->setCodifyengine(\Input::get("engine"));
-        } catch (\RuntimeException $exc) {
-            \System::log("Try to load the engine for ctoCommunication with error: " . $exc->getMessage(),
-                __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
-
-        // Check if we have a incomming connection for handshake
-        if (in_array(\Input::get("act"),
-            array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE", "CTOCOM_VERSION"))) {
-            $this->objCodifyengine->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
-            $this->objCodifyengineBasic->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
-            $strCodifyKey = $GLOBALS['TL_CONFIG']['ctoCom_APIKey'];
-        } else {
-            // Use the private key from connection pool
-            if (strlen(\Input::get("con")) != 0) {
-                // Check if we have some data
-                $arrConnections = \Database::getInstance()->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
-                    ->execute(\Input::get("con"))
-                    ->fetchAllAssoc();
-
-                if (count($arrConnections) == 0) {
-                    \System::log(vsprintf("Call from %s with a unknown connection ID.", \Environment::get('ip')),
-                        __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-                    // Clean output buffer
-                    while (@ob_end_clean()) {
-                        ;
-                    }
-                    exit();
-                }
-
-                // Check if time out isn't reached.
-                if ($arrConnections[0]["tstamp"] + $this->intHandshakeTimeout < time()) {
-                    \Database::getInstance()->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")
-                        ->execute(\Input::get("con"));
-
-                    \System::log(vsprintf("Call from %s with a expired connection ID.", \Environment::get('ip')),
-                        __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-                    // Clean output buffer
-                    while (@ob_end_clean()) {
-                        ;
-                    }
-                    exit();
-                }
-
-                // Reset timestamp
-                \Database::getInstance()->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
-                    ->set(array("tstamp" => time()))
-                    ->execute(\Input::get("con"));
-
-                // Set codify key from database
-                $this->objCodifyengineBasic->setKey($arrConnections[0]["shared_secret_key"]);
-                $this->objCodifyengine->setKey($arrConnections[0]["shared_secret_key"]);
-                $strCodifyKey = $arrConnections[0]["shared_secret_key"];
-            } else {
-                \System::log(vsprintf("Call from %s without a connection ID.", \Environment::get('ip')),
-                    __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-
-                // Clean output buffer
-                while (@ob_end_clean()) {
-                    ;
-                }
-                exit();
-            }
-        }
-
-        /* ---------------------------------------------------------------------
-         * Check the API key.
-         * Check if the API Key was send.
-         * Check if the API key contains the RPC Call and the API Key from this
-         * Contao Version.
-         */
-
-        // Check if a API-Key was send
-        if (strlen(\Input::get("apikey")) == 0) {
-            \System::log(vsprintf("Call from %s without a API Key.", \Environment::get('ip')),
-                __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
+        $this->checkPing();
+        $this->initEngine();
+        $this->initCryptKey();
+        $this->checkApiKey();
 
         // Check RPC Call from get and the RPC Call from API-Key
         $mixVar    = $this->objCodifyengineBasic->Decrypt(base64_decode(\Input::get("apikey", true)));
@@ -228,6 +156,7 @@ class Client extends Base
             }
         }
 
+
         /* ---------------------------------------------------------------------
          * Run RPC-Check function
          */
@@ -266,7 +195,6 @@ class Client extends Base
         /* ---------------------------------------------------------------------
          * Build a list with parameter from the POST
          */
-
         $arrParameter = array();
 
         if ($this->arrRpcList[$mixRPCCall]["parameter"] != false && is_array($this->arrRpcList[$mixRPCCall]["parameter"])) {
@@ -365,6 +293,134 @@ class Client extends Base
         }
 
         $this->generateOutput();
+        exit();
+    }
+
+    /**
+     * If we have a ping, just do nothing
+     */
+    protected function checkPing()
+    {
+        if (\Input::get('act') == 'ping') {
+            $this->generateClearOutput();
+        }
+    }
+
+    /**
+     * Check if a API-Key was send.
+     */
+    protected function checkApiKey()
+    {
+        if (strlen(\Input::get("apikey")) == 0) {
+            $this->exitWithError
+            (
+                vsprintf("Call from %s without a API Key.", \Environment::get('ip')),
+                __FUNCTION__ . " | " . __CLASS__
+            );
+        }
+    }
+
+    /**
+     * Check if we have a old AES or a new AES with IV.
+     * Set codifyengine keys.
+     * Check the connection ID and refresh/delete it.
+     */
+    protected function initEngine()
+    {
+        // Check if IV was send, when send use the new AES else the old one.
+        try {
+            $this->objCodifyengineBasic = Factory::getEngine("aes");
+            $this->setCodifyengine(\Input::get("engine"));
+        } catch (\RuntimeException $exc) {
+            $this->exitWithError
+            (
+                sprintf('Try to load the engine for ctoCommunication with error: %s', $exc->getMessage()),
+                __FUNCTION__ . " | " . __CLASS__
+            );
+        }
+    }
+
+    /**
+     * Check the current actions and get the crypt keys.
+     */
+    protected function initCryptKey()
+    {
+        // Check if we have a incoming connection for handshake
+        if (in_array(\Input::get("act"), $this->specialCalls)) {
+            $this->setCryptKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
+
+            return;
+        } elseif (strlen(\Input::get("con")) != 0) { // Use the private key from connection pool
+            // Check if we have some data
+            $arrConnections = \Database::getInstance()
+                ->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
+                ->execute(\Input::get("con"))
+                ->fetchAllAssoc();
+
+            if (count($arrConnections) == 0) {
+                $this->exitWithError
+                (
+                    vsprintf("Call from %s with a unknown connection ID.", \Environment::get('ip')),
+                    __FUNCTION__ . " | " . __CLASS__
+                );
+            }
+
+            // Check if time out isn't reached.
+            if ($arrConnections[0]['tstamp'] + $this->intHandshakeTimeout < time()) {
+                \Database::getInstance()
+                    ->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")
+                    ->execute(\Input::get("con"));
+
+                $this->exitWithError
+                (
+                    vsprintf("Call from %s with a expired connection ID.", \Environment::get('ip')),
+                    __FUNCTION__ . " | " . __CLASS__
+                );
+            }
+
+            // Reset timestamp
+            \Database::getInstance()
+                ->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
+                ->set(array("tstamp" => time()))
+                ->execute(\Input::get("con"));
+
+            // Set codify key from database
+            $this->setCryptKey($arrConnections[0]["shared_secret_key"]);
+
+            return;
+        }
+
+        $this->exitWithError
+        (
+            vsprintf("Call from %s without a connection ID.", \Environment::get('ip')),
+            __FUNCTION__ . " | " . __CLASS__
+        );
+    }
+
+    /**
+     * Add a log entry and exit.
+     *
+     * @param string $msg    The message for the log.
+     *
+     * @param string $caller The caller of the class.
+     */
+    protected function exitWithError($msg, $caller)
+    {
+        \System::log($msg, $caller, TL_ERROR);
+        $this->generateClearOutput();
+    }
+
+    /**
+     * Clear all buffer and exit.
+     */
+    protected function generateClearOutput()
+    {
+        // Clean output buffer
+        while (@ob_end_clean()) {
+            ;
+        }
+
+        // Exit.
         exit();
     }
 
