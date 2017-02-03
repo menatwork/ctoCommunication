@@ -442,11 +442,7 @@ class Server extends Base
         (
             'headers' => array
             (
-                'User-Agent'      => "
-                    Mozilla/5.0
-                    (compatible; CtoCommunication RequestExtended on Contao " . VERSION . "." . BUILD . ";
-                    rv:1.0);
-                    CtoCommunication RPC (ctoComV" . $GLOBALS["CTOCOM_VERSION"] . ")",
+                'User-Agent'      => "Mozilla/5.0 (compatible; CtoCommunication RequestExtended on Contao " . VERSION . "." . BUILD . "; rv:1.0); CtoCommunication RPC (ctoComV" . $GLOBALS["CTOCOM_VERSION"] . ")",
                 'Accept-Language' => vsprintf("%s, en;q=0.8", array($GLOBALS['TL_LANGUAGE'])),
                 'Accept'          => 'text/plain; q=0.5, text/html'
             )
