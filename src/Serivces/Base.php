@@ -9,7 +9,6 @@
 namespace CtoCommunication\Serivces;
 
 use CtoCommunication\Codifyengine\Factory;
-use CtoCommunication\Container\Connection;
 use CtoCommunication\Container\Error;
 use CtoCommunication\Helper\Config;
 use CtoCommunication\Helper\Debug;
@@ -42,7 +41,7 @@ class Base
     protected $objCodifyengineBasic;
 
     /**
-     * @var IBasic
+     * @var InterfaceInputOutput
      */
     protected $objIOEngine;
 
@@ -195,7 +194,8 @@ class Base
      * Set Cookie information
      *
      * @param string $name  Key name of array
-     * @param mix    $value Value for Cookie
+     *
+     * @param mixed  $value Value for Cookie
      */
     public function setCookies($name, $value)
     {

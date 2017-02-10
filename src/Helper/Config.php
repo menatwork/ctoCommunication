@@ -32,6 +32,6 @@ class Config
      */
     public function getConnectionTimeout()
     {
-        return 10.0;
+        return 0;
     }
 }
