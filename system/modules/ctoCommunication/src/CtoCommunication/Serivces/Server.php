@@ -11,7 +11,6 @@ namespace CtoCommunication\Serivces;
 use CtoCommunication\Codifyengine\Factory;
 use CtoCommunication\Container\Connection;
 use CtoCommunication\Container\IO;
-use CtoCommunication\Helper\Config;
 use GuzzleHttp\Client;
 use GuzzleHttp\Post\PostBody;
 use GuzzleHttp\Post\PostFile;
@@ -28,7 +27,7 @@ class Server extends Base
     /**
      * The HTTP request.
      *
-     * @var \GuzzleHttp\Message\ResponseInterface
+     * @var \GuzzleHttp\Message\ResponseInterface | \Psr\Http\Message\ResponseInterface
      */
     protected $request;
 
@@ -125,28 +124,39 @@ class Server extends Base
     /**
      * Build a query string with all information for a server request.
      *
+     * @param bool $asArray Flag if we want the query params as array.
+     *
      * @return string the query string
      */
-    protected function getQueryString()
+    protected function getQueryString($asArray = false)
     {
         // Crypt the API key and the RPC for security.
         $strCryptApiKey = $this->objCodifyengineBasic->Encrypt($this->rpc . "@|@" . $this->client->getApiKey());
         $strCryptApiKey = base64_encode($strCryptApiKey);
 
-        // Build the GET query string.
-        $queryString = sprintf(
-            "&engine=%s&act=%s&apikey=%s&con=%s",
-            $this->objCodifyengine->getName(),
-            $this->rpc,
-            urlencode($strCryptApiKey),
-            $this->client->getConnectionID()
-        );
+        if ($asArray) {
+            return [
+                'engine' => $this->objCodifyengine->getName(),
+                'act'    => $this->rpc,
+                'apikey' => $strCryptApiKey,
+                'con'    => $this->client->getConnectionID()
+            ];
+        } else {
+            // Build the GET query string.
+            $queryString = sprintf(
+                "engine=%s&act=%s&apikey=%s&con=%s",
+                $this->objCodifyengine->getName(),
+                $this->rpc,
+                $strCryptApiKey,
+                $this->client->getConnectionID()
+            );
 
-        // Get the connector between base url and query string.
-        $connector = (strpos($this->client->getUrl(), "?") !== false) ? "&" : "?";
+            // Get the connector between base url and query string.
+            $connector = (strpos($this->client->getUrl(), "?") !== false) ? "&" : "?";
 
-        // Save it local.
-        return $connector . $queryString;
+            // Save it local.
+            return $connector . $queryString;
+        }
     }
 
     /**
@@ -442,7 +452,6 @@ class Server extends Base
         (
             'headers' => array
             (
-                'User-Agent'      => "Mozilla/5.0 (compatible; CtoCommunication RequestExtended on Contao " . VERSION . "." . BUILD . "; rv:1.0); CtoCommunication RPC (ctoComV" . $GLOBALS["CTOCOM_VERSION"] . ")",
                 'Accept-Language' => vsprintf("%s, en;q=0.8", array($GLOBALS['TL_LANGUAGE'])),
                 'Accept'          => 'text/plain; q=0.5, text/html'
             )
@@ -453,54 +462,103 @@ class Server extends Base
             $options['auth'] = [$this->client->getHttpUser(), $this->client->getHttpPassword()];
         }
 
-        if ($this->isGetRequest) { // Only get.
-            // Build the array with the query params.
-            $query = array();
-            foreach ($this->data as $key => $value) {
-                $query[$value["name"]] = $value["value"];
+        if (class_exists('GuzzleHttp\Post\PostBody')) {
+            if ($this->isGetRequest) { // Only get.
+                // Build the array with the query params.
+                $query = array();
+                foreach ($this->data as $key => $value) {
+                    $query[$value["name"]] = $value["value"];
+                }
+
+                // Add to the options.
+                $options = array_merge_recursive($options, array('query' => $query));
+            } else {
+                // Create a new post body and add all form fields.
+                $postBody = new PostBody();
+                foreach ($this->data as $key => $value) {
+                    if (isset($value["filename"]) == true && strlen($value["filename"]) != 0) {
+                        $postBody->addFile
+                        (
+                            new PostFile
+                            (
+                                $value["name"],
+                                fopen($value["filepath"], 'r'),
+                                basename($value["filepath"]),
+                                array
+                                (
+                                    'contentType' => $value["mime"],
+                                    'encoding'    => 'binary'
+                                )
+                            )
+                        );
+                    } else {
+                        $postBody->setField($value["name"],
+                            $this->objIOEngine->OutputPost($value["value"], $this->objCodifyengine));
+                    }
+                }
+
+                // Create a new request for post.
+                $requestType = 'POST';
+                $options     = array_merge_recursive($options, array('body' => $postBody));
             }
 
-            // Add to the options.
-            $options = array_merge_recursive($options, array('query' => $query));
+            // create a new request.
+            $request = $httpClient->createRequest(
+                $requestType,
+                $this->client->getUrl() . $this->getQueryString(),
+                $options
+            );
+
+            // Send the request.
+            $this->request = $httpClient->send($request);
+
         } else {
-            // Create a new post body and add all form fields.
-            $postBody = new PostBody();
-            foreach ($this->data as $key => $value) {
-                if (isset($value["filename"]) == true && strlen($value["filename"]) != 0) {
-                    $postBody->addFile
-                    (
-                        new PostFile
-                        (
-                            $value["name"],
-                            fopen($value["filepath"], 'r'),
-                            basename($value["filepath"]),
-                            array
-                            (
+            if ($this->isGetRequest) { // Only get.
+                // Build the array with the query params.
+                $query = array();
+                foreach ($this->data as $key => $value) {
+                    $query[$value["name"]] = $value["value"];
+                }
+
+                // Add to the options.
+                $options = array_merge_recursive($options, array('query' => $query));
+            } else {
+                // Create a new post body and add all form fields.
+                $postBody = [];
+                foreach ($this->data as $key => $value) {
+                    if (isset($value["filename"]) == true && strlen($value["filename"]) != 0) {
+                        $postBody[] = [
+                            'name'     => $value["name"],
+                            'contents' => fopen($value["filepath"], 'r'),
+                            'filename' => basename($value["filepath"]),
+                            'headers'  => [
                                 'contentType' => $value["mime"],
                                 'encoding'    => 'binary'
-                            )
-                        )
-                    );
-                } else {
-                    $postBody->setField($value["name"],
-                        $this->objIOEngine->OutputPost($value["value"], $this->objCodifyengine));
+                            ]
+                        ];
+                    } else {
+                        $postBody[] = [
+                            'name'     => $value["name"],
+                            'contents' => $this->objIOEngine->OutputPost($value["value"], $this->objCodifyengine)
+                        ];
+                    }
                 }
+
+                // Create a new request for post.
+                $requestType = 'POST';
+                $options     = array_merge_recursive($options, array('multipart' => $postBody));
             }
 
-            // Create a new request for post.
-            $requestType = 'POST';
-            $options     = array_merge_recursive($options, array('body' => $postBody));
+            // Add the query parts.
+            $options = array_merge_recursive($options, array('query' => $this->getQueryString(true)));
+
+            // Send the request.
+            $this->request = $httpClient->request(
+                $requestType,
+                $this->client->getUrl(),
+                $options
+            );
         }
-
-        // create a new request.
-        $request = $httpClient->createRequest(
-            $requestType,
-            $this->client->getUrl() . $this->getQueryString(),
-            $options
-        );
-
-        // Send the request.
-        $this->request = $httpClient->send($request);
 
         return $this;
     }
@@ -571,15 +629,35 @@ class Server extends Base
      */
     protected function parseResponse()
     {
-        $strContentType = $this->request->getHeader('Content-Type');
-        $strContentType = preg_replace("/;.*$/", "", $strContentType);
+        // Get the list of content types.
+        $contentTypes = $this->request->getHeader('Content-Type');
+        // If not an array, make an array from it.
+        if (!is_array($contentTypes)) {
+            $contentTypes = preg_replace("/;.*$/", "", $contentTypes);
+            $contentTypes = array($contentTypes);
+        } else {
+            $contentTypes = array_map(
+                function ($value) {
+                    return preg_replace("/;.*$/", "", $value);
+                },
+                $contentTypes
+            );
+        }
 
-        // Search a engine
-        $objIOEngine = \CtoCommunication\InputOutput\Factory::getEngingeForContentType($strContentType);
+        // Try to find the best fitting engine.
+        $objIOEngine = false;
+        foreach ($contentTypes as $contentType) {
+            // Search a engine
+            $objIOEngine = \CtoCommunication\InputOutput\Factory::getEngingeForContentType($contentType);
+
+            if ($objIOEngine !== false) {
+                break;
+            }
+        }
 
         // Check if we have found one
         if ($objIOEngine == false) {
-            throw new \RuntimeException("No I/O class found for " . $strContentType);
+            throw new \RuntimeException("No I/O class found for " . $contentTypes);
         }
 
         // Parse response
