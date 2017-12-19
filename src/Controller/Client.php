@@ -14,12 +14,16 @@ use MenAtWork\CtoCommunicationBundle\Container\IO;
 
 class Client extends Base
 {
+
+
+
     /**
      * Star for routing.
      */
     public function execute()
     {
-
+        var_dump('in');
+        die();
     }
 
     /**
