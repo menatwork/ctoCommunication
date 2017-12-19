@@ -20,15 +20,20 @@
 
 namespace MenAtWork\CtoCommunicationBundle\ContaoManager;
 
+use Contao\CoreBundle\ContaoCoreBundle;
+use Contao\ManagerBundle\ContaoManagerBundle;
 use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
 use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
+use Contao\ManagerPlugin\Routing\RoutingPluginInterface;
 use MenAtWork\CtoCommunicationBundle\CtoCommunicationBundle;
+use Symfony\Component\Config\Loader\LoaderResolverInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Contao Manager plugin.
  */
-class Plugin implements BundlePluginInterface
+class Plugin implements BundlePluginInterface, RoutingPluginInterface
 {
     /**
      * {@inheritdoc}
@@ -37,8 +42,23 @@ class Plugin implements BundlePluginInterface
     {
         return [
             BundleConfig::create(CtoCommunicationBundle::class)
-                ->setLoadAfter([])
+                ->setLoadAfter(
+                    [
+                        ContaoCoreBundle::class,
+                        ContaoManagerBundle::class
+                    ]
+                )
                 ->setReplace(['ctoCommunication'])
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getRouteCollection(LoaderResolverInterface $resolver, KernelInterface $kernel)
+    {
+        return $resolver
+            ->resolve(__DIR__ . '/../Resources/config/routing.yml')
+            ->load(__DIR__ . '/../Resources/config/routing.yml');
     }
 }

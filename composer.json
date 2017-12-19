@@ -38,6 +38,7 @@
 		}
 	},
 	"extra":{
+		"contao-manager-plugin": "MenAtWork\\CtoCommunicationBundle\\ContaoManager\\Plugin",
 		"branch-alias":{
 			"dev-master":"2.0.x-dev"
 		}
