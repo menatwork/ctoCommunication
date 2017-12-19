@@ -36,19 +36,19 @@ $GLOBALS['CTOCOM_ENGINE'] = array
     'empty'  => array
     (
         'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['empty'],
-        'classname' => '\CtoCommunication\Codifyengine\NoneCrypt',
+        'classname' => '\MenAtWork\CtoCommunicationBundle\Codifyengine\NoneCrypt',
         'invisible' => false
     ),
     'mcrypt' => array
     (
         'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['mcrypt'],
-        'classname' => '\CtoCommunication\Codifyengine\Mcrypt',
+        'classname' => '\MenAtWork\CtoCommunicationBundle\Codifyengine\Mcrypt',
         'invisible' => false
     ),
     'aes'    => array
     (
         'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['phpseclib_aes'],
-        'classname' => '\CtoCommunication\Codifyengine\AES',
+        'classname' => '\MenAtWork\CtoCommunicationBundle\Codifyengine\AES',
         'invisible' => false
     ),
 );
@@ -59,7 +59,7 @@ $GLOBALS['CTOCOM_IO'] = array
     (
         'accept'      => array('text/html', 'text/plain', '*/*'),
         'contentType' => 'text/html',
-        'classname'   => '\CtoCommunication\InputOutput\Base',
+        'classname'   => '\MenAtWork\CtoCommunicationBundle\InputOutput\Base',
     )
 );
 
@@ -72,14 +72,14 @@ $GLOBALS['CTOCOM_FUNCTIONS'] = array
     //- Referer Functions --------
     'CTOCOM_REFERRER_DISABLE'  => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'referrer_disable',
         'typ'       => 'GET',
         'parameter' => false,
     ),
     'CTOCOM_REFERRER_ENABLE'   => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'referrer_enable',
         'typ'       => 'GET',
         'parameter' => false,
@@ -87,56 +87,56 @@ $GLOBALS['CTOCOM_FUNCTIONS'] = array
     //- Version Functions --------
     'CTOCOM_VERSION'           => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'getCtoComVersion',
         'typ'       => 'GET',
         'parameter' => false,
     ),
     'CONTAO_VERSION'           => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'getContaoVersion',
         'typ'       => 'GET',
         'parameter' => false,
     ),
     'CONTAO_FULL_VERSION'      => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'getContaoFullVersion',
         'typ'       => 'GET',
         'parameter' => false,
     ),
     'CTOCOM_GET_RESPONSE_PART' => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'getResponsePart',
         'typ'       => 'POST',
         'parameter' => array('splitname', 'splitcount'),
     ),
     'CTOCOM_HELLO'             => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'generateUUID',
         'typ'       => 'GET',
         'parameter' => false,
     ),
     'CTOCOM_START_HANDSHAKE'   => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'startHandshake',
         'typ'       => 'GET',
         'parameter' => false,
     ),
     'CTOCOM_CHECK_HANDSHAKE'   => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'checkHandshake',
         'typ'       => 'GET',
         'parameter' => false,
     ),
     'CTOCOM_BYE'               => array
     (
-        'class'     => '\CtoCommunication\RPC\CoreFunctions',
+        'class'     => '\MenAtWork\CtoCommunicationBundle\RPC\CoreFunctions',
         'function'  => 'deleteUUID',
         'typ'       => 'GET',
         'parameter' => false,

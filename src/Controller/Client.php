@@ -8,22 +8,87 @@
 
 namespace MenAtWork\CtoCommunicationBundle\Controller;
 
-use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
+use MenAtWork\CtoCommunicationBundle\Container\ClientState;
 use MenAtWork\CtoCommunicationBundle\Container\Error;
 use MenAtWork\CtoCommunicationBundle\Container\IO;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class Client extends Base
 {
 
-
+    const HTTP_CODE_OK = 200;
+    const HTTP_CODE_FORBIDDEN = 403;
+    const HTTP_CODE_NOT_FOUND = 404;
+    const HTTP_CODE_FAILED_DEPENDENCY = 424;
 
     /**
      * Star for routing.
      */
-    public function execute()
+    public function execute(Request $request)
     {
-        var_dump('in');
-        die();
+        // Init the state container.
+        $clientState = new ClientState();
+        $clientState
+            ->setRequest($request)
+            ->setConTimeout(1200);
+
+        // Check ping.
+        if ($clientState->isPingRequest()) {
+            return $this->handlePing();
+        }
+
+        // Check the crypt engines.
+        if (!$clientState->setupCrypt()) {
+            return $this->handleRespone(self::HTTP_CODE_FORBIDDEN);
+        }
+
+        //Now the key for the crypt class.
+        if ($clientState->isHandshakeRequest()) {
+            $passwordState = $clientState->setupCryptPassword($clientState::CRYPT_PASSWORD_API_KEY);
+        } else {
+            $passwordState = $clientState->setupCryptPassword($clientState::CRYPT_PASSWORD_EXCHANGE);
+        }
+
+        // If the password was not set end here.
+        if (!$passwordState) {
+            return $this->handleRespone(self::HTTP_CODE_FAILED_DEPENDENCY);
+        }
+
+        // Default handling.
+        return $this->handle404();
+    }
+
+    /**
+     * Just handle a ping request.
+     *
+     * @return Response
+     */
+    private function handlePing()
+    {
+        return new Response('', self::HTTP_CODE_OK);
+    }
+
+    /**
+     * Send the 404 header.
+     *
+     * @return Response
+     */
+    private function handle404()
+    {
+        return new Response('', self::HTTP_CODE_NOT_FOUND);
+    }
+
+    /**
+     * Default handling function.
+     *
+     * @param int $statusCode The http header code.
+     *
+     * @return Response
+     */
+    private function handleRespone($statusCode)
+    {
+        return new Response('', $statusCode);
     }
 
     /**
@@ -33,90 +98,6 @@ class Client extends Base
      */
     public function run()
     {
-        // If we have a ping, just do nothing
-        if (\Input::get("act") == "ping") {
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
-
-        /* ---------------------------------------------------------------------
-         * Check if we have a old AES or a new AES with IV.
-         * Set codifyengine keys.
-         * Check the connection ID and refresh/delete it.
-         */
-
-        // Check if IV was send, when send use the new AES else the old one.
-        try {
-            $this->objCodifyengineBasic = Factory::getEngine("aes");
-            $this->setCodifyengine(\Input::get("engine"));
-        } catch (\RuntimeException $exc) {
-            \System::log("Try to load the engine for ctoCommunication with error: " . $exc->getMessage(),
-                __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
-
-        // Check if we have a incomming connection for handshake
-        if (in_array(\Input::get("act"),
-            array("CTOCOM_HELLO", "CTOCOM_START_HANDSHAKE", "CTOCOM_CHECK_HANDSHAKE", "CTOCOM_VERSION"))) {
-            $this->objCodifyengine->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
-            $this->objCodifyengineBasic->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
-            $strCodifyKey = $GLOBALS['TL_CONFIG']['ctoCom_APIKey'];
-        } else if (strlen(\Input::get("con")) != 0) {
-            // Check if we have some data
-            $arrConnections = \Database::getInstance()->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
-                ->execute(\Input::get("con"))
-                ->fetchAllAssoc();
-
-            if (count($arrConnections) == 0) {
-                \System::log(vsprintf("Call from %s with a unknown connection ID.", \Environment::get('ip')),
-                    __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-                // Clean output buffer
-                while (@ob_end_clean()) {
-                    ;
-                }
-                exit();
-            }
-
-            // Check if time out isn't reached.
-            if ($arrConnections[0]["tstamp"] + $this->intHandshakeTimeout < time()) {
-                \Database::getInstance()->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")
-                    ->execute(\Input::get("con"));
-
-                \System::log(vsprintf("Call from %s with a expired connection ID.", \Environment::get('ip')),
-                    __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-                // Clean output buffer
-                while (@ob_end_clean()) {
-                    ;
-                }
-                exit();
-            }
-
-            // Reset timestamp
-            \Database::getInstance()->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
-                ->set(array("tstamp" => time()))
-                ->execute(\Input::get("con"));
-
-            // Set codify key from database
-            $this->objCodifyengineBasic->setKey($arrConnections[0]["shared_secret_key"]);
-            $this->objCodifyengine->setKey($arrConnections[0]["shared_secret_key"]);
-            $strCodifyKey = $arrConnections[0]["shared_secret_key"];
-        } else {
-            \System::log(vsprintf("Call from %s without a connection ID.", \Environment::get('ip')),
-                __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
 
         /* ---------------------------------------------------------------------
          * Check the API key.
@@ -183,7 +164,7 @@ class Client extends Base
          */
 
         if (strlen(\Input::get("format")) != 0) {
-            if (\CtoCommunication\InputOutput\Factory::engineExist(\Input::get("format"))) {
+            if (\MenAtWork\CtoCommunicationBundle\InputOutput\Factory::engineExist(\Input::get("format"))) {
                 $this->setIOEngine(\Input::get("format"));
             } else {
                 $this->setIOEngine();
@@ -208,7 +189,7 @@ class Client extends Base
             $strIOEngine = false;
 
             foreach ($arrAccept as $key => $value) {
-                $strIOEngine = \CtoCommunication\InputOutput\Factory::getEngingenameForAccept($value);
+                $strIOEngine = \MenAtWork\CtoCommunicationBundle\InputOutput\Factory::getEngingenameForAccept($value);
 
                 if ($strIOEngine !== false) {
                     break;
@@ -216,7 +197,7 @@ class Client extends Base
             }
 
             if ($strIOEngine === false) {
-                $this->objIOEngine = \CtoCommunication\InputOutput\Factory::getEngine('default');
+                $this->objIOEngine = \MenAtWork\CtoCommunicationBundle\InputOutput\Factory::getEngine('default');
 
                 $this->objError = new Error();
                 $this->objError->setLanguage("unknown_io");

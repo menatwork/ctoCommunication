@@ -648,7 +648,7 @@ class Server extends Base
         $objIOEngine = false;
         foreach ($contentTypes as $contentType) {
             // Search a engine
-            $objIOEngine = \CtoCommunication\InputOutput\Factory::getEngingeForContentType($contentType);
+            $objIOEngine = \MenAtWork\CtoCommunicationBundle\InputOutput\Factory::getEngingeForContentType($contentType);
 
             if ($objIOEngine !== false) {
                 break;

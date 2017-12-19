@@ -8,6 +8,9 @@
 
 namespace MenAtWork\CtoCommunicationBundle\Controller;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+
 /**
  * Class Test
  *
@@ -23,5 +26,12 @@ class Test
     public function test()
     {
 
+    }
+
+    public function execute(Request $request)
+    {
+        $request->get('key');
+
+        return new JsonResponse(['status' => 'okay']);
     }
 }

@@ -31,12 +31,12 @@ class Base
     protected $intHandshakeTimeout = 1200;
 
     /**
-     * @var \CtoCommunication\Codifyengine\Base
+     * @var \MenAtWork\CtoCommunicationBundle\Codifyengine\Base
      */
     protected $objCodifyengine;
 
     /**
-     * @var \CtoCommunication\Codifyengine\Base
+     * @var \MenAtWork\CtoCommunicationBundle\Codifyengine\Base
      */
     protected $objCodifyengineBasic;
 
@@ -55,8 +55,6 @@ class Base
      */
     protected $objError;
 
-    //----------------------------------
-
     /**
      * The container for global configurations.
      *
@@ -64,15 +62,12 @@ class Base
      */
     protected $config;
 
-
-
     /**
      * Constructor
      */
     public function __construct()
     {
         $this->initEnvironment();
-        $this->loadAdditionalData();
     }
 
     /**
@@ -89,16 +84,6 @@ class Base
 
         $this->setIOEngine("default");
         $this->setCodifyengine();
-    }
-
-    /**
-     * Load some additional data.
-     */
-    protected function loadAdditionalData()
-    {
-        require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
-        require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman/Exception.php';
-        require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman/Math/Exception.php';
     }
 
     /**
@@ -166,7 +151,7 @@ class Base
      */
     public function setIOEngine($strName = 'default')
     {
-        $this->objIOEngine = \CtoCommunication\InputOutput\Factory::getEngine($strName);
+        $this->objIOEngine = \MenAtWork\CtoCommunicationBundle\InputOutput\Factory::getEngine($strName);
         $this->strIOEngine = $strName;
     }
 
@@ -177,7 +162,7 @@ class Base
      */
     public function setIOEngineByContentTyp($strName = 'text/html')
     {
-        $this->setIOEngine(\CtoCommunication\InputOutput\Factory::getEngingenameForContentType($strName));
+        $this->setIOEngine(\MenAtWork\CtoCommunicationBundle\InputOutput\Factory::getEngingenameForContentType($strName));
     }
 
     /**
@@ -187,7 +172,7 @@ class Base
      */
     public function setIOEngineByAccept($strName = 'text/html')
     {
-        $this->setIOEngine(\CtoCommunication\InputOutput\Factory::getEngingenameForAccept($strName));
+        $this->setIOEngine(\MenAtWork\CtoCommunicationBundle\InputOutput\Factory::getEngingenameForAccept($strName));
     }
 
     /**
