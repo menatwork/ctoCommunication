@@ -33,27 +33,11 @@
 		"guzzlehttp/guzzle":"~5.3 || ~6.2"
 	},
 	"autoload":{
-		"classmap":["system/"]
-	},
-	"replace":{
-		"contao-legacy/ctocommunication":"*"
+		"psr-4": {
+			"MenAtWork\\CtoCommunicationBundle\\": "src"
+		}
 	},
 	"extra":{
-		"contao":{
-			"sources":{
-				"ctoCommunication.php":"ctoCommunication.php",
-				"system/modules/ctoCommunication":"system/modules/ctoCommunication"
-			},
-			"transifex": {
-				"project": "ctocommunication",
-				"prefix": "",
-				"languages_cto": "system/modules/ctoCommunication/languages",
-				"languages_tx": ".tx"
-			},
-			"runonce":[
-				"system/modules/ctoCommunication/runonce/runonce.php"
-			]
-		},
 		"branch-alias":{
 			"dev-master":"2.0.x-dev"
 		}
