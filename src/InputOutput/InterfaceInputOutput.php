@@ -9,10 +9,10 @@
  * @filesource
  */
 
-namespace CtoCommunication\InputOutput;
+namespace MenAtWork\CtoCommunicationBundle\InputOutput;
 
-use CtoCommunication\Codifyengine\Base as CodifyengineBase;
-use CtoCommunication\Container\IO;
+use MenAtWork\CtoCommunicationBundle\Codifyengine\Base as CodifyengineBase;
+use MenAtWork\CtoCommunicationBundle\Container\IO;
 
 /**
  * Interface for Codifyengine

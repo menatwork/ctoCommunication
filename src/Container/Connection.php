@@ -6,7 +6,7 @@
  * Time: 10:19
  */
 
-namespace CtoCommunication\Container;
+namespace MenAtWork\CtoCommunicationBundle\Container;
 
 
 class Connection

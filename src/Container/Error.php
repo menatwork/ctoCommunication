@@ -9,7 +9,7 @@
  * @filesource
  */
 
-namespace CtoCommunication\Container;
+namespace MenAtWork\CtoCommunicationBundle\Container;
 
 /**
  * Interface for Error

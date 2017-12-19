@@ -1,0 +1,3 @@
+ctocommunication_start:
+    path:     /ctoCommunication
+    defaults: { _controller: cotCommunication.controller.client, _scope: backend, _token_check: false }

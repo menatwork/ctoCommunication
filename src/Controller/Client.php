@@ -6,14 +6,21 @@
  * Time: 17:08
  */
 
-namespace CtoCommunication\Serivces;
+namespace MenAtWork\CtoCommunicationBundle\Controller;
 
-use CtoCommunication\Codifyengine\Factory;
-use CtoCommunication\Container\Error;
-use CtoCommunication\Container\IO;
+use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
+use MenAtWork\CtoCommunicationBundle\Container\Error;
+use MenAtWork\CtoCommunicationBundle\Container\IO;
 
 class Client extends Base
 {
+    /**
+     * Star for routing.
+     */
+    public function execute()
+    {
+
+    }
 
     /**
      * Run the communication as client
@@ -211,7 +218,8 @@ class Client extends Base
                 $this->objError->setLanguage("unknown_io");
                 $this->objError->setID(10);
                 $this->objError->setObject("");
-                $this->objError->setMessage(sprintf("No I/O Interface found for accept: %s", var_export($strAccept, true)));
+                $this->objError->setMessage(sprintf("No I/O Interface found for accept: %s",
+                    var_export($strAccept, true)));
                 $this->objError->setRPC("");
                 $this->objError->setClass("");
                 $this->objError->setFunction("");
@@ -337,7 +345,7 @@ class Client extends Base
                 $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]),
                     $arrParameter);
             } else {
-                $object = new $this->arrRpcList[$mixRPCCall]["class"];
+                $object = new $this->arrRpcList[$mixRPCCall]['class'];
                 $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]),
                     $arrParameter);
             }

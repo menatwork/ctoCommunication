@@ -9,7 +9,7 @@
  * @filesource
  */
 
-namespace CtoCommunication\RPC;
+namespace MenAtWork\CtoCommunicationBundle\RPC;
 
 /**
  * Remote Procedure Call Class

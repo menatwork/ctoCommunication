@@ -1,1 +1,3 @@
 services:
+    cotCommunication.controller.client:
+        class: MenAtWork\CtoCommunicationBundle\Controller\Client

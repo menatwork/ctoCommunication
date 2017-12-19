@@ -9,7 +9,7 @@
  * @filesource
  */
 
-namespace CtoCommunication\InputOutput;
+namespace MenAtWork\CtoCommunicationBundle\InputOutput;
 
 /**
  * Factory for create the codifyengine

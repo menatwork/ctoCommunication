@@ -6,7 +6,7 @@
  * Time: 15:15
  */
 
-namespace CtoCommunication\Helper;
+namespace MenAtWork\CtoCommunicationBundle\Helper;
 
 
 class Config

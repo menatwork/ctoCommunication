@@ -9,9 +9,9 @@
  * @filesource
  */
 
-namespace CtoCommunication\Container;
+namespace MenAtWork\CtoCommunicationBundle\Container;
 
-use CtoCommunication\Container\Error;
+use MenAtWork\CtoCommunicationBundle\Container\Error;
 
 /**
  * Interface for Codifyengine

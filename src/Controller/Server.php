@@ -6,11 +6,11 @@
  * Time: 17:08
  */
 
-namespace CtoCommunication\Serivces;
+namespace MenAtWork\CtoCommunicationBundle\Controller;
 
-use CtoCommunication\Codifyengine\Factory;
-use CtoCommunication\Container\Connection;
-use CtoCommunication\Container\IO;
+use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
+use MenAtWork\CtoCommunicationBundle\Container\Connection;
+use MenAtWork\CtoCommunicationBundle\Container\IO;
 use GuzzleHttp\Client;
 use GuzzleHttp\Post\PostBody;
 use GuzzleHttp\Post\PostFile;

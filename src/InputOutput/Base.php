@@ -9,12 +9,12 @@
  * @filesource
  */
 
-namespace CtoCommunication\InputOutput;
+namespace MenAtWork\CtoCommunicationBundle\InputOutput;
 
-use CtoCommunication\Codifyengine\Base as CodifyengineBase;
-use CtoCommunication\Container\Error;
-use CtoCommunication\Container\IO;
-use CtoCommunication\Helper\Debug;
+use MenAtWork\CtoCommunicationBundle\Codifyengine\Base as CodifyengineBase;
+use MenAtWork\CtoCommunicationBundle\Container\Error;
+use MenAtWork\CtoCommunicationBundle\Container\IO;
+use MenAtWork\CtoCommunicationBundle\Helper\Debug;
 
 /**
  * Interface for Codifyengine

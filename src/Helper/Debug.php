@@ -9,7 +9,7 @@
  * @filesource
  */
 
-namespace CtoCommunication\Helper;
+namespace MenAtWork\CtoCommunicationBundle\Helper;
 
 /**
  * Debug class

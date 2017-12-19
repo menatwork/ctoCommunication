@@ -6,13 +6,13 @@
  * Time: 17:08
  */
 
-namespace CtoCommunication\Serivces;
+namespace MenAtWork\CtoCommunicationBundle\Controller;
 
-use CtoCommunication\Codifyengine\Factory;
-use CtoCommunication\Container\Error;
-use CtoCommunication\Helper\Config;
-use CtoCommunication\Helper\Debug;
-use CtoCommunication\InputOutput\InterfaceInputOutput;
+use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
+use MenAtWork\CtoCommunicationBundle\Container\Error;
+use MenAtWork\CtoCommunicationBundle\Helper\Config;
+use MenAtWork\CtoCommunicationBundle\Helper\Debug;
+use MenAtWork\CtoCommunicationBundle\InputOutput\InterfaceInputOutput;
 
 class Base
 {

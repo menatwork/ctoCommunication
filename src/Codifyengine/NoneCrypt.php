@@ -9,7 +9,7 @@
  * @filesource
  */
 
-namespace CtoCommunication\Codifyengine;
+namespace MenAtWork\CtoCommunicationBundle\Codifyengine;
 
 /**
  * CtoComCodifyengineImpl_Empty
