@@ -17,18 +17,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Client extends Base
 {
-
     const HTTP_CODE_OK = 200;
     const HTTP_CODE_FORBIDDEN = 403;
     const HTTP_CODE_NOT_FOUND = 404;
     const HTTP_CODE_FAILED_DEPENDENCY = 424;
-
-    /**
-     * Flag fo debugging or not.
-     *
-     * @var int
-     */
-    private $debug = 1;
 
     public function __construct()
     {
