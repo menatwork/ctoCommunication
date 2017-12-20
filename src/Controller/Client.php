@@ -11,6 +11,7 @@ namespace MenAtWork\CtoCommunicationBundle\Controller;
 use MenAtWork\CtoCommunicationBundle\Container\ClientState;
 use MenAtWork\CtoCommunicationBundle\Container\Error;
 use MenAtWork\CtoCommunicationBundle\Container\IO;
+use MenAtWork\CtoCommunicationBundle\InputOutput\Factory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,6 +22,24 @@ class Client extends Base
     const HTTP_CODE_FORBIDDEN = 403;
     const HTTP_CODE_NOT_FOUND = 404;
     const HTTP_CODE_FAILED_DEPENDENCY = 424;
+
+    /**
+     * Flag fo debugging or not.
+     *
+     * @var int
+     */
+    private $debug = 1;
+
+    public function __construct()
+    {
+        // call the parent.
+        parent::__construct();
+
+        // preset the language.
+        if (empty($GLOBALS['TL_LANGUAGE'])) {
+            $GLOBALS['TL_LANGUAGE'] = 'en';
+        }
+    }
 
     /**
      * Star for routing.
@@ -38,9 +57,14 @@ class Client extends Base
             return $this->handlePing();
         }
 
+        // Check if we have an api key.
+        if (!$clientState->hasRequestApiKey()) {
+            return $this->handle404();
+        }
+
         // Check the crypt engines.
         if (!$clientState->setupCrypt()) {
-            return $this->handleRespone(self::HTTP_CODE_FORBIDDEN);
+            return $this->handleResponse(self::HTTP_CODE_FORBIDDEN);
         }
 
         //Now the key for the crypt class.
@@ -52,11 +76,15 @@ class Client extends Base
 
         // If the password was not set end here.
         if (!$passwordState) {
-            return $this->handleRespone(self::HTTP_CODE_FAILED_DEPENDENCY);
+            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY);
         }
 
-        // Default handling.
-        return $this->handle404();
+        // Validate the secret with the request.
+        if (!$clientState->validateAction()) {
+            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY);
+        }
+
+        return $this->run($clientState);
     }
 
     /**
@@ -86,7 +114,7 @@ class Client extends Base
      *
      * @return Response
      */
-    private function handleRespone($statusCode)
+    private function handleResponse($statusCode)
     {
         return new Response('', $statusCode);
     }
@@ -94,102 +122,42 @@ class Client extends Base
     /**
      * Run the communication as client
      *
-     * @return void
+     * @param ClientState $clientState
+     *
+     * @return Response The response
      */
-    public function run()
+    public function run($clientState)
     {
-
-        /* ---------------------------------------------------------------------
-         * Check the API key.
-         * Check if the API Key was send.
-         * Check if the API key contains the RPC Call and the API Key from this
-         * Contao Version.
-         */
-
-        // Check if a API-Key was send
-        if (strlen(\Input::get("apikey")) == 0) {
-            \System::log(vsprintf("Call from %s without a API Key.", \Environment::get('ip')),
-                __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
-
-        // Check RPC Call from get and the RPC Call from API-Key
-        $mixVar    = $this->objCodifyengineBasic->Decrypt(base64_decode(\Input::get("apikey", true)));
-        $mixVar    = trimsplit("@\|@", $mixVar);
-        $strApiKey = $mixVar[1];
-        $strAction = $mixVar[0];
-
-        if ($strAction != \Input::get("act")) {
-            \System::log(vsprintf("Error Api Key from %s. Request action: %s | Key action: %s | Api: %s", array(
-                \Environment::get('ip'),
-                \Input::get("act"),
-                $strAction,
-                $strApiKey
-            )), __FUNCTION__ . " | " . __CLASS__, TL_ERROR);
-
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
-
-        if ($GLOBALS['TL_CONFIG']['ctoCom_APIKey'] != $strApiKey) {
-            \System::log(vsprintf("Call from %s with a wrong API Key: %s",
-                array(\Environment::get('ip'), \Input::get("apikey"))), __FUNCTION__ . " | " . __CLASS__,
-                TL_ERROR);
-
-            // Clean output buffer
-            while (@ob_end_clean()) {
-                ;
-            }
-            exit();
-        }
-
-        /* ---------------------------------------------------------------------
-         * Check language settings
-         */
-
-        if (empty($GLOBALS['TL_LANGUAGE'])) {
-            $GLOBALS['TL_LANGUAGE'] = "en";
-        }
-
         /* ---------------------------------------------------------------------
          * Set I/O System
          */
 
-        if (strlen(\Input::get("format")) != 0) {
-            if (\MenAtWork\CtoCommunicationBundle\InputOutput\Factory::engineExist(\Input::get("format"))) {
-                $this->setIOEngine(\Input::get("format"));
+        if ($clientState->hasRequestFormat()) {
+            if (Factory::engineExist($clientState->getRequestFormat())) {
+                $this->setIOEngine($clientState->getRequestFormat());
             } else {
                 $this->setIOEngine();
 
-                $this->objError = new Error();
-                $this->objError->setLanguage("unknown_io");
-                $this->objError->setID(10);
-                $this->objError->setObject("");
-                $this->objError->setMessage("No I/O Interface found for accept.");
-                $this->objError->setRPC("");
-                $this->objError->setClass("");
-                $this->objError->setFunction("");
+                $objError = new Error();
+                $objError->setLanguage('unknown_io');
+                $objError->setID(10);
+                $objError->setObject('');
+                $objError->setMessage('No I/O Interface found for accept.');
+                $objError->setRPC('');
+                $objError->setClass('');
+                $objError->setFunction('');
 
-                $this->generateOutput();
-                exit();
+                return $this->generateOutput($clientState, $objError);
             }
         } else {
             $strAccept = $_SERVER['HTTP_ACCEPT'];
-            $strAccept = preg_replace("/;q=\d\.\d/", "", $strAccept);
-            $arrAccept = trimsplit(",", $strAccept);
+            $strAccept = preg_replace('/;q=\d\.\d/', '', $strAccept);
+            $arrAccept = trimsplit(',', $strAccept);
 
             $strIOEngine = false;
 
             foreach ($arrAccept as $key => $value) {
-                $strIOEngine = \MenAtWork\CtoCommunicationBundle\InputOutput\Factory::getEngingenameForAccept($value);
+                $strIOEngine = Factory::getEngingenameForAccept($value);
 
                 if ($strIOEngine !== false) {
                     break;
@@ -197,20 +165,18 @@ class Client extends Base
             }
 
             if ($strIOEngine === false) {
-                $this->objIOEngine = \MenAtWork\CtoCommunicationBundle\InputOutput\Factory::getEngine('default');
+                $this->objIOEngine = Factory::getEngine('default');
 
-                $this->objError = new Error();
-                $this->objError->setLanguage("unknown_io");
-                $this->objError->setID(10);
-                $this->objError->setObject("");
-                $this->objError->setMessage(sprintf("No I/O Interface found for accept: %s",
-                    var_export($strAccept, true)));
-                $this->objError->setRPC("");
-                $this->objError->setClass("");
-                $this->objError->setFunction("");
+                $objError = new Error();
+                $objError->setLanguage('unknown_io');
+                $objError->setID(10);
+                $objError->setObject('');
+                $objError->setMessage(sprintf('No I/O Interface found for accept: %s', var_export($strAccept, true)));
+                $objError->setRPC('');
+                $objError->setClass('');
+                $objError->setFunction('');
 
-                $this->generateOutput();
-                exit();
+                return $this->generateOutput($clientState, $objError);
             } else {
                 $this->setIOEngine($strIOEngine);
             }
@@ -221,34 +187,32 @@ class Client extends Base
          */
 
         // Check if act is set
-        $mixRPCCall = \Input::get("act");
+        $mixRPCCall = $clientState->getAct();
 
         if (strlen($mixRPCCall) == 0) {
-            $this->objError = new Error();
-            $this->objError->setLanguage("rpc_missing");
-            $this->objError->setID(1);
-            $this->objError->setObject("");
-            $this->objError->setMessage("Missing RPC Call");
-            $this->objError->setRPC($mixRPCCall);
-            $this->objError->setClass("");
-            $this->objError->setFunction("");
+            $objError = new Error();
+            $objError->setLanguage('rpc_missing');
+            $objError->setID(1);
+            $objError->setObject('');
+            $objError->setMessage('Missing RPC Call');
+            $objError->setRPC($mixRPCCall);
+            $objError->setClass('');
+            $objError->setFunction('');
 
-            $this->generateOutput();
-            exit();
+            return $this->generateOutput($clientState, $objError);
         }
 
         if (!array_key_exists($mixRPCCall, $this->arrRpcList)) {
-            $this->objError = new Error();
-            $this->objError->setLanguage("rpc_unknown");
-            $this->objError->setID(1);
-            $this->objError->setObject("");
-            $this->objError->setMessage("Unknown RPC Call");
-            $this->objError->setRPC($mixRPCCall);
-            $this->objError->setClass("");
-            $this->objError->setFunction("");
+            $objError = new Error();
+            $objError->setLanguage('rpc_unknown');
+            $objError->setID(1);
+            $objError->setObject('');
+            $objError->setMessage('Unknown RPC Call');
+            $objError->setRPC($mixRPCCall);
+            $objError->setClass('');
+            $objError->setFunction('');
 
-            $this->generateOutput();
-            exit();
+            return $this->generateOutput($clientState, $objError);
         }
 
         /* ---------------------------------------------------------------------
@@ -257,32 +221,22 @@ class Client extends Base
 
         $arrParameter = array();
 
-        if ($this->arrRpcList[$mixRPCCall]["parameter"] != false && is_array($this->arrRpcList[$mixRPCCall]["parameter"])) {
-            switch ($this->arrRpcList[$mixRPCCall]["typ"]) {
+        if ($this->arrRpcList[$mixRPCCall]['parameter'] != false
+            && is_array($this->arrRpcList[$mixRPCCall]['parameter'])
+        ) {
+
+            switch ($this->arrRpcList[$mixRPCCall]['typ']) {
                 // Decode post
-                case "POST":
+                case 'POST':
                     // Decode each post
                     $arrPostValues = array();
-                    foreach ($_POST as $key => $value) {
-                        if ((version_compare('3.2.16', VERSION . '.' . BUILD, '<=') && version_compare('3.3.0',
-                                    VERSION . '.' . BUILD, '>'))
-                            || version_compare('3.3.7', VERSION . '.' . BUILD, '<=')
-                        ) {
-                            // Get the raw data.
-                            $mixPost = \Input::postUnsafeRaw($key);
-                        } else {
-                            // Get the raw data for older contao versions.
-                            $mixPost = \Input::postRaw($key);
-                        }
-
-                        $mixPost             = $this->objIOEngine->InputPost($mixPost, $this->objCodifyengine);
+                    foreach ($clientState->getAllParametersFromRequest() as $key => $value) {
+                        $mixPost             = $this->objIOEngine->InputPost($value, $this->objCodifyengine);
                         $arrPostValues[$key] = $mixPost;
-
-                        \Input::setPost($key, $mixPost);
                     }
 
                     // Check if all post are set
-                    foreach ($this->arrRpcList[$mixRPCCall]["parameter"] as $value) {
+                    foreach ($this->arrRpcList[$mixRPCCall]['parameter'] as $value) {
                         $arrPostKey = array_keys($arrPostValues);
 
                         if (!in_array($value, $arrPostKey)) {
@@ -305,91 +259,116 @@ class Client extends Base
          * Call function
          */
 
+        $mixOutput = null;
         try {
-            $strClassname = $this->arrRpcList[$mixRPCCall]["class"];
+            $strClassname = $this->arrRpcList[$mixRPCCall]['class'];
 
             if (!class_exists($strClassname)) {
-                $this->objError = new Error();
-                $this->objError->setLanguage("rpc_class_not_exists");
-                $this->objError->setID(4);
-                $this->objError->setObject($value);
-                $this->objError->setMessage("The choosen class didn`t exists.");
-                $this->objError->setRPC($mixRPCCall);
-                $this->objError->setClass($this->arrRpcList[$mixRPCCall]["class"]);
-                $this->objError->setFunction($this->arrRpcList[$mixRPCCall]["function"]);
+                $objError = new Error();
+                $objError->setLanguage('rpc_class_not_exists');
+                $objError->setID(4);
+                $objError->setObject($value);
+                $objError->setMessage('The choosen class didn`t exists.');
+                $objError->setRPC($mixRPCCall);
+                $objError->setClass($this->arrRpcList[$mixRPCCall]['class']);
+                $objError->setFunction($this->arrRpcList[$mixRPCCall]['function']);
 
-                $this->generateOutput();
-                exit();
+                return $this->generateOutput($clientState, $objError);
             }
 
             $objReflection = new \ReflectionClass($strClassname);
+            if ($objReflection->hasMethod('getInstance')) {
+                $object = call_user_func_array
+                (
+                    array($this->arrRpcList[$mixRPCCall]['class'], 'getInstance'),
+                    array()
+                );
 
-            if ($objReflection->hasMethod("getInstance")) {
-                $object          = call_user_func_array(array($this->arrRpcList[$mixRPCCall]["class"], "getInstance"),
-                    array());
-                $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]),
-                    $arrParameter);
+                $mixOutput = call_user_func_array
+                (
+                    array($object, $this->arrRpcList[$mixRPCCall]['function']),
+                    $arrParameter
+                );
             } else {
                 $object = new $this->arrRpcList[$mixRPCCall]['class'];
-                $this->mixOutput = call_user_func_array(array($object, $this->arrRpcList[$mixRPCCall]["function"]),
-                    $arrParameter);
+                $mixOutput = call_user_func_array
+                (
+                    array($object, $this->arrRpcList[$mixRPCCall]['function']),
+                    $arrParameter
+                );
             }
         } catch (\Exception $exc) {
-            $this->objError = new Error();
-            $this->objError->setLanguage("rpc_unknown_exception");
-            $this->objError->setID(3);
-            $this->objError->setObject("");
-            $this->objError->setMessage($exc->getMessage());
-            $this->objError->setRPC($mixRPCCall);
-            $this->objError->setClass($this->arrRpcList[$mixRPCCall]["class"]);
-            $this->objError->setFunction($this->arrRpcList[$mixRPCCall]["function"]);
-            $this->objError->setException($exc);
+            $objError = new Error();
+            $objError->setLanguage('rpc_unknown_exception');
+            $objError->setID(3);
+            $objError->setObject('');
+            $objError->setMessage($exc->getMessage());
+            $objError->setRPC($mixRPCCall);
+            $objError->setClass($this->arrRpcList[$mixRPCCall]['class']);
+            $objError->setFunction($this->arrRpcList[$mixRPCCall]['function']);
+            $objError->setException($exc);
 
-            \System::log(vsprintf("RPC Exception: %s | %s", array($exc->getMessage(), nl2br($exc->getTraceAsString()))),
-                __CLASS__ . " | " . __FUNCTION__, TL_ERROR);
+            $this->log
+            (
+                sprintf
+                (
+                    'RPC Exception: %s | %s',
+                    $exc->getMessage(),
+                    nl2br($exc->getTraceAsString())
+                ),
+                __CLASS__ . ' | ' . __FUNCTION__,
+                TL_ERROR
+            );
 
-            $this->generateOutput();
-            exit();
+            return $this->generateOutput($clientState, $objError);
         }
 
-        $this->generateOutput();
-        exit();
+        return $this->generateOutput($clientState, null, $mixOutput);
     }
 
     /**
      * Build the answer and serialize it
      *
-     * @return string
+     * @param ClientState $clientState The state of the client.
+     *
+     * @param Error       $error       The error container.
+     *
+     * @param null|mixed  $output      The output from the function.
+     *
+     * @return Response The response object.
      */
-    protected function generateOutput()
+    protected function generateOutput($clientState, $error = null, $output = null)
     {
         $objOutputContainer = new IO();
 
-        if ($this->objError == false) {
+        // Check if we have an error or not.
+        if ($error === null) {
             $objOutputContainer->setSuccess(true);
-            $objOutputContainer->setResponse($this->mixOutput);
+            $objOutputContainer->setResponse($output);
             $objOutputContainer->setSplitcontent(false);
             $objOutputContainer->setSplitcount(0);
-            $objOutputContainer->setSplitname("");
+            $objOutputContainer->setSplitname('');
         } else {
             $objOutputContainer->setSuccess(false);
-            $objOutputContainer->setError($this->objError);
+            $objOutputContainer->setError($error);
             $objOutputContainer->setResponse(null);
             $objOutputContainer->setSplitcontent(false);
             $objOutputContainer->setSplitcount(0);
-            $objOutputContainer->setSplitname("");
+            $objOutputContainer->setSplitname('');
         }
 
-        $mixOutput = $this->objIOEngine->OutputResponse($objOutputContainer, $this->objCodifyengine);
+        $mixOutput = $this
+            ->objIOEngine
+            ->OutputResponse($objOutputContainer, $clientState->getExtendedCodifyEngine());
 
         // Check if we have a big output and split it
         if ($this->config->getResponseLength() != -1 && strlen($mixOutput) > $this->config->getResponseLength()) {
             $mixOutput    = str_split($mixOutput, (int)($this->config->getResponseLength() * 0.8));
-            $strFileName  = md5(time()) . md5(rand(0, 65000)) . ".ctoComPart";
+            $strFileName  = md5(time()) . md5(rand(0, 65000)) . '.ctoComPart';
             $intCountPart = count($mixOutput);
 
             foreach ($mixOutput as $keyOutput => $valueOutput) {
-                $objFile = new \File("system/tmp/" . $keyOutput . "_" . $strFileName);
+                $objFile = new \File('system/tmp/' . $keyOutput . '_' . $strFileName);
                 $objFile->write($valueOutput);
                 $objFile->close();
             }
@@ -401,18 +380,18 @@ class Client extends Base
             $objOutputContainer->setSplitcount($intCountPart);
             $objOutputContainer->setSplitname($strFileName);
 
-            $mixOutput = $this->objIOEngine->OutputResponse($objOutputContainer, $this->objCodifyengine);
+            $mixOutput = $this
+                ->objIOEngine
+                ->OutputResponse($objOutputContainer, $clientState->getExtendedCodifyEngine());
         }
 
-        // Set some header fields
-        header("Content-Type: " . $GLOBALS["CTOCOM_IO"][$this->strIOEngine]["contentType"]);
-
-        // Clean output buffer
-        while (@ob_end_clean()) {
-            ;
-        }
-
-        // Echo response
-        echo($mixOutput);
+        return new Response
+        (
+            $mixOutput,
+            200,
+            [
+                'Content-Type' => $GLOBALS['CTOCOM_IO'][$this->strIOEngine]['contentType']
+            ]
+        );
     }
 }

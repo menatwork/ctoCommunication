@@ -13,6 +13,11 @@ use MenAtWork\CtoCommunicationBundle\Codifyengine\Base as CodifyengineBase;
 use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
 use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * Class ClientState
+ *
+ * @package MenAtWork\CtoCommunicationBundle\Container
+ */
 class ClientState
 {
     const CRYPT_PASSWORD_API_KEY = 'api_key';
@@ -92,7 +97,7 @@ class ClientState
      *
      * @return string
      */
-    private function getAct()
+    public function getAct()
     {
         return $this->request->get('act');
     }
@@ -102,9 +107,46 @@ class ClientState
      *
      * @return string
      */
-    private function getCon()
+    public function getCon()
     {
         return $this->request->get('con');
+    }
+
+    /**
+     * Get the api key.
+     *
+     * @return string
+     */
+    public function getRequestApiKey()
+    {
+        return $this->request->get('apikey');
+    }
+
+    /**
+     * Get the wish engine from the connection.
+     *
+     * @return mixed
+     *
+     * @throws \RuntimeException If there is no engine.
+     */
+    public function getEngineName()
+    {
+        $engine = $this->request->get('engine');
+        if (empty($engine)) {
+            throw new \RuntimeException('No engine was set.');
+        }
+
+        return $engine;
+    }
+
+    /**
+     * Get the wish format.
+     *
+     * @return mixed
+     */
+    public function getRequestFormat()
+    {
+        return $this->request->get('format');
     }
 
     /**
@@ -128,20 +170,53 @@ class ClientState
     }
 
     /**
-     * Get the wish engine from the connection.
+     * Check if we have an api key.
      *
-     * @return mixed
-     *
-     * @throws \RuntimeException If there is no engine.
+     * @return bool
      */
-    public function getEngineName()
+    public function hasRequestApiKey()
     {
-        $engine = $this->request->get('engine');
-        if (empty($engine)) {
-            throw new \RuntimeException('No engine was set.');
-        }
+        $apiKey = $this->getRequestApiKey();
 
-        return $engine;
+        return !empty($apiKey);
+    }
+
+    /**
+     * Check if we have an format.
+     *
+     * @return bool
+     */
+    public function hasRequestFormat()
+    {
+        $apiKey = $this->getRequestFormat();
+
+        return !empty($apiKey);
+    }
+
+    /**
+     * @return CodifyengineBase
+     */
+    public function getBasicCodifyEngine()
+    {
+        return $this->basicCodifyEngine;
+    }
+
+    /**
+     * @return CodifyengineBase
+     */
+    public function getExtendedCodifyEngine()
+    {
+        return $this->extendedCodifyEngine;
+    }
+
+    /**
+     * Returns a list with all requested values.
+     *
+     * @return array
+     */
+    public function getAllParametersFromRequest()
+    {
+        return $this->request->request->all();
     }
 
     /**
@@ -169,7 +244,13 @@ class ClientState
         return true;
     }
 
-
+    /**
+     * Setup the key for the codify engine.
+     *
+     * @param string $use The mode for setting the password.
+     *
+     * @return bool State True => okay | False => error.
+     */
     public function setupCryptPassword($use = self::CRYPT_PASSWORD_API_KEY)
     {
         // Use the api key.
@@ -233,12 +314,61 @@ class ClientState
     }
 
     /**
+     * Check the secret API key and Action with the requested one.
+     *
+     * @return bool The state of validation True => okay | False => something is wrong.
+     */
+    public function validateAction()
+    {
+        // Check RPC Call from get and the RPC Call from API-Key
+        $mixVar    = $this->basicCodifyEngine->Decrypt(base64_decode($this->getRequestApiKey()));
+        $mixVar    = trimsplit("@\|@", $mixVar);
+        $strApiKey = $mixVar[1];
+        $strAction = $mixVar[0];
+
+        if ($strAction != $this->getAct()) {
+            $this->log
+            (
+                sprintf
+                (
+                    "Error Api Key from %s. Request action: %s | Key action: %s | Api: %s",
+                    \Environment::get('ip'),
+                    $this->getAct(),
+                    $strAction,
+                    $strApiKey
+                ),
+                __FUNCTION__ . " | " . __CLASS__,
+                TL_ERROR
+            );
+
+            return false;
+        }
+
+        if ($GLOBALS['TL_CONFIG']['ctoCom_APIKey'] != $strApiKey) {
+            $this->log
+            (
+                sprintf(
+                    "Call from %s with a wrong API Key: %s",
+                    \Environment::get('ip'),
+                    $this->getRequestApiKey()
+                ),
+                __FUNCTION__ . " | " . __CLASS__,
+                TL_ERROR
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @param $msg
      * @param $where
      * @param $type
      */
     private function log($msg, $where, $type)
     {
-        // ToDo: Add
+        // ToDo: Add logger.
     }
 }
