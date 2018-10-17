@@ -328,8 +328,8 @@ class Debug extends \Backend
 
             $strContent = "";
 
-            $strContent .= "\n<|++++++++++++++++++++++++++++++++++++++++++++++++++++++|>";
-            $strContent .= "\n  + Hinweis:";
+//            $strContent .= "\n<|++++++++++++++++++++++++++++++++++++++++++++++++++++++|>";
+//            $strContent .= "\n  + Hinweis:";
             $strContent .= "\n<|++++++++++++++++++++++++++++++++++++++++++++++++++++++|>\n\n";
             $strContent .= ">>|------------------------------------------------------";
             $strContent .= "\n>>|-- Start Log at " . date("H:i:s d.m.Y", $intTime);
