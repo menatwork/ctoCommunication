@@ -272,7 +272,7 @@ class Debug extends \Backend
     protected function writeMeasurement()
     {
         try {
-            if (count($this->arrMeasurement) == 0) {
+            if ($this->arrMeasurement === null || empty($this->arrMeasurement) || count($this->arrMeasurement) == 0) {
                 return;
             }
 
@@ -318,7 +318,7 @@ class Debug extends \Backend
     protected function writeDebug()
     {
         try {
-            if (count($this->arrDebug) == 0) {
+            if ($this->arrDebug === null || empty($this->arrDebug) || count($this->arrDebug) == 0) {
                 return;
             }
 
