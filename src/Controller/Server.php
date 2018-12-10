@@ -68,6 +68,44 @@ class Server extends Base
     }
 
     /**
+     * Flatten an array for the debug.
+     *
+     * @param array $data
+     *
+     * @param int   $level
+     *
+     * @return string
+     */
+    protected function flattenArray($data, $level = 0)
+    {
+        $return = '';
+        foreach ($data as $key => $value) {
+            if (\is_string($key) && \in_array($key, array('multipart'))) {
+                continue;
+            }
+
+            if (\is_array($value)) {
+
+                $return .= \sprintf(
+                    "%s%s:\n%s",
+                    \str_repeat("\t", $level),
+                    $key,
+                    $this->flattenArray($value, ($level + 1))
+                );
+            } else {
+                $return .= \sprintf(
+                    "%s%s:\t%s\n",
+                    \str_repeat("\t", $level),
+                    $key,
+                    $value
+                );
+            }
+        }
+
+        return $return;
+    }
+
+    /**
      * Set all client params.
      *
      * @param string $url          The base url of the client.
@@ -552,6 +590,16 @@ class Server extends Base
             // Add the query parts.
             $options = array_merge_recursive($options, array('query' => $this->getQueryString(true)));
 
+
+            $debug = \sprintf(
+                "Request-Type:\t%s\nRequest-Url:\t%s\nRequest-options:\n%s\n",
+                $requestType,
+                $this->client->getUrl(),
+                $this->flattenArray($options,1)
+            );
+
+            $this->objDebug->addDebug("Request-Header", $debug);
+
             // Send the request.
             $this->request = $httpClient->request(
                 $requestType,
@@ -573,25 +621,15 @@ class Server extends Base
         $body           = $this->request->getBody();
         $this->response = $body->getContents();
 
+        // Build response Header information.
+        $strResponseHeader = $this->flattenArray($this->request->getHeaders(), 0);
+        $this->objDebug->addDebug("Response-Header", $strResponseHeader);
+        $this->objDebug->addDebug("Response-RAW", substr($this->response, 0, 4096));
+
         // Send new request
         if ($this->request == false || $this->request->getReasonPhrase() != 'OK') {
-            $this->objDebug->addDebug("Request", substr($this->response, 0, 4096));
-            $this->objDebug->addDebug("Error Response", substr($this->response, 0, 4096));
-
             throw new \RuntimeException("Error on transmission, with message: " . $this->request->getStatusCode());
         }
-
-        $this->objDebug->addDebug("Request", substr($this->response, 0, 4096));
-
-        // Build response Header information.
-        $strResponseHeader = "";
-        $arrHeaderKeys     = array_keys($this->request->getHeaders());
-
-        foreach ($arrHeaderKeys as $keyHeader) {
-            $strResponseHeader .= $keyHeader . ": " . $this->request->getHeader($keyHeader) . "\n";
-        }
-
-        $this->objDebug->addDebug("Response", $strResponseHeader . "\n\n" . $this->request->getBody()->read(2048));
 
         // Check if we have a response
         if (strlen($this->response) == 0) {
