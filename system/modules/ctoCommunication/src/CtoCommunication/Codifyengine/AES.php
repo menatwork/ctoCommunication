@@ -47,11 +47,20 @@ class AES extends Base
      * @param string $text The content for the encryption.
      *
      * @return string The encrypted string
+     *
+     * @throws \Exception If the system was not able to generate a iv.
      */
     public function Encrypt($text)
     {
         // Init the iv.
-        $iv = mcrypt_create_iv(16, MCRYPT_DEV_URANDOM);
+        if(\function_exists('random_bytes')){
+            $iv = \random_bytes(16);
+            $iv = bin2hex($iv);
+        } else if(\extension_loaded('mcrypt') && \function_exists('mcrypt_create_iv')){
+            $iv = \mcrypt_create_iv(16, MCRYPT_DEV_URANDOM);
+        } else {
+            throw new \RuntimeException('Could not find a fitting function for generating the IV.');
+        }
         $this->aes->setIV($iv);
 
         // Crypt.
