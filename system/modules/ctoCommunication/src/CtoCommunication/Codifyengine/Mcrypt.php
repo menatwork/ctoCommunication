@@ -13,6 +13,8 @@ namespace CtoCommunication\Codifyengine;
 
 /**
  * CtoComCodifyengineImpl_Mcrypt
+ *
+ * @deprecated Not supported by PHP >= 7.2. Use the AES version instead.
  */
 class Mcrypt extends Base
 {

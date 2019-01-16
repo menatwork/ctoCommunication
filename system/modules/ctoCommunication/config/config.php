@@ -33,25 +33,28 @@ $GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge((array)$GLOBALS['SYC_CONFIG
  */
 $GLOBALS['CTOCOM_ENGINE'] = array
 (
-    'empty'  => array
+    'empty' => array
     (
         'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['empty'],
         'classname' => '\CtoCommunication\Codifyengine\NoneCrypt',
         'invisible' => false
     ),
-    'mcrypt' => array
-    (
-        'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['mcrypt'],
-        'classname' => '\CtoCommunication\Codifyengine\Mcrypt',
-        'invisible' => false
-    ),
-    'aes'    => array
+    'aes'   => array
     (
         'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['phpseclib_aes'],
         'classname' => '\CtoCommunication\Codifyengine\AES',
         'invisible' => false
     ),
 );
+// Check if we have support for mcrypt if not, skip this function.
+if (\extension_loaded('mcrypt') && \function_exists('mcrypt_create_iv')) {
+    $GLOBALS['CTOCOM_ENGINE']['mcrypt'] = array
+    (
+        'name'      => &$GLOBALS['TL_LANG']['CTOCOM']['codifyengine']['mcrypt'],
+        'classname' => '\CtoCommunication\Codifyengine\Mcrypt',
+        'invisible' => false
+    );
+}
 
 $GLOBALS['CTOCOM_IO'] = array
 (
