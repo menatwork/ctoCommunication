@@ -301,8 +301,6 @@ class Server extends Base
             $this->client->setConnectionKey($this->client->getApiKey());
             $this->saveConnectionSettings($this->client);
         } else {
-            // Imoprt
-            require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
 
             // Say "Hello" for connection id
             $strMyNumber = $this->run("CTOCOM_HELLO");
@@ -330,8 +328,8 @@ class Server extends Base
 
                 try {
                     // Start key gen
-                    $objDiffieHellman = new \Crypt_DiffieHellman($arrDiffieHellman["prime"],
-                        $arrDiffieHellman["generator"], $strPrivate);
+                    $objDiffieHellman = new \MenAtWork\DiffieHellman\DiffieHellman($arrDiffieHellman["prime"],
+                    $arrDiffieHellman["generator"], $strPrivate);
                     $objDiffieHellman->generateKeys();
 
                     // Send public key for check
