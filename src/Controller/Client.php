@@ -216,14 +216,13 @@ class Client extends Base
         if ($this->arrRpcList[$mixRPCCall]['parameter'] != false
             && is_array($this->arrRpcList[$mixRPCCall]['parameter'])
         ) {
-
             switch ($this->arrRpcList[$mixRPCCall]['typ']) {
                 // Decode post
                 case 'POST':
                     // Decode each post
                     $arrPostValues = array();
                     foreach ($clientState->getAllParametersFromRequest() as $key => $value) {
-                        $mixPost             = $this->objIOEngine->InputPost($value, $this->objCodifyengine);
+                        $mixPost             = $this->objIOEngine->InputPost($value, $clientState->getExtendedCodifyEngine());
                         $arrPostValues[$key] = $mixPost;
                     }
 
