@@ -59,4 +59,12 @@ class NoneCrypt extends Base
     {
         // Nothing to do.
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function splitText(&$text)
+    {
+        return $text;
+    }
 }
