@@ -8,6 +8,8 @@
 
 namespace MenAtWork\CtoCommunicationBundle\Controller;
 
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\ServerException;
 use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
 use MenAtWork\CtoCommunicationBundle\Container\Connection;
 use MenAtWork\CtoCommunicationBundle\Container\IO;
@@ -270,7 +272,7 @@ class Server extends Base
             }
         } catch (\RuntimeException $exc) {
             \System::log("The client with the adress: " . $this->strUrl . " seems to be an older Version.",
-                __CLASS__ . " | " . __FUNCTION__, TL_INFO);
+                __CLASS__ . " | " . __FUNCTION__, \Psr\Log\LogLevel::INFO);
             $this->setConnectionBasicCodify("aes");
         }
 
@@ -489,7 +491,7 @@ class Server extends Base
             'headers' => array
             (
                 'Accept-Language' => vsprintf("%s, en;q=0.8", array($GLOBALS['TL_LANGUAGE'])),
-                'Accept'          => 'text/plain; q=0.5, text/html'
+                'Accept'          => $GLOBALS['CTOCOM_IO'][$this->strIOEngine]['contentType']
             )
         );
 
@@ -562,6 +564,7 @@ class Server extends Base
                 // Create a new post body and add all form fields.
                 $postBody = [];
                 foreach ($this->data as $key => $value) {
+
                     if (isset($value["filename"]) == true && strlen($value["filename"]) != 0) {
                         $postBody[] = [
                             'name'     => $value["name"],
@@ -588,7 +591,6 @@ class Server extends Base
             // Add the query parts.
             $options = array_merge_recursive($options, array('query' => $this->getQueryString(true)));
 
-
             $debug = \sprintf(
                 "Request-Type:\t%s\nRequest-Url:\t%s\nRequest-options:\n%s\n",
                 $requestType,
@@ -599,11 +601,32 @@ class Server extends Base
             $this->objDebug->addDebug("Request-Header", $debug);
 
             // Send the request.
-            $this->request = $httpClient->request(
-                $requestType,
-                $this->client->getUrl(),
-                $options
-            );
+            try {
+                $this->request = $httpClient->request(
+                    $requestType,
+                    $this->client->getUrl(),
+                    $options
+                );
+
+//                echo($this->request->getBody()->read($this->request->getBody()->getSize()));
+//                die();
+
+            } catch (ServerException $e) {
+                var_dump($e->getResponse()->getBody()->getSize());
+                echo($e->getResponse()->getBody()->read($e->getResponse()->getBody()->getSize()));
+                var_dump($this->request);
+                die();
+                throw  $e;
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                echo($e->getResponse()->getBody()->read($e->getResponse()->getBody()->getSize()));
+                var_dump($this->request);
+                die();
+                throw  $e;
+            } catch (\Exception $e) {
+                var_dump($e);
+                die();
+                throw  $e;
+            }
         }
 
         return $this;
@@ -616,8 +639,8 @@ class Server extends Base
      */
     protected function validateResponse()
     {
-        $body           = $this->request->getBody();
-        $this->response = $body->getContents();
+        $this->request->getBody()->rewind();
+        $this->response = $this->request->getBody()->read($this->request->getBody()->getSize());
 
         // Build response Header information.
         $strResponseHeader = $this->flattenArray($this->request->getHeaders(), 0);
@@ -630,7 +653,7 @@ class Server extends Base
         }
 
         // Check if we have a response
-        if (strlen($this->response) == 0) {
+        if ($this->request->getBody()->getSize() == 0) {
             throw new \RuntimeException("We got a blank response from server.");
         }
 
