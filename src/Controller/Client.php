@@ -221,7 +221,7 @@ class Client extends Base
                     // Decode each post
                     $arrPostValues = array();
                     foreach ($clientState->getAllParametersFromRequest() as $key => $value) {
-                        $mixPost             = $this->objIOEngine->InputPost($value, $this->objCodifyengine);
+                        $mixPost             = $this->objIOEngine->InputPost($value, $clientState->getExtendedCodifyEngine());
                         $arrPostValues[$key] = $mixPost;
                     }
 
