@@ -68,12 +68,12 @@ class Client extends Base
 
         // If the password was not set end here.
         if (!$passwordState) {
-            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY);
+            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY, 'pw');
         }
 
         // Validate the secret with the request.
         if (!$clientState->validateAction()) {
-            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY);
+            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY, 'val');
         }
 
         return $this->run($clientState);
@@ -106,9 +106,9 @@ class Client extends Base
      *
      * @return Response
      */
-    private function handleResponse($statusCode)
+    private function handleResponse($statusCode, $text = '')
     {
-        return new Response('', $statusCode);
+        return new Response($text, $statusCode);
     }
 
     /**
@@ -123,7 +123,6 @@ class Client extends Base
         /* ---------------------------------------------------------------------
          * Set I/O System
          */
-
         if ($clientState->hasRequestFormat()) {
             if (Factory::engineExist($clientState->getRequestFormat())) {
                 $this->setIOEngine($clientState->getRequestFormat());
@@ -144,7 +143,7 @@ class Client extends Base
         } else {
             $strAccept = $_SERVER['HTTP_ACCEPT'];
             $strAccept = preg_replace('/;q=\d\.\d/', '', $strAccept);
-            $arrAccept = trimsplit(',', $strAccept);
+            $arrAccept = explode(',', $strAccept);
 
             $strIOEngine = false;
 
@@ -216,7 +215,6 @@ class Client extends Base
         if ($this->arrRpcList[$mixRPCCall]['parameter'] != false
             && is_array($this->arrRpcList[$mixRPCCall]['parameter'])
         ) {
-
             switch ($this->arrRpcList[$mixRPCCall]['typ']) {
                 // Decode post
                 case 'POST':
