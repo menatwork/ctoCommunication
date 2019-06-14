@@ -11,6 +11,8 @@
 
 namespace MenAtWork\CtoCommunicationBundle\RPC;
 
+use MenAtWork\DiffieHellman\DiffieHellman;
+
 /**
  * Remote Procedure Call Class
  */
@@ -169,9 +171,6 @@ class CoreFunctions extends \Backend
         }
         else
         {
-            // Imoprt
-            require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
-
             // Init
             $intPrimeLength = 32;
             $strGenerator   = 2;
@@ -217,7 +216,7 @@ class CoreFunctions extends \Backend
                 try
                 {
                     // Start key gen
-                    $objDiffieHellman = new \Crypt_DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate, \Crypt_DiffieHellman::NUMBER);
+                    $objDiffieHellman = new DiffieHellman($arrDiffieHellman["prime"], $arrDiffieHellman["generator"], $strPrivate, DiffieHellman::NUMBER);
                     $objDiffieHellman->generateKeys();
 
                     $strPublicKey = $objDiffieHellman->getPublicKey();
@@ -275,9 +274,6 @@ class CoreFunctions extends \Backend
         }
         else
         {
-            // Imoprt
-            require_once TL_ROOT . '/system/modules/DiffieHellman/DiffieHellman.php';
-
             if (strlen($this->Input->get("key")) == 0)
             {
                 throw new \Exception("Could not find public key for handshake.");
@@ -289,7 +285,7 @@ class CoreFunctions extends \Backend
                     ->fetchAllAssoc();
 
             // Start key gen
-            $objDiffieHellman = new \Crypt_DiffieHellman($arrConnections[0]["prime"], $arrConnections[0]["generator"], $arrConnections[0]["private_key"]);
+            $objDiffieHellman = new DiffieHellman($arrConnections[0]["prime"], $arrConnections[0]["generator"], $arrConnections[0]["private_key"]);
             $objDiffieHellman->generateKeys();
 
             $strSecretKey = $objDiffieHellman->computeSecretKey($this->Input->get("key"))
