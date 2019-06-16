@@ -74,15 +74,21 @@ class Base implements InterfaceInputOutput
     public function OutputResponse(IO $objContainer, $objCodifyEngine)
     {
         if ($objContainer->getError() != null) {
-            $mixError              = array();
-            $mixError["language"]  = $objContainer->getError()->getLanguage();
-            $mixError["id"]        = $objContainer->getError()->getID();
-            $mixError["object"]    = $objContainer->getError()->getObject();
-            $mixError["msg"]       = $objContainer->getError()->getMessage();
-            $mixError["rpc"]       = $objContainer->getError()->getRPC();
-            $mixError["class"]     = $objContainer->getError()->getClass();
-            $mixError["function"]  = $objContainer->getError()->getFunction();
-            $mixError["exception"] = $objContainer->getError()->getException();
+            $mixError             = array();
+            $mixError["language"] = $objContainer->getError()->getLanguage();
+            $mixError["id"]       = $objContainer->getError()->getID();
+            $mixError["object"]   = $objContainer->getError()->getObject();
+            $mixError["msg"]      = $objContainer->getError()->getMessage();
+            $mixError["rpc"]      = $objContainer->getError()->getRPC();
+            $mixError["class"]    = $objContainer->getError()->getClass();
+            $mixError["function"] = $objContainer->getError()->getFunction();
+
+            $exception = $objContainer->getError()->getException();
+            if (is_object($exception)) {
+                $mixError["exception"] = $exception->getMessage();
+            } else {
+                $mixError["exception"] = $exception;
+            }
         } else {
             $mixError = "";
         }

@@ -96,6 +96,9 @@ class Error
         $this->strFunction = $strFunction;
     }
 
+    /**
+     * @return \Exception
+     */
     public function getException()
     {
         return $this->objException;

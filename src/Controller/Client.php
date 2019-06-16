@@ -12,6 +12,7 @@ use MenAtWork\CtoCommunicationBundle\Container\ClientState;
 use MenAtWork\CtoCommunicationBundle\Container\Error;
 use MenAtWork\CtoCommunicationBundle\Container\IO;
 use MenAtWork\CtoCommunicationBundle\InputOutput\Factory;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -22,7 +23,17 @@ class Client extends Base
     const HTTP_CODE_NOT_FOUND = 404;
     const HTTP_CODE_FAILED_DEPENDENCY = 424;
 
-    public function __construct()
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * Client constructor.
+     *
+     * @param LoggerInterface $logger Logger.
+     */
+    public function __construct($logger)
     {
         // call the parent.
         parent::__construct();
@@ -31,6 +42,8 @@ class Client extends Base
         if (empty($GLOBALS['TL_LANGUAGE'])) {
             $GLOBALS['TL_LANGUAGE'] = 'en';
         }
+
+        $this->logger = $logger;
     }
 
     /**
@@ -117,6 +130,8 @@ class Client extends Base
      * @param ClientState $clientState
      *
      * @return Response The response
+     *
+     * @throws \Exception
      */
     public function run($clientState)
     {
@@ -298,7 +313,7 @@ class Client extends Base
             $objError->setFunction($this->arrRpcList[$mixRPCCall]['function']);
             $objError->setException($exc);
 
-            $this->log
+            $this->logger->error
             (
                 sprintf
                 (
@@ -306,8 +321,7 @@ class Client extends Base
                     $exc->getMessage(),
                     nl2br($exc->getTraceAsString())
                 ),
-                __CLASS__ . ' | ' . __FUNCTION__,
-                TL_ERROR
+                [__CLASS__, __FUNCTION__]
             );
 
             return $this->generateOutput($clientState, $objError);
@@ -326,6 +340,8 @@ class Client extends Base
      * @param null|mixed  $output      The output from the function.
      *
      * @return Response The response object.
+     *
+     * @throws \Exception
      */
     protected function generateOutput($clientState, $error = null, $output = null)
     {

@@ -1,2 +1,4 @@
 services:
     MenAtWork\CtoCommunicationBundle\Controller\Client:
+        arguments:
+            - "@logger"
