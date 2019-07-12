@@ -8,14 +8,13 @@
 
 namespace MenAtWork\CtoCommunicationBundle\Controller;
 
-use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Post\PostBody;
+use GuzzleHttp\Post\PostFile;
 use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
 use MenAtWork\CtoCommunicationBundle\Container\Connection;
 use MenAtWork\CtoCommunicationBundle\Container\IO;
-use GuzzleHttp\Client;
-use GuzzleHttp\Post\PostBody;
-use GuzzleHttp\Post\PostFile;
 
 class Server extends Base
 {
@@ -607,24 +606,11 @@ class Server extends Base
                     $this->client->getUrl(),
                     $options
                 );
-
-//                echo($this->request->getBody()->read($this->request->getBody()->getSize()));
-//                die();
-
             } catch (ServerException $e) {
-                var_dump($e->getResponse()->getBody()->getSize());
-                echo($e->getResponse()->getBody()->read($e->getResponse()->getBody()->getSize()));
-                var_dump($this->request);
-                die();
                 throw  $e;
             } catch (\GuzzleHttp\Exception\ClientException $e) {
-                echo($e->getResponse()->getBody()->read($e->getResponse()->getBody()->getSize()));
-                var_dump($this->request);
-                die();
                 throw  $e;
             } catch (\Exception $e) {
-                var_dump($e);
-                die();
                 throw  $e;
             }
         }
