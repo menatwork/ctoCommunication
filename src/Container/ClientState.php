@@ -9,8 +9,10 @@
 namespace MenAtWork\CtoCommunicationBundle\Container;
 
 
+use Contao\CoreBundle\Monolog\ContaoContext;
 use MenAtWork\CtoCommunicationBundle\Codifyengine\Base as CodifyengineBase;
 use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -337,7 +339,7 @@ class ClientState
                     $strAction,
                     $strApiKey
                 ),
-                __FUNCTION__ . " | " . __CLASS__,
+                [__CLASS__, __FUNCTION__],
                 TL_ERROR
             );
 
@@ -352,7 +354,7 @@ class ClientState
                     \Environment::get('ip'),
                     $this->getRequestApiKey()
                 ),
-                __FUNCTION__ . " | " . __CLASS__,
+                [__CLASS__, __FUNCTION__],
                 TL_ERROR
             );
 
@@ -364,11 +366,16 @@ class ClientState
 
     /**
      * @param $msg
+     *
      * @param $where
+     *
      * @param $type
      */
     private function log($msg, $where, $type)
     {
-        // ToDo: Add logger.
+        $level  = 'ERROR' === $type ? LogLevel::ERROR : LogLevel::INFO;
+        $logger = \Contao\System::getContainer()->get('monolog.logger.contao');
+
+        $logger->log($level, $msg, (is_array($where)) ? $where : [$where]);
     }
 }
