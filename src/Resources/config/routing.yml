@@ -1,3 +1,7 @@
 ctocommunication_start:
     path:     /ctoCommunication
-    defaults: { _controller: MenAtWork\CtoCommunicationBundle\Controller\Client:execute, _scope: frontend, _token_check: false }
+    defaults:
+        _controller: MenAtWork\CtoCommunicationBundle\Controller\Client:execute
+        _scope: frontend
+        _token_check: false
+
