@@ -31,7 +31,12 @@ class Factory
 
         // Check if engine is known.
         if (!array_key_exists($engine, $GLOBALS['CTOCOM_ENGINE'])) {
-            throw new \RuntimeException(vsprintf($GLOBALS['TL_LANG']['ERR']['unknown_engine'], array($engine)));
+            throw new \RuntimeException(
+                sprintf(
+                    'Unknown encryption engine: %s.',
+                    $engine
+                )
+            );
         }
 
         // Init the class.
