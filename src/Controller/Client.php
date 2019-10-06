@@ -32,18 +32,26 @@ class Client extends Base
      * Client constructor.
      *
      * @param LoggerInterface $logger Logger.
+     *
+     * @param \Contao\CoreBundle\Framework\ContaoFramework $framework
      */
-    public function __construct($logger)
+    public function __construct($logger, $framework)
     {
-        // call the parent.
-        parent::__construct();
+        $this->logger = $logger;
+
+        if (!$framework->isInitialized()) {
+            $framework->initialize(true);
+        }
 
         // preset the language.
         if (empty($GLOBALS['TL_LANGUAGE'])) {
             $GLOBALS['TL_LANGUAGE'] = 'en';
         }
 
-        $this->logger = $logger;
+        \Contao\System::loadLanguageFile('default');
+
+        // call the parent.
+        parent::__construct();
     }
 
     /**
@@ -81,12 +89,12 @@ class Client extends Base
 
         // If the password was not set end here.
         if (!$passwordState) {
-            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY, 'pw');
+            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY, 'er:pw');
         }
 
         // Validate the secret with the request.
         if (!$clientState->validateAction()) {
-            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY, 'val');
+            return $this->handleResponse(self::HTTP_CODE_FAILED_DEPENDENCY, 'er:val');
         }
 
         return $this->run($clientState);
