@@ -1,4 +1,6 @@
 services:
     MenAtWork\CtoCommunicationBundle\Controller\Client:
+        public: true
         arguments:
-            - "@logger"
+            - '@logger'
+            - '@contao.framework'
