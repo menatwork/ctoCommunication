@@ -269,10 +269,10 @@ class ClientState
             if (count($arrConnections) == 0) {
                 $this->log
                 (
-                    vsprintf
+                    \sprintf
                     (
                         "Call from %s with a unknown connection ID.",
-                        \Environment::get('ip')
+                        \Environment::get('ip') ?? '0.0.0.0'
                     ),
                     __FUNCTION__ . " | " . __CLASS__,
                     TL_ERROR
