@@ -6,13 +6,13 @@
 -- * install tool to create and maintain database tables! *
 -- *                                                      *
 -- ********************************************************
- 
+
 --
 -- Table `tl_ctocom_cache`
 --
 
 CREATE TABLE `tl_ctocom_cache` (
-  `id` int(10) unsigned NOT NULL auto_increment,  
+  `id` int(10) unsigned NOT NULL auto_increment,
   `uid` varchar(255) NOT NULL default '',
   `tstamp` int(10) unsigned NOT NULL default '0',
   `prime` text NULL,
@@ -22,4 +22,4 @@ CREATE TABLE `tl_ctocom_cache` (
   `shared_secret_key` text NULL,
   PRIMARY KEY  (`id`),
   KEY `uid` (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
