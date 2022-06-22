@@ -300,15 +300,15 @@ class Client extends Base
                 $mixOutput = call_user_func_array
                 (
                     array($object, $this->arrRpcList[$mixRPCCall]['function']),
-                    $arrParameter
+                    array_values($arrParameter)
                 );
             } else {
                 $object = new $this->arrRpcList[$mixRPCCall]['class'];
-                var_dump($object, $this->arrRpcList[$mixRPCCall]['function']); die();
+                //var_dump($object, $this->arrRpcList[$mixRPCCall]['function']); die();
                 $mixOutput = call_user_func_array
                 (
                     array($object, $this->arrRpcList[$mixRPCCall]['function']),
-                    $arrParameter
+                    array_values($arrParameter)
                 );
             }
         } catch (\Exception $exc) {
