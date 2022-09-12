@@ -276,7 +276,7 @@ class Server extends Base
         }
 
         // Check handshake
-        if ($GLOBALS['TL_CONFIG']['ctoCom_handshake'] == true) {
+        if (isset($GLOBALS['TL_CONFIG']['ctoCom_handshake'] ) && $GLOBALS['TL_CONFIG']['ctoCom_handshake'] == true) {
             // Set flag for API key use
             $arrData = array(
                 array(

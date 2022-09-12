@@ -20,6 +20,17 @@ $GLOBALS['CTOCOM_VERSION'] = '2.0.0';
 $GLOBALS['TL_CACHE']['ctoCom'] = 'tl_ctocom_cache';
 
 /**
+ * Init the default config array if not set.
+ */
+if (!isset($GLOBALS['SYC_CONFIG'])) {
+    $GLOBALS['SYC_CONFIG'] = [];
+}
+
+if (!isset($GLOBALS['SYC_CONFIG']['table_hidden'])) {
+    $GLOBALS['SYC_CONFIG']['table_hidden'] = [];
+}
+
+/**
  * Blacklists tables for syncCto
  */
 $GLOBALS['SYC_CONFIG']['table_hidden'] = array_merge((array)$GLOBALS['SYC_CONFIG']['table_hidden'], array
