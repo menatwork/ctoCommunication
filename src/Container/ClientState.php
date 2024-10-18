@@ -10,6 +10,10 @@ namespace MenAtWork\CtoCommunicationBundle\Container;
 
 
 use Contao\CoreBundle\Monolog\ContaoContext;
+use Contao\Database;
+use Contao\Environment;
+use Contao\StringUtil;
+use Contao\System;
 use MenAtWork\CtoCommunicationBundle\Codifyengine\Base as CodifyengineBase;
 use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
 use Psr\Log\LogLevel;
@@ -237,7 +241,7 @@ class ClientState
             (
                 "Try to load the engine for ctoCommunication with error: " . $exc->getMessage(),
                 __FUNCTION__ . " | " . __CLASS__,
-                TL_ERROR
+                'ERROR'
             );
 
             return false;
@@ -261,7 +265,7 @@ class ClientState
             $this->extendedCodifyEngine->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
         } else if ($use == self::CRYPT_PASSWORD_EXCHANGE) {
             // Check if we have some data
-            $arrConnections = \Database::getInstance()
+            $arrConnections = Database::getInstance()
                 ->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
                 ->execute($this->getCon())
                 ->fetchAllAssoc();
@@ -272,10 +276,10 @@ class ClientState
                     \sprintf
                     (
                         "Call from %s with a unknown connection ID.",
-                        \Environment::get('ip') ?? '0.0.0.0'
+                        Environment::get('ip') ?? '0.0.0.0'
                     ),
                     __FUNCTION__ . " | " . __CLASS__,
-                    TL_ERROR
+                    'ERROR'
                 );
 
                 return false;
@@ -283,26 +287,26 @@ class ClientState
 
             // Check if time out isn't reached.
             if ($arrConnections[0]["tstamp"] + $this->getConTimeout() < time()) {
-                \Database::getInstance()
+                Database::getInstance()
                     ->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")
                     ->execute($this->getCon());
 
                 $this->log
                 (
-                    vsprintf
+                    sprintf
                     (
                         "Call from %s with a expired connection ID.",
-                        \Environment::get('ip')
+                        Environment::get('ip')
                     ),
                     __FUNCTION__ . " | " . __CLASS__,
-                    TL_ERROR
+                    'ERROR'
                 );
 
                 return false;
             }
 
             // Reset timestamp
-            \Database::getInstance()
+            Database::getInstance()
                 ->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
                 ->set(array("tstamp" => time()))
                 ->execute($this->getCon());
@@ -324,7 +328,7 @@ class ClientState
     {
         // Check RPC Call from get and the RPC Call from API-Key
         $mixVar    = $this->basicCodifyEngine->Decrypt(base64_decode($this->getRequestApiKey()));
-        $mixVar    = trimsplit("@\|@", $mixVar);
+        $mixVar    = StringUtil::trimsplit("@\|@", $mixVar);
         $strApiKey = $mixVar[1];
         $strAction = $mixVar[0];
 
@@ -334,13 +338,13 @@ class ClientState
                 sprintf
                 (
                     "Error Api Key from %s. Request action: %s | Key action: %s | Api: %s",
-                    \Environment::get('ip'),
+                    Environment::get('ip'),
                     $this->getAct(),
                     $strAction,
                     $strApiKey
                 ),
                 [__CLASS__, __FUNCTION__],
-                TL_ERROR
+                'ERROR'
             );
 
             return false;
@@ -351,11 +355,11 @@ class ClientState
             (
                 sprintf(
                     "Call from %s with a wrong API Key: %s",
-                    \Environment::get('ip'),
+                    Environment::get('ip'),
                     $this->getRequestApiKey()
                 ),
                 [__CLASS__, __FUNCTION__],
-                TL_ERROR
+                'ERROR'
             );
 
             return false;
@@ -374,7 +378,7 @@ class ClientState
     private function log($msg, $where, $type)
     {
         $level  = 'ERROR' === $type ? LogLevel::ERROR : LogLevel::INFO;
-        $logger = \Contao\System::getContainer()->get('monolog.logger.contao');
+        $logger = System::getContainer()->get('monolog.logger.contao');
 
         $logger->log($level, $msg, (is_array($where)) ? $where : [$where]);
     }

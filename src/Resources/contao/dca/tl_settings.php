@@ -1,11 +1,13 @@
 <?php
 
+use Contao\Backend;
+
 /**
  * Contao Open Source CMS
  *
  * @copyright  MEN AT WORK 2014
  * @package    ctoCommunication
- * @license    GNU/LGPL 
+ * @license    GNU/LGPL
  * @filesource
  */
 
@@ -19,28 +21,28 @@ $GLOBALS['TL_DCA']['tl_settings']['palettes']['default'] = implode(";", array_me
 
 // Fields
 $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_APIKey'] = array(
-    'label' => &$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'],
-    'inputType' => 'text',
-    'explanation' => 'ctoComKey',
-    'eval' => array('helpwizard' => true, 'tl_class' => 'long', 'minlength' => '32', 'maxlength' => '64'),
-    'exclude' => true,
+    'label'         => &$GLOBALS['TL_LANG']['tl_settings']['ctoCom_APIKey'],
+    'inputType'     => 'text',
+    'explanation'   => 'ctoComKey',
+    'eval'          => array('helpwizard' => true, 'tl_class' => 'long', 'minlength' => '32', 'maxlength' => '64'),
+    'exclude'       => true,
     'save_callback' => array(array('CtoCommunicationSettings', 'save_callback')),
 );
 
 $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_responseLength'] = array(
-    'label' => &$GLOBALS['TL_LANG']['tl_settings']['ctoCom_responseLength'],
+    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['ctoCom_responseLength'],
     'inputType' => 'text',
-    'eval' => array('rgxp' => 'digit', 'tl_class' => 'long', 'maxlength' => '64', 'minlength' => '5'),
-    'exclude' => true,
+    'eval'      => array('rgxp' => 'digit', 'tl_class' => 'long', 'maxlength' => '64', 'minlength' => '5'),
+    'exclude'   => true,
 );
 
 $GLOBALS['TL_DCA']['tl_settings']['fields']['ctoCom_handshake'] = array(
-    'label' => &$GLOBALS['TL_LANG']['tl_settings']['handshake'],
+    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['handshake'],
     'inputType' => 'checkbox',
-    'exclude' => true,
+    'exclude'   => true,
 );
 
-class CtoCommunicationSettings extends \Backend
+class CtoCommunicationSettings extends Backend
 {
 
     public function __construct()
@@ -50,15 +52,15 @@ class CtoCommunicationSettings extends \Backend
 
     /**
      * Generate the sec key for server
-     * 
-     * @param type $varValue
-     * @param DataContainer $dca
-     * @return type 
+     *
+     * @param                       $varValue
+     * @param \Contao\DataContainer $dca
+     *
+     * @return bool|int|mixed|string|null
      */
-    public function save_callback($varValue, DataContainer $dca)
+    public function save_callback($varValue, \Contao\DataContainer $dca)
     {
-        if ($varValue == "")
-        {
+        if ($varValue == "") {
             $objKey = $this->Database->prepare("SELECT UUID() as uid")->execute();
             return $objKey->uid;
         }

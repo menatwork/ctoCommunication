@@ -8,6 +8,7 @@
 
 namespace MenAtWork\CtoCommunicationBundle\Controller;
 
+use Contao\System;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Post\PostBody;
@@ -206,7 +207,7 @@ class Server extends Base
     protected function loadConnectionSettings($client)
     {
         // Load Session information
-        $pool           = \Session::getInstance()->get('CTOCOM_ConnectionPool');
+        $pool           = $this->session->get('CTOCOM_ConnectionPool');
         $connectionUUID = md5($client->getUrl());
 
         // If we have data set it.
@@ -226,7 +227,7 @@ class Server extends Base
     protected function saveConnectionSettings($client)
     {
         // Save information in the session.
-        $pool = \Session::getInstance()->get('CTOCOM_ConnectionPool');
+        $pool = $this->session->get('CTOCOM_ConnectionPool');
         if (!is_array($pool)) {
             $pool = array();
         }
@@ -241,7 +242,7 @@ class Server extends Base
         );
 
         // Save back into the session.
-        \Session::getInstance()->set('CTOCOM_ConnectionPool', $pool);
+        $this->session->set('CTOCOM_ConnectionPool', $pool);
     }
 
     /**
@@ -270,8 +271,8 @@ class Server extends Base
                 $this->setConnectionBasicCodify("aes");
             }
         } catch (\RuntimeException $exc) {
-            \System::log("The client with the adress: " . $this->strUrl . " seems to be an older Version.",
-                __CLASS__ . " | " . __FUNCTION__, \Psr\Log\LogLevel::INFO);
+//            System::log("The client with the adress: " . $this->strUrl . " seems to be an older Version.",
+//                __CLASS__ . " | " . __FUNCTION__, \Psr\Log\LogLevel::INFO);
             $this->setConnectionBasicCodify("aes");
         }
 
@@ -379,13 +380,13 @@ class Server extends Base
         }
 
         // Reset Session information
-        $arrPool    = \Session::getInstance()->get("CTOCOM_ConnectionPool");
+        $arrPool    = $this->session->get("CTOCOM_ConnectionPool");
         $clientUUID = md5($this->client->getUrl());
         if (is_array($arrPool) && array_key_exists($clientUUID, $arrPool)) {
             unset($arrPool[$clientUUID]);
         }
 
-        \Session::getInstance()->set("CTOCOM_ConnectionPool", $arrPool);
+        $this->session->set("CTOCOM_ConnectionPool", $arrPool);
     }
 
     /**

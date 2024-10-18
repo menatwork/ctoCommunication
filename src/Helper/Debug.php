@@ -11,10 +11,12 @@
 
 namespace MenAtWork\CtoCommunicationBundle\Helper;
 
+use Contao\Backend;
+
 /**
  * Debug class
  */
-class Debug extends \Backend
+class Debug extends Backend
 {
 
     //- Singelten pattern --------

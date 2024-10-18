@@ -141,7 +141,7 @@ class Base implements InterfaceInputOutput
         // Decrypt
         $strResponse = $objCodifyEngine->Decrypt($strResponse);
 
-        // Deserialize response
+        // unserialize response
         $arrResponse = unserialize($strResponse);
 
         // Check if we have a array

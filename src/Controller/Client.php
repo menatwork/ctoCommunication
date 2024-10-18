@@ -8,6 +8,8 @@
 
 namespace MenAtWork\CtoCommunicationBundle\Controller;
 
+use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\File;
 use MenAtWork\CtoCommunicationBundle\Container\ClientState;
 use MenAtWork\CtoCommunicationBundle\Container\Error;
 use MenAtWork\CtoCommunicationBundle\Container\IO;
@@ -33,7 +35,7 @@ class Client extends Base
      *
      * @param LoggerInterface $logger Logger.
      *
-     * @param \Contao\CoreBundle\Framework\ContaoFramework $framework
+     * @param ContaoFramework $framework
      */
     public function __construct($logger, $framework)
     {
@@ -383,7 +385,7 @@ class Client extends Base
             $intCountPart = count($mixOutput);
 
             foreach ($mixOutput as $keyOutput => $valueOutput) {
-                $objFile = new \File('system/tmp/' . $keyOutput . '_' . $strFileName);
+                $objFile = new File('system/tmp/' . $keyOutput . '_' . $strFileName);
                 $objFile->write($valueOutput);
                 $objFile->close();
             }
