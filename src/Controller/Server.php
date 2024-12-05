@@ -166,7 +166,7 @@ class Server extends Base
      *
      * @param bool $asArray Flag if we want the query params as array.
      *
-     * @return string the query string
+     * @return string|array the query string
      */
     protected function getQueryString($asArray = false)
     {
