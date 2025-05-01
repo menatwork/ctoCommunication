@@ -8,11 +8,14 @@
 
 namespace MenAtWork\CtoCommunicationBundle\Controller;
 
+use Contao\System;
 use MenAtWork\CtoCommunicationBundle\Codifyengine\Factory;
 use MenAtWork\CtoCommunicationBundle\Container\Error;
 use MenAtWork\CtoCommunicationBundle\Helper\Config;
 use MenAtWork\CtoCommunicationBundle\Helper\Debug;
 use MenAtWork\CtoCommunicationBundle\InputOutput\InterfaceInputOutput;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\SessionInterface as SessionInterfaceAlias;
 
 class Base
 {
@@ -62,12 +65,19 @@ class Base
      */
     protected $config;
 
+    protected SessionInterfaceAlias $session;
+
     /**
      * Constructor
      */
     public function __construct()
     {
         $this->initEnvironment();
+
+        $container = System::getContainer();
+        /** @var RequestStack $requestStack */
+        $requestStack = $container->get('request_stack');
+        $this->session = $requestStack->getSession();
     }
 
     /**
@@ -76,11 +86,11 @@ class Base
     protected function initEnvironment()
     {
         // Load the config class.
-        $this->config               = new Config();
+        $this->config = new Config();
         $this->objCodifyengineBasic = Factory::getEngine('aes');
-        $this->objDebug             = Debug::getInstance();
-        $this->objError             = false;
-        $this->arrRpcList           = $GLOBALS["CTOCOM_FUNCTIONS"];
+        $this->objDebug = Debug::getInstance();
+        $this->objError = false;
+        $this->arrRpcList = $GLOBALS["CTOCOM_FUNCTIONS"];
 
         $this->setIOEngine("default");
         $this->setCodifyengine();

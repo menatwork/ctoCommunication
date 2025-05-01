@@ -1,13 +1,16 @@
-<?php if (!defined('TL_ROOT')) die('You cannot access this file directly!');
+<?php
 
 /**
  * Contao Open Source CMS
  *
  * @copyright  MEN AT WORK 2014
  * @package    ctoCommunication
- * @license    GNU/LGPL 
+ * @license    GNU/LGPL
  * @filesource
  */
+
+use Contao\Config;
+use Contao\Database;
 
 // Be silenced
 @error_reporting(0);
@@ -16,7 +19,7 @@
 /**
  * Runonce Job
  */
-class runonceJob extends \Backend
+class runonceJob
 {
 
     //- Core Functions ---------------------------------------------------------
@@ -32,53 +35,37 @@ class runonceJob extends \Backend
      */
     public function run()
     {
-        try
-        {
+        try {
             // Api key            
-            if (strlen($GLOBALS['TL_CONFIG']['ctoCom_APIKey']) == 0)
-            {
-                $objKey = $this->Database->prepare("SELECT UUID() as uid")->execute();
-                $this->Config->add("\$GLOBALS['TL_CONFIG']['ctoCom_APIKey']", $objKey->uid);
-                $this->log("Create an API Key for ctoCommunictaion.", "ctoCommunictaion Runonce", TL_GENERAL);
+            if (strlen($GLOBALS['TL_CONFIG']['ctoCom_APIKey']) == 0) {
+                $objKey = Database::getInstance()->prepare("SELECT UUID() as uid")->execute();
+                Config::getInstance()->add("\$GLOBALS['TL_CONFIG']['ctoCom_APIKey']", $objKey->uid);
             }
-        }
-        catch (Exception $exc)
-        {
-            // Write log 
-            $this->log("Error by creating an APIKey for ctoCommunictaion.", "ctoCommunictaion Runonce", TL_ERROR);            
+        } catch (Exception $exc) {
+
         }
 
-        try
-        {
+        try {
             // Database update
-            $arrTables = $this->Database->listTables();
+            $arrTables = Database::getInstance()->listTables();
 
-            if (in_array("tl_ctocom_cache", $arrTables))
-            {
-                $arrIndexes = $this->Database->prepare("SHOW INDEX FROM `tl_ctocom_cache`")->executeUncached()->fetchAllAssoc();
+            if (in_array("tl_ctocom_cache", $arrTables)) {
+                $arrIndexes = Database::getInstance()->prepare("SHOW INDEX FROM `tl_ctocom_cache`")->execute()->fetchAllAssoc();
 
-                foreach ($arrIndexes as $keyIndex => $valueIndex)
-                {
-                    if ($valueIndex["Key_name"] == "tstamp")
-                    {
-                        $this->Database->prepare("ALTER TABLE `tl_ctocom_cache` DROP INDEX `tstamp`")->execute();
-                        $this->Database->prepare("ALTER TABLE `tl_ctocom_cache` ADD KEY `uid` (`uid`)")->execute();
+                foreach ($arrIndexes as $keyIndex => $valueIndex) {
+                    if ($valueIndex["Key_name"] == "tstamp") {
+                        Database::getInstance()->prepare("ALTER TABLE `tl_ctocom_cache` DROP INDEX `tstamp`")->execute();
+                        Database::getInstance()->prepare("ALTER TABLE `tl_ctocom_cache` ADD KEY `uid` (`uid`)")->execute();
 
                         break;
                     }
                 }
             }
-        }
-        catch (\RuntimeException $exc)
-        {
-            $this->log("Error by updating database table tl_ctocom_cache.", "ctoCommunictaion Runonce", TL_ERROR);          
+        } catch (\RuntimeException $exc) {
         }
     }
-
 }
 
 // Run once
 $objRunonceJob = new runonceJob();
 $objRunonceJob->run();
-
-?>
