@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class ClientState
 {
-    const CRYPT_PASSWORD_API_KEY = 'api_key';
+    const CRYPT_PASSWORD_API_KEY  = 'api_key';
     const CRYPT_PASSWORD_EXCHANGE = 'exchange';
 
     /**
@@ -263,57 +263,62 @@ class ClientState
         if ($use == self::CRYPT_PASSWORD_API_KEY) {
             $this->basicCodifyEngine->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
             $this->extendedCodifyEngine->setKey($GLOBALS['TL_CONFIG']['ctoCom_APIKey']);
-        } else if ($use == self::CRYPT_PASSWORD_EXCHANGE) {
-            // Check if we have some data
-            $arrConnections = Database::getInstance()
-                ->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
-                ->execute($this->getCon())
-                ->fetchAllAssoc();
+        } else {
+            if ($use == self::CRYPT_PASSWORD_EXCHANGE) {
+                // Check if we have some data
+                $arrConnections = Database::getInstance()
+                                          ->prepare("SELECT * FROM tl_ctocom_cache WHERE uid=?")
+                                          ->execute($this->getCon())
+                                          ->fetchAllAssoc()
+                ;
 
-            if (count($arrConnections) == 0) {
-                $this->log
-                (
-                    \sprintf
+                if (count($arrConnections) == 0) {
+                    $this->log
                     (
-                        "Call from %s with a unknown connection ID.",
-                        Environment::get('ip') ?? '0.0.0.0'
-                    ),
-                    __FUNCTION__ . " | " . __CLASS__,
-                    'ERROR'
-                );
+                        \sprintf
+                        (
+                            "Call from %s with a unknown connection ID.",
+                            Environment::get('ip') ?? '0.0.0.0'
+                        ),
+                        __FUNCTION__ . " | " . __CLASS__,
+                        'ERROR'
+                    );
 
-                return false;
-            }
+                    return false;
+                }
 
-            // Check if time out isn't reached.
-            if ($arrConnections[0]["tstamp"] + $this->getConTimeout() < time()) {
+                // Check if time out isn't reached.
+                if ($arrConnections[0]["tstamp"] + $this->getConTimeout() < time()) {
+                    Database::getInstance()
+                            ->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")
+                            ->execute($this->getCon())
+                    ;
+
+                    $this->log
+                    (
+                        sprintf
+                        (
+                            "Call from %s with a expired connection ID.",
+                            Environment::get('ip')
+                        ),
+                        __FUNCTION__ . " | " . __CLASS__,
+                        'ERROR'
+                    );
+
+                    return false;
+                }
+
+                // Reset timestamp
                 Database::getInstance()
-                    ->prepare("DELETE FROM tl_ctocom_cache WHERE uid=?")
-                    ->execute($this->getCon());
+                        ->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
+                        ->set(array("tstamp" => time()))
+                        ->execute($this->getCon())
+                ;
 
-                $this->log
-                (
-                    sprintf
-                    (
-                        "Call from %s with a expired connection ID.",
-                        Environment::get('ip')
-                    ),
-                    __FUNCTION__ . " | " . __CLASS__,
-                    'ERROR'
-                );
-
-                return false;
+                // Set codify key from database
+                $this->basicCodifyEngine->setKey($arrConnections[0]["shared_secret_key"]);
+                $this->extendedCodifyEngine->setKey($arrConnections[0]["shared_secret_key"]);
             }
-
-            // Reset timestamp
-            Database::getInstance()
-                ->prepare("UPDATE tl_ctocom_cache %s WHERE uid=?")
-                ->set(array("tstamp" => time()))
-                ->execute($this->getCon());
-
-            // Set codify key from database
-            $this->basicCodifyEngine->setKey($arrConnections[0]["shared_secret_key"]);
-            $this->extendedCodifyEngine->setKey($arrConnections[0]["shared_secret_key"]);
         }
 
         return true;
@@ -327,8 +332,40 @@ class ClientState
     public function validateAction()
     {
         // Check RPC Call from get and the RPC Call from API-Key
-        $mixVar    = $this->basicCodifyEngine->Decrypt(base64_decode($this->getRequestApiKey()));
-        $mixVar    = StringUtil::trimsplit("@\|@", $mixVar);
+        $mixVar = $this->basicCodifyEngine->Decrypt(base64_decode($this->getRequestApiKey()));
+        if ($mixVar === false || !is_string($mixVar)) {
+            $this->log
+            (
+                sprintf
+                (
+                    "Error uncryptable Api Key from %s. Request action: %s",
+                    Environment::get('ip'),
+                    $this->getAct(),
+                ),
+                [__CLASS__, __FUNCTION__],
+                'ERROR'
+            );
+
+            return false;
+        }
+
+        $mixVar = StringUtil::trimsplit("@\|@", (string) $mixVar);
+        if (!is_array($mixVar) || count($mixVar) == 0) {
+            $this->log
+            (
+                sprintf
+                (
+                    "Error unknown structure for Api Key from %s. Request action: %s",
+                    Environment::get('ip'),
+                    $this->getAct(),
+                ),
+                [__CLASS__, __FUNCTION__],
+                'ERROR'
+            );
+
+            return false;
+        }
+
         $strApiKey = $mixVar[1];
         $strAction = $mixVar[0];
 

@@ -85,7 +85,12 @@ class Base implements InterfaceInputOutput
 
             $exception = $objContainer->getError()->getException();
             if (is_object($exception)) {
-                $mixError["exception"] = $exception->getMessage();
+                $mixError["exception"] = sprintf(
+                    '%s in %s on line %d',
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine()
+                );
             } else {
                 $mixError["exception"] = $exception;
             }
@@ -154,22 +159,23 @@ class Base implements InterfaceInputOutput
         $arrResponse = $this->cleanUp($arrResponse);
 
         $objContainer = new IO();
-        $objContainer->setSuccess($arrResponse["success"]);
-        $objContainer->setResponse($arrResponse["response"]);
-        $objContainer->setSplitcontent($arrResponse["splitcontent"]);
-        $objContainer->setSplitcount($arrResponse["splitcount"]);
-        $objContainer->setSplitname($arrResponse["splitname"]);
+        $objContainer->setSuccess($arrResponse["success"] ?? false);
+        $objContainer->setResponse($arrResponse["response"] ?? null);
+        $objContainer->setSplitcontent($arrResponse["splitcontent"] ?? false);
+        $objContainer->setSplitcount($arrResponse["splitcount"] ?? 0);
+        $objContainer->setSplitname($arrResponse["splitname"] ?? '');
 
         // Set error
-        if ($arrResponse["error"] != "") {
+        $arrError = $arrResponse["error"] ?? '';
+        if ($arrError != "") {
             $objError = new Error();
-            $objError->setID($arrResponse["error"]["id"]);
-            $objError->setObject($arrResponse["error"]["object"]);
-            $objError->setMessage($arrResponse["error"]["msg"]);
-            $objError->setRPC($arrResponse["error"]["rpc"]);
-            $objError->setClass($arrResponse["error"]["class"]);
-            $objError->setFunction($arrResponse["error"]["function"]);
-            $objError->setException($arrResponse["error"]["exception"]);
+            $objError->setID($arrError["id"] ?? '');
+            $objError->setObject($arrError["object"] ?? '');
+            $objError->setMessage($arrError["msg"] ?? '');
+            $objError->setRPC($arrError["rpc"] ?? '');
+            $objError->setClass($arrError["class"] ?? '');
+            $objError->setFunction($arrError["function"] ?? '');
+            $objError->setException($arrError["exception"] ?? '');
 
             $objContainer->setError($objError);
         }

@@ -59,7 +59,8 @@ class Server extends Base
      *
      * @var bool
      */
-    protected $isGetRequest = false;
+    protected         $isGetRequest = false;
+    private IO|string $guzzleResponse;
 
     /**
      * Server constructor.
@@ -315,8 +316,8 @@ class Server extends Base
 
             for ($i = 0; $i < 100; $i++) {
                 // Create random private key.
-                $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]),
-                    strlen($arrDiffieHellman["prime"]) - 2);
+                $intPrivateLength = rand(strlen((string) $arrDiffieHellman["generator"]),
+                    strlen((string) $arrDiffieHellman["prime"]) - 2);
                 $strPrivate       = rand(1, 9);
 
                 for ($ii = 0; $ii < $intPrivateLength; $ii++) {
@@ -341,7 +342,7 @@ class Server extends Base
                             "value" => $objDiffieHellman->getPublicKey(),
                         )
                     );
-                } catch (\RuntimeException $exc) {
+                } catch (\Exception $exc) {
                     $objLastException = $exc;
                     continue;
                 }
@@ -608,6 +609,7 @@ class Server extends Base
                     $options
                 );
             } catch (ServerException $e) {
+                echo $e->getResponse()->getBody()->getContents();
                 throw  $e;
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 throw  $e;
@@ -664,6 +666,8 @@ class Server extends Base
                     $intStart,
                     $intLength));
         }
+
+        $this->guzzleResponse = $this->response;
 
         return $this;
     }
@@ -773,12 +777,19 @@ class Server extends Base
                 if ($this->response->getError()->getRPC() == "") {
                     $string = "There was an unknown error on client site.";
                 } else {
-                    $string = vsprintf($GLOBALS['TL_LANG']['ERR']['client_error'] . ":<br />%s<br /><br />RPC Call: %s",
+                    $string = vsprintf($GLOBALS['TL_LANG']['ERR']['client_error'] . ":<br />%s<br /><br />RPC Call: %s | Class: %s | Function: %s",
                         array(
                             nl2br($this->response->getError()->getMessage()),
                             $this->response->getError()->getRPC(),
+                            (strlen($this->response->getError()->getClass()) != 0) ? $this->response->getError()->getClass() : " - ",
+                            (strlen($this->response->getError()->getFunction()) != 0) ? $this->response->getError()->getFunction() : " - ",
                         )
                     );
+
+                    $exception = $this->response->getError()->getException();
+                    if (!empty($exception) && $exception !== $this->response->getError()->getMessage()) {
+                        $string .= "<br />Exception: " . nl2br($exception);
+                    }
                 }
             }
 

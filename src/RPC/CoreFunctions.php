@@ -196,7 +196,7 @@ class CoreFunctions extends Backend
         } else {
             // Init
             $intPrimeLength = 32;
-            $strGenerator = 2;
+            $strGenerator = '2';
 
             $objLastException = null;
 
@@ -214,7 +214,7 @@ class CoreFunctions extends Backend
                 );
 
                 // Create random private key.
-                $intPrivateLength = rand(strlen($arrDiffieHellman["generator"]), strlen($arrDiffieHellman["prime"]) - 2);
+                $intPrivateLength = rand(strlen((string) $arrDiffieHellman["generator"]), strlen((string) $arrDiffieHellman["prime"]) - 2);
                 $strPrivate = rand(1, 9);
 
                 for ($ii = 0; $ii < $intPrivateLength; $ii++) {
