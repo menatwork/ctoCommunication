@@ -112,7 +112,7 @@ class CoreFunctions extends Backend
      */
     public function referrer_disable()
     {
-        if ($GLOBALS['TL_CONFIG']['disableRefererCheck'] == false) {
+        if (($GLOBALS['TL_CONFIG']['disableRefererCheck'] ?? false) == false) {
             if (array_key_exists("ctoCom_disableRefererCheck", $GLOBALS['TL_CONFIG'])) {
                 $this->Config->update("\$GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck']", false);
             } else {
@@ -138,7 +138,7 @@ class CoreFunctions extends Backend
      */
     public function referrer_enable()
     {
-        if ($GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck'] == true) {
+        if (($GLOBALS['TL_CONFIG']['ctoCom_disableRefererCheck'] ?? false) == true) {
             $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", true);
         } else {
             $this->Config->update("\$GLOBALS['TL_CONFIG']['disableRefererCheck']", false);
@@ -284,7 +284,7 @@ class CoreFunctions extends Backend
                 ->set(
                     array(
                         "tstamp"            => time(),
-                        "shared_secret_key" => $GLOBALS['TL_CONFIG']['ctoCom_APIKey'],
+                        "shared_secret_key" => $GLOBALS['TL_CONFIG']['ctoCom_APIKey'] ?? '',
                     )
                 )
                 ->execute(Input::get("con"))
